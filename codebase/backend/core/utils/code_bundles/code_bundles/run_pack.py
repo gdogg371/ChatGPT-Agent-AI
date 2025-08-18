@@ -16,22 +16,37 @@ from v2.backend.core.utils.code_bundles.code_bundles.src.packager.core.orchestra
 
 
 # ------------------- repo-local & home creds locations -------------------
-SECRETS_CFG = Path(r"C:\Users\cg371\PycharmProjects\ChatGPT Bot\secrets\publish.local.json")
-HOME_CFG    = Path.home() / ".config" / "packager" / "publish.local.json"
 
+SECRETS_DIR = Path(r"C:\\Users\\cg371\\PycharmProjects\\ChatGPT Bot\\secret_management")  # <-- your secrets path
 
 def load_publish_config() -> PublishOptions:
     """
-    Load publishing configuration from repo-local secrets first, then home config.
-    Falls back to 'local' mode if not found or incomplete.
+    Load publishing configuration from a local JSON file that is not committed.
+    Search order:
+      1) ./publish.local.json  (next to this script)
+      2) <secrets dir>/publish.local.json  (C:\...\ChatGPT Bot\secrets\publish.local.json)
+      3) ~/.config/packager/publish.local.json
+    If not present or incomplete, fall back to 'local' mode.
     """
-    cfg_path = SECRETS_CFG if SECRETS_CFG.exists() else HOME_CFG if HOME_CFG.exists() else None
-    if not cfg_path:
+    candidates = [
+        Path(__file__).parent / "publish.local.json",
+        SECRETS_DIR / "publish.local.json",  # <--- added
+        Path.home() / ".config" / "packager" / "publish.local.json",
+    ]
+
+    src_path = None
+    cfg_data = None
+    for p in candidates:
+        if p.exists():
+            src_path = p
+            cfg_data = json.loads(p.read_text(encoding="utf-8"))
+            break
+
+    if not cfg_data:
+        print("[run_pack] publish.local.json not found; using local-only publish.")
         return PublishOptions(mode="local", local_publish_root=None)
 
-    cfg_data = json.loads(cfg_path.read_text(encoding="utf-8"))
     gh = cfg_data.get("github") or {}
-
     opts = PublishOptions(
         mode=cfg_data.get("mode", "local"),
         github=GitHubPublish(
@@ -45,17 +60,30 @@ def load_publish_config() -> PublishOptions:
         publish_codebase=bool(cfg_data.get("publish_codebase", True)),
         publish_analysis=bool(cfg_data.get("publish_analysis", True)),
         publish_handoff=bool(cfg_data.get("publish_handoff", True)),
-        publish_transport=bool(cfg_data.get("publish_transport", False)),
+        publish_transport=bool(cfg_data.get("publish_transport", True)),  # default True so parts go up
         publish_prompts=bool(cfg_data.get("publish_prompts", True)),
     )
+
+    print(f"[run_pack] publish config loaded from: {src_path}")
+    print("[run_pack] publish.mode =", opts.mode)
+    if opts.github:
+        print(f"[run_pack] publish.github = {opts.github.owner}/{opts.github.repo} "
+              f"branch={opts.github.branch} base={opts.github.base_path!r}")
+    print("[run_pack] publish flags:",
+          "codebase=", opts.publish_codebase,
+          "analysis=", opts.publish_analysis,
+          "handoff=", opts.publish_handoff,
+          "transport=", opts.publish_transport,
+          "prompts=", opts.publish_prompts)
 
     # Guardrail: if GitHub selected but token/coords missing, fall back to local
     if opts.mode in ("github", "both"):
         if not opts.github or not opts.github.owner or not opts.github.repo or not opts.github_token:
-            print("[packager] WARN: GitHub publish selected but token/coords missing; falling back to local.")
+            print("[run_pack] WARN: GitHub publish selected but missing token/coords; falling back to local.")
             return PublishOptions(mode="local", local_publish_root=opts.local_publish_root)
-    return opts
 
+    return opts
+# -----------------------------------------------------------------------------
 
 # ------------------- output & mirror locations -------------------
 OUT_DIR     = Path(r"C:\Users\cg371\PycharmProjects\ChatGPT Bot\v2\patches\output\design_manifest")
@@ -99,8 +127,8 @@ NORMALIZE = norm.NormalizationRules(
 
 # ------------------- ingestion hardening (globs) -------------------
 EXCLUDE_GLOBS = (
-    # your secrets folder and the creds file
-    "**/secrets/**",
+    # your secret_management folder and the creds file
+    "**/secret_management/**",
     "**/publish.local.json",
     # typical noise and heavy dirs
     "**/.git/**", "**/node_modules/**", "**/dist/**", "**/build/**", "**/output/**", "**/software/**",
@@ -159,7 +187,7 @@ def main(
         ),
     )
 
-    # Load publish options (GitHub/local) from secrets path (or home)
+    # Load publish options (GitHub/local) from secret_management path (or home)
     publish = load_publish_config()
 
     # Build config for the packager
@@ -178,7 +206,7 @@ def main(
         prompt_mode=("embed" if prompts is not None else "omit"),
         follow_symlinks=False,
         transport=TRANSPORT,
-        publish=publish,   # ← from publish.local.json (secrets/) or home fallback
+        publish=publish,   # ← from publish.local.json (secret_management/) or home fallback
     )
 
     # Run the packager
