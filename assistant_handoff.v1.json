@@ -17,12 +17,7 @@
       "design_manifest_01/design_manifest.part02.txt",
       "design_manifest_01/design_manifest.part03.txt",
       "design_manifest_01/design_manifest.part04.txt",
-      "design_manifest_01/design_manifest.part05.txt",
-      "design_manifest_01/design_manifest.part06.txt",
-      "design_manifest_01/design_manifest.part07.txt",
-      "design_manifest_01/design_manifest.part08.txt",
-      "design_manifest_01/design_manifest.part09.txt",
-      "design_manifest_01/design_manifest.part10.txt"
+      "design_manifest_01/design_manifest.part05.txt"
     ],
     "removed_monolith": true
   },
