@@ -153,6 +153,33 @@ def build_cfg(
     return cfg
 
 
+def gather_emitted_paths(src_root: Path, emitted_prefix: str) -> list[str]:
+    """
+    Return every file under src_root as an emitted path prefixed by emitted_prefix,
+    e.g. codebase/backend/core/configuration/config.py
+    """
+    prefix = emitted_prefix if emitted_prefix.endswith("/") else (emitted_prefix + "/")
+    out: list[str] = []
+    for p in sorted(src_root.rglob("*")):
+        if p.is_file():
+            rel = p.relative_to(src_root).as_posix()
+            out.append(f"{prefix}{rel}")
+    return out
+
+
+def print_github_raw_urls(owner: str, repo: str, branch: str, base_path: str, paths: list[str]) -> None:
+    """
+    Print raw.githubusercontent.com URLs for each emitted path.
+    Example base:
+      https://raw.githubusercontent.com/{owner}/{repo}/refs/heads/{branch}/
+    """
+    base = f"https://raw.githubusercontent.com/{owner}/{repo}/refs/heads/{branch}/"
+    prefix = (base_path.strip("/") + "/") if base_path else ""
+    for p in paths:
+        p_rel = p.lstrip("/")
+        print(base + prefix + p_rel)
+
+
 def main() -> int:
     p = argparse.ArgumentParser(description="Package a code tree and (optionally) publish.")
     p.add_argument("--src", type=Path, default=DEFAULT_SRC, help="Staging root (becomes codebase/)")
@@ -190,11 +217,11 @@ def main() -> int:
 
     eff_local_root = args.local_publish_root or (Path(sec["local_publish_root"]) if sec.get("local_publish_root") else None)
 
-    eff_pub_code     = _bool(args.publish_codebase, default=_bool(sec.get("publish_codebase"), True))
-    eff_pub_analysis = _bool(args.publish_analysis, default=_bool(sec.get("publish_analysis"), False))
-    eff_pub_handoff  = _bool(args.publish_handoff,  default=_bool(sec.get("publish_handoff"), True))
-    eff_pub_transport= _bool(args.publish_transport,default=_bool(sec.get("publish_transport"), False))
-    eff_clean        = _bool(args.clean_before_publish, default=_bool(sec.get("clean_before_publish"), False))
+    eff_pub_code      = _bool(args.publish_codebase,  default=_bool(sec.get("publish_codebase"), True))
+    eff_pub_analysis  = _bool(args.publish_analysis,  default=_bool(sec.get("publish_analysis"), False))
+    eff_pub_handoff   = _bool(args.publish_handoff,   default=_bool(sec.get("publish_handoff"), True))
+    eff_pub_transport = _bool(args.publish_transport, default=_bool(sec.get("publish_transport"), False))
+    eff_clean         = _bool(args.clean_before_publish, default=_bool(sec.get("clean_before_publish"), False))
 
     # Validate GitHub args if needed
     if eff_mode in ("github", "both"):
@@ -235,8 +262,16 @@ def main() -> int:
     print(f"Bundle: {result.out_bundle}")
     print(f"Run-spec: {result.out_runspec}")
     print(f"Guide: {result.out_guide}")
+
+    # --- Print GitHub raw URLs for all emitted codebase files -------------------
+    if eff_mode in ("github", "both"):
+        emitted_paths = gather_emitted_paths(args.src, cfg.emitted_prefix)
+        print("[packager] GitHub Raw URLs:")
+        print_github_raw_urls(eff_owner, eff_repo, eff_branch, eff_base, emitted_paths)
+
     return 0
 
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
