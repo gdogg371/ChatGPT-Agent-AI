@@ -2,12 +2,13 @@ import os
 import requests
 from pathlib import Path
 from tqdm import tqdm
+from secret_management.secrets_loader import get_secret
 
 # === CONFIGURATION ===
 
 ROOT = Path(r"/software")
 
-HF_TOKEN = ""  # <<< INSERT YOUR HF TOKEN HERE
+HF_TOKEN = get_secret("hugging_face", default="")  # looks in secret_management/, then ~/.config/packager/  # <<< INSERT YOUR HF TOKEN HERE
 HEADERS = {"Authorization": f"Bearer {HF_TOKEN}"}
 
 DIR_STRUCTURE = {
