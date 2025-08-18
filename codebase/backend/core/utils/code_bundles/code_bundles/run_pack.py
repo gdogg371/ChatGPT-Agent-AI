@@ -134,7 +134,7 @@ EXTERNAL_SOURCE = Path(r"C:\Users\cg371\PycharmProjects\ChatGPT Bot\v2")
 
 #PACKAGER_SPLIT_BYTES = 300_000     # ~300 KB per part
 #PACKAGER_CHUNK_BYTES = 64_000      # ~64 KB per JSONL 'file_chunk'
-PACKAGER_SPLIT_BYTES  = 5_000_000
+PACKAGER_SPLIT_BYTES  = 2_000_000
 PACKAGER_CHUNK_BYTES  = 128_000
 TRANSPORT = TransportOptions(
     transport_as_text=True,                    # parts use .txt extension; lines remain JSONL
