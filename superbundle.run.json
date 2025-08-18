@@ -1,6 +1,6 @@
 {
   "config_snapshot": {
-    "emitted_prefix": "codebase/",
+    "emitted_prefix": "v2/patches/output/patch_code_bundles/",
     "exclude_globs": [
       "**/secret_management/**",
       "**/publish.local.json",
@@ -62,9 +62,9 @@
     }
   },
   "provenance": {
-    "emitted_prefix": "codebase/",
-    "source_root": "C:\\Users\\cg371\\PycharmProjects\\ChatGPT Bot\\v2\\backend\\core\\utils\\code_bundles\\code_bundles\\codebase"
+    "emitted_prefix": "v2/patches/output/patch_code_bundles/",
+    "source_root": "C:\\Users\\cg371\\PycharmProjects\\ChatGPT Bot\\v2\\backend\\core\\utils\\code_bundles\\code_bundles\\v2\\patches\\output\\patch_code_bundles"
   },
-  "timestamp": "2025-08-18T21:53:41Z",
+  "timestamp": "2025-08-18T23:09:44Z",
   "version": "1"
 }
