@@ -4,17 +4,17 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Tuple, Optional, Dict, Any, Callable
-import base64, json, hashlib, time
+import base64, json, hashlib
 
 # ---- robust imports (absolute first, then package-relative fallbacks) ----
 try:
-    from v2.backend.core.utils.code_bundles.code_bundles.src.packager.core.config import PackConfig, TransportOptions
-    from v2.backend.core.utils.code_bundles.code_bundles.src.packager.core.paths import PathOps
-    from v2.backend.core.utils.code_bundles.code_bundles.src.packager.core.discovery import DiscoveryEngine, DiscoveryConfig
-    from v2.backend.core.utils.code_bundles.code_bundles.src.packager.io.manifest_writer import BundleWriter
-    from v2.backend.core.utils.code_bundles.code_bundles.src.packager.io.runspec_writer import RunSpecWriter
-    from v2.backend.core.utils.code_bundles.code_bundles.src.packager.io.guide_writer import GuideWriter
-    from v2.backend.core.utils.code_bundles.code_bundles.src.packager.languages.python.plugin import PythonAnalyzer
+    from packager.core.config import PackConfig, TransportOptions
+    from packager.core.paths import PathOps
+    from packager.core.discovery import DiscoveryEngine, DiscoveryConfig
+    from packager.io.manifest_writer import BundleWriter
+    from packager.io.runspec_writer import RunSpecWriter
+    from packager.io.guide_writer import GuideWriter
+    from packager.languages.python.plugin import PythonAnalyzer
 except Exception:  # package-relative fallbacks
     from ..core.config import PackConfig, TransportOptions  # type: ignore
     from ..core.paths import PathOps  # type: ignore
@@ -270,7 +270,6 @@ class Packager:
                 payload = guide_obj.to_dict()  # type: ignore[attr-defined]
             else:
                 payload = guide_obj
-            # Ensure JSON serializable
             self.cfg.out_guide.write_text(
                 json.dumps(payload, ensure_ascii=False, sort_keys=True, indent=2),
                 encoding="utf-8",
@@ -415,12 +414,15 @@ class Packager:
         self._log(f"Write: bundle → '{self.cfg.out_bundle.name}'")
         self.bundle.write(records)
 
+        # --------- Transport artifacts: ONLY when publish_transport=True ----------
         t = self.cfg.transport
         parts: List[Path] = []
         removed_monolith = False
         split_info: Optional[Dict[str, Any]] = None
         idx_path: Optional[Path] = None
-        if t.split_bytes > 0:
+
+        do_transport = bool(getattr(self.cfg.publish, "publish_transport", False))
+        if t.split_bytes > 0 and do_transport:
             self._log("Split: enabled")
             data = self.cfg.out_bundle.read_bytes()
 
@@ -473,11 +475,15 @@ class Packager:
                 "removed_monolith": removed_monolith,
             }
 
-            # write SHA256SUMS for parts + index
+            # SHA256SUMS only when we actually emit transport artifacts
             self._write_sums_file(parts, idx_path)
-        else:
-            # No split: still write a sums file for the monolith
+        elif do_transport:
+            # No split requested but still publishing transport -> write sums for monolith
             self._write_sums_file(parts=[], idx_path=None)
+        else:
+            # GitHub/plain-text mode: NO parts, NO index, NO sums
+            split_info = None
+            idx_path = None
 
         prov = {
             "emitted_prefix": self.cfg.emitted_prefix,
@@ -499,7 +505,8 @@ class Packager:
         if getattr(self.cfg.publish, "publish_transport", False):
             if idx_path and idx_path.exists():
                 publish_items.append(PublishItem(path=f"transport/{idx_path.name}", data=idx_path.read_bytes()))
-            publish_items.append(PublishItem(path="transport/design_manifest.SHA256SUMS", data=self.cfg.out_sums.read_bytes()))
+            if self.cfg.out_sums.exists():
+                publish_items.append(PublishItem(path="transport/design_manifest.SHA256SUMS", data=self.cfg.out_sums.read_bytes()))
             for pth in parts:
                 rel = pth.name if pth.parent == self.cfg.out_bundle.parent else f"{pth.parent.name}/{pth.name}"
                 publish_items.append(PublishItem(path=f"transport/{rel}", data=pth.read_bytes()))
@@ -516,52 +523,17 @@ class Packager:
                 if not pub.github or not pub.github_token:
                     raise RuntimeError("GitHub publish selected but github coordinates/token not configured.")
 
-                # Only code files go into files_meta (used by descriptors)
-                code_only: List[PublishItem] = [it for it in publish_items if it.path.startswith("codebase/")]
-                files_meta = [{
-                    "path": it.path,
-                    "bytes": len(it.data),
-                    "sha256": hashlib.sha256(it.data).hexdigest(),
-                } for it in code_only]
-
-                # Build GitHub-facing descriptors (describe how it appears on GitHub)
-                gh_handoff = {
-                    "version": "1",
-                    "emitted_prefix": (self.cfg.emitted_prefix if self.cfg.emitted_prefix else "codebase/"),
-                    "note": "GitHub mode: plain-text source under 'codebase/'. No design-manifest artifacts are published.",
-                    "files": files_meta,
-                }
-                gh_super = {
-                    "version": "1",
-                    "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-                    "config_snapshot": {
-                        "emitted_prefix": self.cfg.emitted_prefix,
-                        "segment_excludes": list(self.cfg.segment_excludes),
-                        "include_globs": list(self.cfg.include_globs),
-                        "exclude_globs": list(self.cfg.exclude_globs),
-                    },
-                    "provenance": {
-                        "github": {
-                            "owner": (pub.github.owner if pub.github else ""),
-                            "repo": (pub.github.repo if pub.github else ""),
-                            "branch": (pub.github.branch if pub.github else ""),
-                            "base_path": (pub.github.base_path if pub.github else ""),
-                        }
-                    }
-                }
-
-                def _js(obj: Any) -> bytes:
-                    return json.dumps(obj, ensure_ascii=False, sort_keys=True, indent=2).encode("utf-8")
-
-                # Push code + canonical descriptors to GitHub root
+                # Code files to push come from codebase/**
                 code_items: List[PublishItem] = [it for it in publish_items if it.path.startswith("codebase/")]
-                code_items.append(PublishItem(path="assistant_handoff.v1.json", data=_js(gh_handoff)))
-                code_items.append(PublishItem(path="superbundle.run.json", data=_js(gh_super)))
+
+                # Always also push the actual handoff files from OUT (canonical names at repo root)
+                code_items.append(PublishItem(path="assistant_handoff.v1.json", data=self.cfg.out_guide.read_bytes()))
+                code_items.append(PublishItem(path="superbundle.run.json", data=self.cfg.out_runspec.read_bytes()))
 
                 self._log(
                     f"Publish(GitHub): repo={pub.github.owner}/{pub.github.repo} "
                     f"branch={pub.github.branch} base='{pub.github.base_path}' items={len(code_items)} "
-                    f"(code + handoff descriptors)"
+                    f"(code + handoff)"
                 )
                 gh = GitHubPublisher(
                     owner=pub.github.owner,
@@ -606,4 +578,3 @@ class Packager:
             if p.endswith(".sh") and t.strip().startswith("#!"):
                 entries.append({"path": p, "reason": "shebang script"})
         return entries
-
