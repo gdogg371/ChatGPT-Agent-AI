@@ -1,0 +1,42 @@
+{
+  "config_snapshot": {
+    "emitted_prefix": "codebase/",
+    "exclude_globs": [
+      "**/secret_management/**",
+      "**/publish.local.json",
+      "**/.git/**",
+      "**/node_modules/**",
+      "**/dist/**",
+      "**/build/**",
+      "**/output/**",
+      "**/software/**",
+      "**/__pycache__/**",
+      "**/*.pyc",
+      "**/backend/core/utils/code_bundles/code_bundles/**"
+    ],
+    "include_globs": [],
+    "segment_excludes": [
+      ".git",
+      ".hg",
+      ".svn",
+      "__pycache__",
+      ".venv",
+      "venv",
+      "node_modules",
+      "dist",
+      "build",
+      "output",
+      "software"
+    ]
+  },
+  "provenance": {
+    "github": {
+      "base_path": "",
+      "branch": "main",
+      "owner": "gdogg371",
+      "repo": "ChatGPT-Agent-AI"
+    }
+  },
+  "timestamp": "2025-08-18T20:58:11Z",
+  "version": "1"
+}
