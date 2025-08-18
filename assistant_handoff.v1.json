@@ -1,0 +1,922 @@
+{
+  "emitted_prefix": "codebase/",
+  "files": [
+    {
+      "bytes": 0,
+      "path": "codebase/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 0,
+      "path": "codebase/backend/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 52,
+      "path": "codebase/backend/core/__init__.py",
+      "sha256": "70fd98b1c6d663e0238a8c065f20af6454a5c985ed8cf94a50535f9b064f89f8"
+    },
+    {
+      "bytes": 52,
+      "path": "codebase/backend/core/configuration/__init__.py",
+      "sha256": "70fd98b1c6d663e0238a8c065f20af6454a5c985ed8cf94a50535f9b064f89f8"
+    },
+    {
+      "bytes": 2206,
+      "path": "codebase/backend/core/configuration/config.py",
+      "sha256": "01ad13b785533a56c5270e117e57a83fe871ea5df4df7ef2e9bb38aa22259349"
+    },
+    {
+      "bytes": 52,
+      "path": "codebase/backend/core/db/__init__.py",
+      "sha256": "70fd98b1c6d663e0238a8c065f20af6454a5c985ed8cf94a50535f9b064f89f8"
+    },
+    {
+      "bytes": 0,
+      "path": "codebase/backend/core/db/access/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 4716,
+      "path": "codebase/backend/core/db/access/db_init.py",
+      "sha256": "9702d05db454fb05023b74944f2635fec11f2684debf9bf39d45c299a45c5976"
+    },
+    {
+      "bytes": 2401,
+      "path": "codebase/backend/core/db/access/sqlite.py",
+      "sha256": "f4df68b0ff5bfdbdc857b649ecdb3c30e4a729e17042920ac5bb0f3c4ff4067c"
+    },
+    {
+      "bytes": 0,
+      "path": "codebase/backend/core/db/writers/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 3164,
+      "path": "codebase/backend/core/db/writers/docstring_writer.py",
+      "sha256": "9b510aa3fa05d7ebae0840c8f0259481e6a4d42f3d259626bffd915aafe1fffe"
+    },
+    {
+      "bytes": 51,
+      "path": "codebase/backend/core/docstrings/__init__.py",
+      "sha256": "5921ba6e33238aee0a14faa59cb5717b5bd71238a96712aeaea16bdd6ead93eb"
+    },
+    {
+      "bytes": 6828,
+      "path": "codebase/backend/core/docstrings/ast_utils.py",
+      "sha256": "7c9a15d1450c8dee3bf29f28dc174b427cf537096d7d729ee9c64fa9eaeeaed0"
+    },
+    {
+      "bytes": 782,
+      "path": "codebase/backend/core/docstrings/promp_api.py",
+      "sha256": "9b983edd8eff8c9ee645149165a7e64484e37394e545f43b70c30ae03772f71d"
+    },
+    {
+      "bytes": 2851,
+      "path": "codebase/backend/core/docstrings/prompt_builder.py",
+      "sha256": "e3667d53a6adc0684ef0ca95749a48db3336b9b17550737a05323e8aa614653f"
+    },
+    {
+      "bytes": 4941,
+      "path": "codebase/backend/core/docstrings/sanitize.py",
+      "sha256": "2dfd31a0c9fb08ae921534e2081f7afe1ecc8b38a935a4edb0109bd1b92f6dfe"
+    },
+    {
+      "bytes": 1205,
+      "path": "codebase/backend/core/docstrings/verify.py",
+      "sha256": "24b01fb604a24e28d9842df6f975e04444b06e55b17028c96cc0cf0a61595f5f"
+    },
+    {
+      "bytes": 0,
+      "path": "codebase/backend/core/introspect/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 18400,
+      "path": "codebase/backend/core/introspect/read_docstrings.py",
+      "sha256": "54b4b2d90a07730642b9a280061e1d034c1d22743b3666e35d6bc76bbe0d8412"
+    },
+    {
+      "bytes": 52,
+      "path": "codebase/backend/core/prompt_pipeline/__init__.py",
+      "sha256": "70fd98b1c6d663e0238a8c065f20af6454a5c985ed8cf94a50535f9b064f89f8"
+    },
+    {
+      "bytes": 592,
+      "path": "codebase/backend/core/prompt_pipeline/executor/__init__.py",
+      "sha256": "7f8e4a2596f779441b03014d3055b1eea6a44052c3064d48b307327a9504ebaf"
+    },
+    {
+      "bytes": 15673,
+      "path": "codebase/backend/core/prompt_pipeline/executor/engine.py",
+      "sha256": "90ac4650ce402be5a561245c7cb5176eb13edcd27bd31041b45dfd024a057846"
+    },
+    {
+      "bytes": 392,
+      "path": "codebase/backend/core/prompt_pipeline/executor/errors.py",
+      "sha256": "79accfdf9f4382968ef4d2f389fe932fd4da08cc05d42a51a392ca0530f3a4e5"
+    },
+    {
+      "bytes": 450,
+      "path": "codebase/backend/core/prompt_pipeline/executor/orchestrator.py",
+      "sha256": "a24b78ed9d778a67cc7b333e2888947bca2b9d664aa23c4fe14e576fb9b40649"
+    },
+    {
+      "bytes": 807,
+      "path": "codebase/backend/core/prompt_pipeline/executor/plugin_api.py",
+      "sha256": "2b7a306bb448175095eb05e470bc99a7e5ba933342ae77b7e00b7036ad7001af"
+    },
+    {
+      "bytes": 75,
+      "path": "codebase/backend/core/prompt_pipeline/executor/prompts.py",
+      "sha256": "91e1a45580a07a831494a44ae4c00d8b0fcfe150c5370c172dab65e6f56af356"
+    },
+    {
+      "bytes": 3574,
+      "path": "codebase/backend/core/prompt_pipeline/executor/retriever.py",
+      "sha256": "18ce7a967e4000ede3577c54ad65a03e402f78236704e56c6935782d8b9e6fa4"
+    },
+    {
+      "bytes": 6520,
+      "path": "codebase/backend/core/prompt_pipeline/executor/rewrite.py",
+      "sha256": "22f4657523a46b8ed3952608b5f41b3c0163be200973d6604bafbc6e5a95bc9d"
+    },
+    {
+      "bytes": 1621,
+      "path": "codebase/backend/core/prompt_pipeline/executor/sources.py",
+      "sha256": "059f0caf61d3ebba6b27b15c446cf9edb92f61929d0cb26986d9ee2f85e01ea6"
+    },
+    {
+      "bytes": 9023,
+      "path": "codebase/backend/core/prompt_pipeline/executor/steps.py",
+      "sha256": "aa21c65c7c0c009275cb8ad2860f6388ce207beff2190612a7660b1e86e3ad33"
+    },
+    {
+      "bytes": 42,
+      "path": "codebase/backend/core/prompt_pipeline/llm/__init__.py",
+      "sha256": "14e50a4de47c73b3ba6be150b86de7f110ad513453b3b7f7fcf262519de3bb03"
+    },
+    {
+      "bytes": 11988,
+      "path": "codebase/backend/core/prompt_pipeline/llm/client.py",
+      "sha256": "79ed6fea70832f8bfa530f3294498bfe99615d983283c1960f1529466a78933f"
+    },
+    {
+      "bytes": 1704,
+      "path": "codebase/backend/core/prompt_pipeline/llm/response_parser.py",
+      "sha256": "c656fbe70da2594ad5897ada5db68451b44c159d5d87661378d38a78156b1136"
+    },
+    {
+      "bytes": 682,
+      "path": "codebase/backend/core/prompt_pipeline/llm/router.py",
+      "sha256": "2e1750cdb36201dafc5acac536fe3179bb7d5ebf4c0492626b80bc3c55986961"
+    },
+    {
+      "bytes": 1764,
+      "path": "codebase/backend/core/prompt_pipeline/llm/schema.py",
+      "sha256": "ba83948c0119fcd47f8058fd30054d0a3b35f35dc5c95e051b4cc008652fa825"
+    },
+    {
+      "bytes": 52,
+      "path": "codebase/backend/core/prompt_pipeline/preflight/__init__.py",
+      "sha256": "70fd98b1c6d663e0238a8c065f20af6454a5c985ed8cf94a50535f9b064f89f8"
+    },
+    {
+      "bytes": 1416,
+      "path": "codebase/backend/core/prompt_pipeline/preflight/budget.py",
+      "sha256": "738386a267a0c24089cb8a3c6dd97e0c6163e10164fab1a1d57470d639821840"
+    },
+    {
+      "bytes": 52,
+      "path": "codebase/backend/core/types/__init__.py",
+      "sha256": "70fd98b1c6d663e0238a8c065f20af6454a5c985ed8cf94a50535f9b064f89f8"
+    },
+    {
+      "bytes": 1349,
+      "path": "codebase/backend/core/types/types.py",
+      "sha256": "5cd9b3b3b4615aeddadd12c06f8f7e4b42775ef48612f8f59f48b184ea7bf569"
+    },
+    {
+      "bytes": 52,
+      "path": "codebase/backend/core/utils/__init__.py",
+      "sha256": "70fd98b1c6d663e0238a8c065f20af6454a5c985ed8cf94a50535f9b064f89f8"
+    },
+    {
+      "bytes": 0,
+      "path": "codebase/backend/core/utils/code_bundles/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 3969,
+      "path": "codebase/backend/core/utils/code_bundles/code_bundles/bundle_io.py",
+      "sha256": "43cbec31dcf4736af30e849b68fe150bc7414d2d1312df58282175c659dc4646"
+    },
+    {
+      "bytes": 3734,
+      "path": "codebase/backend/core/utils/code_bundles/code_bundles/contracts.py",
+      "sha256": "d98c43e2e4a99a4d86d20901776b85d5189ddb29f4bf88993b5a0a885497550e"
+    },
+    {
+      "bytes": 6640,
+      "path": "codebase/backend/core/utils/code_bundles/code_bundles/graphs.py",
+      "sha256": "3fa54e586ecb04a885247d359ed6265c252649b6794717823e1ee7e37ad13eb7"
+    },
+    {
+      "bytes": 2995,
+      "path": "codebase/backend/core/utils/code_bundles/code_bundles/normalize.py",
+      "sha256": "0ce630ee64275f784508d3a95ca211270a43f9dff18640677fd2eaad9abc5779"
+    },
+    {
+      "bytes": 15856,
+      "path": "codebase/backend/core/utils/code_bundles/code_bundles/orchestrate.py",
+      "sha256": "1c933426f3af22f23686240f0df3b477b7eb1bd8f0dcc6ea0c54f56563d2b2d2"
+    },
+    {
+      "bytes": 5062,
+      "path": "codebase/backend/core/utils/code_bundles/code_bundles/patch_pack.py",
+      "sha256": "67b6fe0ffc482b006b34c36ea5addfc70ad695a2e4f139874985f3de9ca39fd4"
+    },
+    {
+      "bytes": 8156,
+      "path": "codebase/backend/core/utils/code_bundles/code_bundles/python_index.py",
+      "sha256": "cfb64217f587803de08616c37fa46b8b9feb1b64bbeaf665fe4f6e5f992940c4"
+    },
+    {
+      "bytes": 18276,
+      "path": "codebase/backend/core/utils/code_bundles/code_bundles/quality.py",
+      "sha256": "e5c7e7622bfffc378be46de6d02ec13f838062aa74739fc4f46c3a9103fb1620"
+    },
+    {
+      "bytes": 9044,
+      "path": "codebase/backend/core/utils/code_bundles/code_bundles/run_pack.py",
+      "sha256": "c7aa7f80fa1758cbd91d7d9c07b9e5b8d2019cc62ff533a58d65791e3cb0d845"
+    },
+    {
+      "bytes": 4944,
+      "path": "codebase/backend/core/utils/code_bundles/code_bundles/src/packager/core/config.py",
+      "sha256": "c3ff307510fa99c3ca9f07aec191c7ab6e2cc32556e87109962dd169956e7728"
+    },
+    {
+      "bytes": 2094,
+      "path": "codebase/backend/core/utils/code_bundles/code_bundles/src/packager/core/discovery.py",
+      "sha256": "63b35b86507f0de114276036074ae244f14c582ba46a4c0b181831dc18384196"
+    },
+    {
+      "bytes": 2175,
+      "path": "codebase/backend/core/utils/code_bundles/code_bundles/src/packager/core/errors.py",
+      "sha256": "f4a23c2ac3fd215497eae3fdfca863527a9613b912fd908ab72da5e08eed30c3"
+    },
+    {
+      "bytes": 462,
+      "path": "codebase/backend/core/utils/code_bundles/code_bundles/src/packager/core/integrity.py",
+      "sha256": "9bca598831c814aa03402c163f3fc57ac219e036794fce490029e1555afc1df5"
+    },
+    {
+      "bytes": 27042,
+      "path": "codebase/backend/core/utils/code_bundles/code_bundles/src/packager/core/orchestrator.py",
+      "sha256": "51adc859951a0984697cc88f4b57e61491e4192a2adcebe5249d7f1fcd8726db"
+    },
+    {
+      "bytes": 617,
+      "path": "codebase/backend/core/utils/code_bundles/code_bundles/src/packager/core/paths.py",
+      "sha256": "6dc67b6d69dca59ea929e8ea9387802438344750344b41882e09818935c62124"
+    },
+    {
+      "bytes": 6488,
+      "path": "codebase/backend/core/utils/code_bundles/code_bundles/src/packager/io/guide_writer.py",
+      "sha256": "4f6846a3d4713f39157ea651f6d35531777be4a862d7099842005a625fdde899"
+    },
+    {
+      "bytes": 1197,
+      "path": "codebase/backend/core/utils/code_bundles/code_bundles/src/packager/io/manifest_writer.py",
+      "sha256": "627622c3de6dd6a32e6d2d1709c3023d95641fc8212fb59cd7578b46d59a17d6"
+    },
+    {
+      "bytes": 4641,
+      "path": "codebase/backend/core/utils/code_bundles/code_bundles/src/packager/io/publisher.py",
+      "sha256": "0fb5be6c603e7576d5c1f0a3dde8ab2f652d8c857b276f1cc2f54f1f98f073e8"
+    },
+    {
+      "bytes": 2973,
+      "path": "codebase/backend/core/utils/code_bundles/code_bundles/src/packager/io/runspec_writer.py",
+      "sha256": "9b61ac1b97a9bdb07fd80dc623177375c2cfffc211eb300c1e4053a0e8e8944e"
+    },
+    {
+      "bytes": 2369,
+      "path": "codebase/backend/core/utils/code_bundles/code_bundles/src/packager/languages/python/plugin.py",
+      "sha256": "a2959f483bb7a40d2335504af9e84473e7e283fe419099770d99daf7042b9d3f"
+    },
+    {
+      "bytes": 2974,
+      "path": "codebase/backend/core/utils/code_bundles/code_bundles/superbundle_pack.py",
+      "sha256": "d51fb0f99bd274c0992259da8e9a0b1c47b9ad92e36c6d857a72fbba4bea2fec"
+    },
+    {
+      "bytes": 0,
+      "path": "codebase/backend/core/utils/code_bundles/packers/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 2240,
+      "path": "codebase/backend/core/utils/code_bundles/packers/make_code_bundle.py",
+      "sha256": "b06170d1eaa248eef19d2b829beb9f9f8c0f605faa9c677a3bd5c791e5f5f097"
+    },
+    {
+      "bytes": 5870,
+      "path": "codebase/backend/core/utils/code_bundles/packers/unpack_code_bundle.py",
+      "sha256": "e8824834caa54af557ea67d13c22ce67692f0d2a49f653241041be07fbc08f6e"
+    },
+    {
+      "bytes": 0,
+      "path": "codebase/backend/core/utils/db/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 2042,
+      "path": "codebase/backend/core/utils/db/init_sqlite_dev.py",
+      "sha256": "8e02386dc6e7157f069b8e7e77a13e19f347b6c95fafbec3749815e73fe85543"
+    },
+    {
+      "bytes": 11190,
+      "path": "codebase/backend/core/utils/db/load_sqlite_vector_plugin.py",
+      "sha256": "8b8ee98e189a66e0d77ad29c6ebaa048a3fbfdf4a48bc588f8d707b16dfc927a"
+    },
+    {
+      "bytes": 2922,
+      "path": "codebase/backend/core/utils/db/sqlite_viewer.py",
+      "sha256": "5a60ba18900c3baf671a00cef6cb00e9f3f2165f8c4ee9bef34006c59207ab98"
+    },
+    {
+      "bytes": 0,
+      "path": "codebase/backend/core/utils/downloaders/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 6573,
+      "path": "codebase/backend/core/utils/downloaders/download_ai_models.py",
+      "sha256": "e09f62e7952bd59884cc80114e3e3ef4bf46108246f26fefc76989f8c99b24e5"
+    },
+    {
+      "bytes": 29,
+      "path": "codebase/backend/core/utils/io/__init__.py",
+      "sha256": "b106b593b9f0919ce28703401a8686f8deceef86b4c5652cf7d73b9cb49803b5"
+    },
+    {
+      "bytes": 1273,
+      "path": "codebase/backend/core/utils/io/file_ops.py",
+      "sha256": "f9817b32b1b98daa4c93ea8bc2f84597f8dd4ae5debb16d0c83088990deab6b0"
+    },
+    {
+      "bytes": 1430,
+      "path": "codebase/backend/core/utils/io/output_writer.py",
+      "sha256": "b050baa8604d544329a27e531b053b792df249202d2801cb7ddd9d3ae0057a27"
+    },
+    {
+      "bytes": 3116,
+      "path": "codebase/backend/core/utils/io/patch_ops.py",
+      "sha256": "6f8de749eb569070a74082d5b15e1ac9e08f3f6d031092d006cf33d057aeeb95"
+    },
+    {
+      "bytes": 1127,
+      "path": "codebase/backend/core/utils/io/recursively_zip_directory.py",
+      "sha256": "c302a36479174c3d80790e34e5792f2bcc88762ccf13c42793f6b9a7bfc168fb"
+    },
+    {
+      "bytes": 879,
+      "path": "codebase/backend/core/utils/io/run_dir.py",
+      "sha256": "a854881e065d733aba4c151fc8d04a7185c1e16e32d720ec86c6a687f8ef9a60"
+    },
+    {
+      "bytes": 0,
+      "path": "codebase/backend/core/utils/logging/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 612,
+      "path": "codebase/backend/core/utils/logging/logging.py",
+      "sha256": "c52fe86dc165b2b418dea520166d7b6fa4603142eac9e1f4931c243ca276b5d4"
+    },
+    {
+      "bytes": 0,
+      "path": "codebase/backend/core/utils/scanners/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 23064,
+      "path": "codebase/backend/core/utils/scanners/code_indexer.py",
+      "sha256": "05cac01c8b5a4c9a6746c5b2ec4d64f47b274d92f163f56b81e492b28d993dbb"
+    },
+    {
+      "bytes": 1645,
+      "path": "codebase/backend/core/utils/scanners/code_length.py",
+      "sha256": "78b61038a0a9d5fa2eabab633465f598f4ed232ca7725aaed775a3c1b708a5af"
+    },
+    {
+      "bytes": 1181,
+      "path": "codebase/backend/core/utils/scanners/dir_crawler.py",
+      "sha256": "4c2a93c5599724a82b76c5577964a24f0cb3ff250d4935cb56f1387d982e3289"
+    },
+    {
+      "bytes": 0,
+      "path": "codebase/cli/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 0,
+      "path": "codebase/models/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 4013,
+      "path": "codebase/models/agent_insights.py",
+      "sha256": "f42e74c667f6cd6e0ec3d868d65e5450458518b42a4dd4d3fc1f87d44b6f9a2c"
+    },
+    {
+      "bytes": 1649,
+      "path": "codebase/models/introspection_embeddings.py",
+      "sha256": "7f0719c4f9395a4e1dbd7a56fdcf43541f1eee7dc3241eabe33d7272e688a761"
+    },
+    {
+      "bytes": 4093,
+      "path": "codebase/models/introspection_index.py",
+      "sha256": "dce005c46d72062cf85efdc7943830ab86dd78a4d327dccf886acc5aa8495de3"
+    },
+    {
+      "bytes": 2577,
+      "path": "codebase/models/introspection_index_OLD.py",
+      "sha256": "8392d69b37ead0c00a1f4200e909b8b636388aca476ea8f868a7381db4d133b9"
+    },
+    {
+      "bytes": 52,
+      "path": "codebase/patches/__init__.py",
+      "sha256": "70fd98b1c6d663e0238a8c065f20af6454a5c985ed8cf94a50535f9b064f89f8"
+    },
+    {
+      "bytes": 52,
+      "path": "codebase/patches/executor/__init__.py",
+      "sha256": "70fd98b1c6d663e0238a8c065f20af6454a5c985ed8cf94a50535f9b064f89f8"
+    },
+    {
+      "bytes": 4004,
+      "path": "codebase/patches/executor/run_patch_loop.py",
+      "sha256": "7074b72e3e045a2a46cfd35b95a65c3d2dc691e247946646bb3e7e32436b3f52"
+    },
+    {
+      "bytes": 3038,
+      "path": "codebase/patches/executor/run_patch_loop_local.py",
+      "sha256": "170f9ed860a669089724ca6feeb1cc370e90f39b96af57a51445cc46f0da3f9a"
+    },
+    {
+      "bytes": 0,
+      "path": "codebase/routes/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 4151,
+      "path": "codebase/scripts/postgres_sql_schemas/001_create_agent_self_review.sql",
+      "sha256": "11cc8598d7554c33096d6cf94df6e98ee8763dd4718e636f2a33972e0e20e1b3"
+    },
+    {
+      "bytes": 4257,
+      "path": "codebase/scripts/postgres_sql_schemas/002_create_agent_registry.sql",
+      "sha256": "4168148910a64d2e7c55c86a02bada88ba8d6198799d1cb68fe3ce06dad0217b"
+    },
+    {
+      "bytes": 6214,
+      "path": "codebase/scripts/postgres_sql_schemas/003_create_agent_insights.sql",
+      "sha256": "c1087542662ba4401a6438316e94f2dfc629cd70afec276dcb1b69efeb06247e"
+    },
+    {
+      "bytes": 6055,
+      "path": "codebase/scripts/postgres_sql_schemas/004_create_diagnostics.sql",
+      "sha256": "7496e56f59d6b783d9d3cad06a1dcae9b60d0868b80af84e4533e23652d4c1ee"
+    },
+    {
+      "bytes": 4259,
+      "path": "codebase/scripts/postgres_sql_schemas/005_create_agent_memory.sql",
+      "sha256": "7f55e9904d0bf1607d1731028e346172244f886dde43efe28ba340e195d681b7"
+    },
+    {
+      "bytes": 4343,
+      "path": "codebase/scripts/postgres_sql_schemas/006_create_patch_failures.sql",
+      "sha256": "75f6d9756f921ffea252c487803ed95bb98912720f1e7e20040709426b7883d7"
+    },
+    {
+      "bytes": 3740,
+      "path": "codebase/scripts/postgres_sql_schemas/007_create_agent_skills.sql",
+      "sha256": "1dfdf9e2bf12457c7ea7db9115f68606377973f618824635597934a7a78b8fa1"
+    },
+    {
+      "bytes": 3718,
+      "path": "codebase/scripts/postgres_sql_schemas/008_create_agent_skill_inventory.sql",
+      "sha256": "66cb9270b2de140457938b000fd022d6c703d3dbf9425ab0cdf52748bfd67da0"
+    },
+    {
+      "bytes": 3696,
+      "path": "codebase/scripts/postgres_sql_schemas/009_create_agent_skill_prerequisites.sql",
+      "sha256": "ad812dccb460504be6132e0075a3e2baca4c60504aebaaa206ed270b354eccd2"
+    },
+    {
+      "bytes": 3246,
+      "path": "codebase/scripts/postgres_sql_schemas/010_create_patch_state.sql",
+      "sha256": "d7535d71e685564d91e5f2d7370f329390826aa4fedbb4bf4c1e2de9d48c2d8e"
+    },
+    {
+      "bytes": 2823,
+      "path": "codebase/scripts/postgres_sql_schemas/011_create_patch_history.sql",
+      "sha256": "190bc1b4335b1e4618803a871301babd639ca82addadca5f1c8ac5a94e7a8bdc"
+    },
+    {
+      "bytes": 3354,
+      "path": "codebase/scripts/postgres_sql_schemas/012_create_patch_actions.sql",
+      "sha256": "261cc406b559d521342a5c182b88ac0e0185c2d2c2e1afdda2cc78aab7d4dfb3"
+    },
+    {
+      "bytes": 2498,
+      "path": "codebase/scripts/postgres_sql_schemas/013_create_patch_simulation_results.sql",
+      "sha256": "5db42956d296c8fa4ec050d400f572a555fa6adf734e1f9121deb7fcb6d55fdc"
+    },
+    {
+      "bytes": 2141,
+      "path": "codebase/scripts/postgres_sql_schemas/014_create_patch_rejections.sql",
+      "sha256": "412dbeae911b5f6381da483bbb8c96884621425780edb5e85617cadee182ee6b"
+    },
+    {
+      "bytes": 2941,
+      "path": "codebase/scripts/postgres_sql_schemas/015_create_lock_state.sql",
+      "sha256": "14f93387e45f8665c6b150c73adac6a39293d73728f0e99321ac44f943426962"
+    },
+    {
+      "bytes": 4010,
+      "path": "codebase/scripts/postgres_sql_schemas/016_create_patch_plan.sql",
+      "sha256": "4bce572a112c6e31ab25bdf0b3c45f5bb124353a9969112969b8e52efe4145b4"
+    },
+    {
+      "bytes": 3375,
+      "path": "codebase/scripts/postgres_sql_schemas/017_create_lock_state.sql",
+      "sha256": "13c30f98e3c05fa5dda3de37eb1f6ecc2356e1b1dd124189a7ce6e7cc45a3965"
+    },
+    {
+      "bytes": 1110,
+      "path": "codebase/scripts/postgres_sql_schemas/018_create_lock_events.sql",
+      "sha256": "59f99a8940adb0c2d097fb2b32b994a86074875100f11909eee176834f509c8d"
+    },
+    {
+      "bytes": 387,
+      "path": "codebase/scripts/postgres_sql_schemas/019_create_enable_rls_on_lock_state.sql",
+      "sha256": "d273bcd34491e2d3f3bb41f71ea09360023a5ac81cc93dce5b4848d2190dd459"
+    },
+    {
+      "bytes": 3137,
+      "path": "codebase/scripts/postgres_sql_schemas/020_create_capabilities.sql",
+      "sha256": "b0c404a7185287f31eee50c9696e27ef119d5667ba8a01d80acdb2dfd5c7f85f"
+    },
+    {
+      "bytes": 3745,
+      "path": "codebase/scripts/postgres_sql_schemas/021_create_agent_messages.sql",
+      "sha256": "351d658a727e33efc0387f45a8257d918e397052cc9e9c6c79617070b90e0350"
+    },
+    {
+      "bytes": 3101,
+      "path": "codebase/scripts/postgres_sql_schemas/022_create_patch_metadata.sql",
+      "sha256": "2f38e50f592dceeca6c9cc1e660140c270e9c1b9c79a58043801de19135873a8"
+    },
+    {
+      "bytes": 3234,
+      "path": "codebase/scripts/postgres_sql_schemas/023_create_patch_state.sql",
+      "sha256": "b36ee10ef9af558ea26b1412d6f9b6e2197826181b4860ec60f96e2425c2556c"
+    },
+    {
+      "bytes": 2,
+      "path": "codebase/scripts/postgres_sql_schemas/024_create_module_events.sql",
+      "sha256": "7eb70257593da06f682a3ddda54a9d260d4fc514f645237f5ca74b08f8da61a6"
+    },
+    {
+      "bytes": 2,
+      "path": "codebase/scripts/postgres_sql_schemas/025_create_script_exec.sql",
+      "sha256": "7eb70257593da06f682a3ddda54a9d260d4fc514f645237f5ca74b08f8da61a6"
+    },
+    {
+      "bytes": 2,
+      "path": "codebase/scripts/postgres_sql_schemas/026_create_router_events.sql",
+      "sha256": "7eb70257593da06f682a3ddda54a9d260d4fc514f645237f5ca74b08f8da61a6"
+    },
+    {
+      "bytes": 2,
+      "path": "codebase/scripts/postgres_sql_schemas/027_create_service_events.sql",
+      "sha256": "7eb70257593da06f682a3ddda54a9d260d4fc514f645237f5ca74b08f8da61a6"
+    },
+    {
+      "bytes": 3051,
+      "path": "codebase/scripts/postgres_sql_schemas/028_create_system_events.sql",
+      "sha256": "80e74d8c3041973fe98148001536671a03f4a5e8fd420b3f43fdfacf66e501ba"
+    },
+    {
+      "bytes": 3649,
+      "path": "codebase/scripts/postgres_sql_schemas/029_create_patch_feedback.sql",
+      "sha256": "1cba9b95b10e0b6173c46370013b284339646fe04062c5e11bcedd5df7f0901b"
+    },
+    {
+      "bytes": 2304,
+      "path": "codebase/scripts/postgres_sql_schemas/039_create_patch_diffs.sql",
+      "sha256": "c3dbba6a6757a3f8929347034d45a00ceddb6c2ac7abf99a794b675efdf6e08e"
+    },
+    {
+      "bytes": 3746,
+      "path": "codebase/scripts/postgres_sql_schemas/040_create_patch_risk_evaluations.sql",
+      "sha256": "59dbe256a98a69e4511031c50502c30f4315a5b8ab9703bd8d2694d29637e9c8"
+    },
+    {
+      "bytes": 3483,
+      "path": "codebase/scripts/postgres_sql_schemas/041_create_patch_test_results.sql",
+      "sha256": "ce6cf7a3bde4f82bc2168664662018cce5f26eaf98469286d21ee158ac5e2c54"
+    },
+    {
+      "bytes": 3620,
+      "path": "codebase/scripts/postgres_sql_schemas/042_create_patch_trust_assessments.sql",
+      "sha256": "ffb6706c2820295766f741dea0b1147c3663bd355ee2fa2e08dbd0d673796b46"
+    },
+    {
+      "bytes": 5270,
+      "path": "codebase/scripts/postgres_sql_schemas/043_create_introspection_index.sql",
+      "sha256": "fe73b43fef3e3e45593db5f8659d1dcc572dcf9f85f16d464f3241dac53a1841"
+    },
+    {
+      "bytes": 3360,
+      "path": "codebase/scripts/postgres_sql_schemas/044_create_file_snapshots.sql",
+      "sha256": "0036f28befe6ee2d59ff4bce0fb6eb5f847f62883597336ec1795ce8077c00ac"
+    },
+    {
+      "bytes": 2798,
+      "path": "codebase/scripts/postgres_sql_schemas/045_create_patch_action_log.sql",
+      "sha256": "e490fa3adfb5f51f2c314597081856bcf21a528fbf9484a223fec3597b264709"
+    },
+    {
+      "bytes": 3236,
+      "path": "codebase/scripts/postgres_sql_schemas/046_create_patch_plan_files.sql",
+      "sha256": "46f330464f3ed4c1a225f90f8f2512db90ce6eff386fa04862124adbe936d075"
+    },
+    {
+      "bytes": 1599,
+      "path": "codebase/scripts/postgres_sql_schemas/047_create_reflection_log.sql",
+      "sha256": "a89aecf351a4e51c48884c9a4fd10c17f85057ec5496ba66cc4d7aa5a3ca0d07"
+    },
+    {
+      "bytes": 3608,
+      "path": "codebase/scripts/postgres_sql_schemas/048_create_patch_requests.sql",
+      "sha256": "4c5bab5ecf0e9d77b67dd1b5022004b5fa1b628d94332f37d1905b50368b7e0a"
+    },
+    {
+      "bytes": 2271,
+      "path": "codebase/scripts/postgres_sql_schemas/049_create_patch_file_versions.sql",
+      "sha256": "58bb21710ee1005705ce8dd7d76c52f4fbebba6bdcd1eecbaaa4abdfff7309ba"
+    },
+    {
+      "bytes": 1210,
+      "path": "codebase/scripts/postgres_sql_schemas/050_create_patch_file_versions_trigger.sql",
+      "sha256": "b98c5d3671c3d098bbf6e22fbe476ab4f7f9e527959cf0da9c50411ee342fa43"
+    },
+    {
+      "bytes": 3186,
+      "path": "codebase/scripts/postgres_sql_schemas/051_create_capability_dependencies.sql",
+      "sha256": "281e6063a77c364fdb07891d3122ab9be1d304b253f2ee51662c7f2092475317"
+    },
+    {
+      "bytes": 2606,
+      "path": "codebase/scripts/postgres_sql_schemas/052_create_agent_timeline_forecast.sql",
+      "sha256": "b03c3ffe00ffb52ac69085023f46999cad34b1d8ba3e8becf8a18f6357c523d7"
+    },
+    {
+      "bytes": 1665,
+      "path": "codebase/scripts/sandbox_validate.sh",
+      "sha256": "4208c7a5a66398f2ac1bb1887447995568274247cf11fd613fa91c0d7f15f2d7"
+    },
+    {
+      "bytes": 1875,
+      "path": "codebase/scripts/sqlite_sql_schemas/001_create_agent_self_review.sql",
+      "sha256": "ddf36f190beb3c2e6023b8eea02ad72a09881df6334c4dcc7ecf4a08b1734aaa"
+    },
+    {
+      "bytes": 1890,
+      "path": "codebase/scripts/sqlite_sql_schemas/002_create_agent_registry.sql",
+      "sha256": "7cee4c2882e10916a93c58cf715bab14750ca3f39e93e7e0c227a7e7daf71e14"
+    },
+    {
+      "bytes": 1768,
+      "path": "codebase/scripts/sqlite_sql_schemas/003_create_agent_insights.sql",
+      "sha256": "ad3b0513d60961124e8119c7992bc7d00d3b2e6a43e92ab6865dbf2de85f0633"
+    },
+    {
+      "bytes": 2762,
+      "path": "codebase/scripts/sqlite_sql_schemas/004_create_diagnostics.sql",
+      "sha256": "0c2675e272f84f5251b2c250333be1860f19a82f662e7ef6a64c8ae5ff535380"
+    },
+    {
+      "bytes": 2016,
+      "path": "codebase/scripts/sqlite_sql_schemas/005_create_agent_memory.sql",
+      "sha256": "645da50f49ceecb9f1084f0e2dffabafdf4d095989e79a4f60b7a3752ebe165e"
+    },
+    {
+      "bytes": 2049,
+      "path": "codebase/scripts/sqlite_sql_schemas/006_create_patch_failures.sql",
+      "sha256": "66825659984836dfc5189628d6dbc67e4c5a6d11b6e3eebfef3091fb835ce147"
+    },
+    {
+      "bytes": 1770,
+      "path": "codebase/scripts/sqlite_sql_schemas/007_create_agent_skills.sql",
+      "sha256": "2a7ae5a429792debef831ff731ce736ad41716c0fb323ae12a3e95e1211afa36"
+    },
+    {
+      "bytes": 1753,
+      "path": "codebase/scripts/sqlite_sql_schemas/008_create_agent_skill_inventory.sql",
+      "sha256": "80451891b7c3ae99888638efd926b4ff700671557891c6e02bb48e0b71bdb661"
+    },
+    {
+      "bytes": 1930,
+      "path": "codebase/scripts/sqlite_sql_schemas/009_create_agent_skill_prerequisites.sql",
+      "sha256": "d103c65ec97e850cb769a8d856f33a3f0bae66556d77e84848cb25cae43b9720"
+    },
+    {
+      "bytes": 1235,
+      "path": "codebase/scripts/sqlite_sql_schemas/010_create_patch_state.sql",
+      "sha256": "3761c9940c89734200212d2389db03d0542b4ff1786f590a23216bfdbce83c8b"
+    },
+    {
+      "bytes": 1266,
+      "path": "codebase/scripts/sqlite_sql_schemas/011_create_patch_history.sql",
+      "sha256": "8aa5ca3d94c4f1550261be5016b425fdab90b24869bfafc263451a66eb609ccf"
+    },
+    {
+      "bytes": 1529,
+      "path": "codebase/scripts/sqlite_sql_schemas/012_create_patch_actions.sql",
+      "sha256": "ae0ac33e518f2f1a6ddabb412726ec5e01ffbced9ba6df532011648719f2fc9d"
+    },
+    {
+      "bytes": 1306,
+      "path": "codebase/scripts/sqlite_sql_schemas/013_create_patch_simulation_results.sql",
+      "sha256": "a9c66a9e38870a0ac77ccf77d34ec7cc334e879af331cc7531f51b057cd93d8c"
+    },
+    {
+      "bytes": 1134,
+      "path": "codebase/scripts/sqlite_sql_schemas/014_create_patch_rejections.sql",
+      "sha256": "5fb2d92a8c2fc77ece3a2f7d58c538b6055a85068751a801d9612c71aa5a9a3b"
+    },
+    {
+      "bytes": 1212,
+      "path": "codebase/scripts/sqlite_sql_schemas/015_create_lock_state.sql",
+      "sha256": "055c5f179ca5fb020b262746dffa474c4b05565ea7075426771ceb5770269eee"
+    },
+    {
+      "bytes": 1638,
+      "path": "codebase/scripts/sqlite_sql_schemas/016_create_patch_plan.sql",
+      "sha256": "35ade4b0f354bc97f4f62e2d83cb6e7a114ed8c18ee4eb04b5290e76e6fa7727"
+    },
+    {
+      "bytes": 1539,
+      "path": "codebase/scripts/sqlite_sql_schemas/017_create_lock_state.sql",
+      "sha256": "cd6c06018202426355f82b9338cce059ac84d87fac9e202aea76554d178aeee4"
+    },
+    {
+      "bytes": 508,
+      "path": "codebase/scripts/sqlite_sql_schemas/018_create_lock_events.sql",
+      "sha256": "82c0ab30456dd46b9acd9998a665bdc57c4f11f969f343db9be0ff00589d73e7"
+    },
+    {
+      "bytes": 73,
+      "path": "codebase/scripts/sqlite_sql_schemas/019_create_enable_rls_on_lock_state.sql",
+      "sha256": "57c348f693d06e91ba6dab8ce8d8ecec0e1ddd23f50f864139dd5bab4a7302b7"
+    },
+    {
+      "bytes": 1319,
+      "path": "codebase/scripts/sqlite_sql_schemas/020_create_capabilities.sql",
+      "sha256": "b2c7f0b08de42fe54ce64fdbeb83e4b2017a0988a4359ea3ba2af92bc3b4c3f3"
+    },
+    {
+      "bytes": 1770,
+      "path": "codebase/scripts/sqlite_sql_schemas/021_create_agent_messages.sql",
+      "sha256": "1814b54beab7914e5978f05e93849400764b699aa2becb89c6b5f493d261422a"
+    },
+    {
+      "bytes": 1398,
+      "path": "codebase/scripts/sqlite_sql_schemas/022_create_patch_metadata.sql",
+      "sha256": "cf52f4493e1cca7a40568b37937e9ec058ced9a0bc875d97735c148d5315ce53"
+    },
+    {
+      "bytes": 1310,
+      "path": "codebase/scripts/sqlite_sql_schemas/023_create_patch_state.sql",
+      "sha256": "833fdb9e47e456f40639e7716ff779682e92cc9d12a1836bab7c7777c64ce3ad"
+    },
+    {
+      "bytes": 2,
+      "path": "codebase/scripts/sqlite_sql_schemas/024_create_module_events.sql",
+      "sha256": "7eb70257593da06f682a3ddda54a9d260d4fc514f645237f5ca74b08f8da61a6"
+    },
+    {
+      "bytes": 2,
+      "path": "codebase/scripts/sqlite_sql_schemas/025_create_script_exec.sql",
+      "sha256": "7eb70257593da06f682a3ddda54a9d260d4fc514f645237f5ca74b08f8da61a6"
+    },
+    {
+      "bytes": 2,
+      "path": "codebase/scripts/sqlite_sql_schemas/026_create_router_events.sql",
+      "sha256": "7eb70257593da06f682a3ddda54a9d260d4fc514f645237f5ca74b08f8da61a6"
+    },
+    {
+      "bytes": 2,
+      "path": "codebase/scripts/sqlite_sql_schemas/027_create_service_events.sql",
+      "sha256": "7eb70257593da06f682a3ddda54a9d260d4fc514f645237f5ca74b08f8da61a6"
+    },
+    {
+      "bytes": 1408,
+      "path": "codebase/scripts/sqlite_sql_schemas/028_create_system_events.sql",
+      "sha256": "f4e9ebdfe0f871e309edd8d2d1918f792bfc36b19ba35b72e55b8a23778dca10"
+    },
+    {
+      "bytes": 1545,
+      "path": "codebase/scripts/sqlite_sql_schemas/029_create_patch_feedback.sql",
+      "sha256": "f5c2128df416e50fffc7b20dead4794b4236f9722eb3ead244375586f936c12f"
+    },
+    {
+      "bytes": 1085,
+      "path": "codebase/scripts/sqlite_sql_schemas/039_create_patch_diffs.sql",
+      "sha256": "17cd1d219a97fc64dcb28d4c887c72c4086bcdc9a8c0ee47c150b4e4c41b07b0"
+    },
+    {
+      "bytes": 1587,
+      "path": "codebase/scripts/sqlite_sql_schemas/040_create_patch_risk_evaluations.sql",
+      "sha256": "e1b4fe172f249928f47d801ba171a43691a3ef0e91607bb77e95c94f8c7be747"
+    },
+    {
+      "bytes": 1505,
+      "path": "codebase/scripts/sqlite_sql_schemas/041_create_patch_test_results.sql",
+      "sha256": "1fd0e3340d6f7b8adee51daee39bcaccef30ea78f9e2899bd0e1814243a9be40"
+    },
+    {
+      "bytes": 1513,
+      "path": "codebase/scripts/sqlite_sql_schemas/042_create_patch_trust_assessments.sql",
+      "sha256": "fb5a61a8294a327a6077d708765723419abcd43b51bc072e918ac06c867e14e0"
+    },
+    {
+      "bytes": 2065,
+      "path": "codebase/scripts/sqlite_sql_schemas/043_create_introspection_index.sql",
+      "sha256": "9182431093d16dc8e733f56ed8e6dfb5492f7ccf3b8fa4c045f3e4208defc9e4"
+    },
+    {
+      "bytes": 1644,
+      "path": "codebase/scripts/sqlite_sql_schemas/044_create_file_snapshots.sql",
+      "sha256": "65df93d15e987e4fdf3c4f1f55d2c066f5e076aa5c205c65c1828049b5d4ebcc"
+    },
+    {
+      "bytes": 1290,
+      "path": "codebase/scripts/sqlite_sql_schemas/045_create_patch_action_log.sql",
+      "sha256": "bb6e4a671a9a7d326cb3d7b81fde18d62cdeb15afc1443209faa8f025662a3e5"
+    },
+    {
+      "bytes": 1522,
+      "path": "codebase/scripts/sqlite_sql_schemas/046_create_patch_plan_files.sql",
+      "sha256": "214d72d765c3721cb537c6c53f5908268059ea12cd2f40c20fe99540550f1cad"
+    },
+    {
+      "bytes": 798,
+      "path": "codebase/scripts/sqlite_sql_schemas/047_create_reflection_log.sql",
+      "sha256": "9c5ea607810f6bc6390e019d52432958619fea1894543a960f750586a4cd3ddd"
+    },
+    {
+      "bytes": 1667,
+      "path": "codebase/scripts/sqlite_sql_schemas/048_create_patch_requests.sql",
+      "sha256": "db0cd1ca6934a6dce1c737d67c5cb4222dca4b320f2aeb944f509f9c619a0ee7"
+    },
+    {
+      "bytes": 1256,
+      "path": "codebase/scripts/sqlite_sql_schemas/049_create_patch_file_versions.sql",
+      "sha256": "3d4838275f5eb38815977c223210363326f4cebc30efdbc8582703e30f45cc45"
+    },
+    {
+      "bytes": 689,
+      "path": "codebase/scripts/sqlite_sql_schemas/050_create_patch_file_versions_trigger.sql",
+      "sha256": "f324fb0f30763453b9fcf7633911166f9ae8ca24fad7fd693a984c76dd37101a"
+    },
+    {
+      "bytes": 1649,
+      "path": "codebase/scripts/sqlite_sql_schemas/051_create_capability_dependencies.sql",
+      "sha256": "92f97ff1f296ed3ea9ba29c4a4aab3256677c3e3f9d457330a3ec86ff8fe602f"
+    },
+    {
+      "bytes": 1409,
+      "path": "codebase/scripts/sqlite_sql_schemas/052_create_agent_timeline_forecast.sql",
+      "sha256": "afd966c1a79bc856b18e28900d0b633bfe297dcbd60eb37053e278221489b755"
+    },
+    {
+      "bytes": 1547,
+      "path": "codebase/scripts/sqlite_sql_schemas/053_create_introspection_index_fts.sql",
+      "sha256": "e12dc4ec4d6191a5f8e5e30d4e965fddd854710370acdb0d8d87d10c51733038"
+    },
+    {
+      "bytes": 1101,
+      "path": "codebase/scripts/sqlite_sql_schemas/054_create_vector_index.sql",
+      "sha256": "77da5d014791aca9b7efa40f82692abcc9d13bdc07e25175e4993fe8470a0936"
+    }
+  ],
+  "note": "GitHub mode: plain-text source under 'codebase/'. No design-manifest artifacts are published.",
+  "version": "1"
+}
