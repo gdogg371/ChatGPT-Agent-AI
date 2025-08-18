@@ -1,9 +1,12 @@
 # run_pack.py
 from __future__ import annotations
+
 from pathlib import Path
 from typing import Optional, Tuple
 import json
 import shutil
+import os
+import sys
 
 import normalize as norm
 
@@ -17,30 +20,56 @@ from v2.backend.core.utils.code_bundles.code_bundles.src.packager.core.orchestra
 
 # ------------------- repo-local & home creds locations -------------------
 
-SECRETS_DIR = Path(r"C:\\Users\\cg371\\PycharmProjects\\ChatGPT Bot\\secret_management")  # <-- your secrets path
+SECRETS_DIR = Path(r"C:\Users\cg371\PycharmProjects\ChatGPT Bot\secret_management")  # your secrets path
+
+
+# ------------------- load local publish config (git-ignored, cross-platform) -------------------
+
+def _user_config_dir(app: str = "packager") -> Path:
+    """Return an OS-appropriate user config directory for our app."""
+    if sys.platform.startswith("win"):
+        base = Path(os.environ.get("APPDATA", Path.home() / "AppData" / "Roaming"))
+        return base / app.capitalize()  # e.g. %APPDATA%\Packager
+    elif sys.platform == "darwin":
+        return Path.home() / "Library" / "Application Support" / app.capitalize()
+    else:
+        base = Path(os.environ.get("XDG_CONFIG_HOME", Path.home() / ".config"))
+        return base / app.lower()
+
 
 def load_publish_config() -> PublishOptions:
     """
-    Load publishing configuration from a local JSON file that is not committed.
-    Search order:
-      1) ./publish.local.json  (next to this script)
-      2) <secrets dir>/publish.local.json  (C:\...\ChatGPT Bot\secrets\publish.local.json)
-      3) ~/.config/packager/publish.local.json
-    If not present or incomplete, fall back to 'local' mode.
+    Search for publish.local.json in this order:
+      1) <SECRETS_DIR>/publish.local.json          (explicit absolute path)
+      2) ./publish.local.json                       (next to this script)
+      3) ../secret_management/publish.local.json
+      4) ../secrets/publish.local.json             (legacy fallback)
+      5) <UserConfigDir>/publish.local.json        (OS-appropriate)
+    If missing or incomplete for GitHub, fall back to local mode.
     """
+    here = Path(__file__).resolve().parent
     candidates = [
-        Path(__file__).parent / "publish.local.json",
-        SECRETS_DIR / "publish.local.json",  # <--- added
-        Path.home() / ".config" / "packager" / "publish.local.json",
+        SECRETS_DIR / "publish.local.json",
+        here / "publish.local.json",
+        here.parent / "secret_management" / "publish.local.json",
+        here.parent / "secrets" / "publish.local.json",
+        _user_config_dir() / "publish.local.json",
     ]
 
-    src_path = None
-    cfg_data = None
+    print("[run_pack] publish.local.json candidates:")
+    for p in candidates:
+        print("  -", p, "EXISTS" if p.exists() else "missing")
+
+    src_path: Optional[Path] = None
+    cfg_data: Optional[dict] = None
     for p in candidates:
         if p.exists():
-            src_path = p
-            cfg_data = json.loads(p.read_text(encoding="utf-8"))
-            break
+            try:
+                cfg_data = json.loads(p.read_text(encoding="utf-8"))
+                src_path = p
+                break
+            except Exception as e:
+                print(f"[run_pack] WARN: could not parse {p}: {e}")
 
     if not cfg_data:
         print("[run_pack] publish.local.json not found; using local-only publish.")
@@ -53,7 +82,7 @@ def load_publish_config() -> PublishOptions:
             owner=gh.get("owner", ""),
             repo=gh.get("repo", ""),
             branch=gh.get("branch", "main"),
-            base_path=gh.get("base_path", "")
+            base_path=(gh.get("base_path", "") or "")
         ) if gh else None,
         github_token=cfg_data.get("github_token", ""),
         local_publish_root=Path(cfg_data["local_publish_root"]) if cfg_data.get("local_publish_root") else None,
@@ -64,6 +93,7 @@ def load_publish_config() -> PublishOptions:
         publish_prompts=bool(cfg_data.get("publish_prompts", True)),
     )
 
+    # Visibility
     print(f"[run_pack] publish config loaded from: {src_path}")
     print("[run_pack] publish.mode =", opts.mode)
     if opts.github:
@@ -79,13 +109,14 @@ def load_publish_config() -> PublishOptions:
     # Guardrail: if GitHub selected but token/coords missing, fall back to local
     if opts.mode in ("github", "both"):
         if not opts.github or not opts.github.owner or not opts.github.repo or not opts.github_token:
-            print("[run_pack] WARN: GitHub publish selected but missing token/coords; falling back to local.")
+            print("[run_pack] WARN: GitHub selected but missing token/coords; falling back to local.")
             return PublishOptions(mode="local", local_publish_root=opts.local_publish_root)
 
     return opts
-# -----------------------------------------------------------------------------
+
 
 # ------------------- output & mirror locations -------------------
+
 OUT_DIR     = Path(r"C:\Users\cg371\PycharmProjects\ChatGPT Bot\v2\patches\output\design_manifest")
 OUT_BUNDLE  = OUT_DIR / "design_manifest.jsonl"
 OUT_SUMS    = OUT_DIR / "design_manifest.SHA256SUMS"
@@ -96,10 +127,11 @@ GUIDE_PATH  = OUT_DIR / "assistant_handoff.v1.json"
 SOURCE_ROOT = Path(r"C:\Users\cg371\PycharmProjects\ChatGPT Bot\v2\patches\output\patch_code_bundles")
 
 # External source you want mirrored (repo root)
-EXTERNAL_SOURCE = Path(r"C:\\Users\\cg371\\PycharmProjects\\ChatGPT Bot\\v2\\")
+EXTERNAL_SOURCE = Path(r"C:\Users\cg371\PycharmProjects\ChatGPT Bot\v2")
 
 
 # ------------------- transport profile (no env vars) -------------------
+
 PACKAGER_SPLIT_BYTES = 300_000     # ~300 KB per part
 PACKAGER_CHUNK_BYTES = 64_000      # ~64 KB per JSONL 'file_chunk'
 TRANSPORT = TransportOptions(
@@ -111,7 +143,7 @@ TRANSPORT = TransportOptions(
     part_stem="design_manifest",
     part_ext=".txt",
     parts_index_name="design_manifest_parts_index.json",
-    # grouping hints (supported by your TransportOptions)
+    # grouping hints
     group_dirs=True,
     parts_per_dir=10,
     dir_suffix_width=2,
@@ -120,14 +152,16 @@ TRANSPORT = TransportOptions(
 
 
 # ------------------- normalization baseline -------------------
+
 NORMALIZE = norm.NormalizationRules(
     newline_policy="lf", encoding="utf-8", strip_trailing_ws=True, excluded_paths=tuple()
 )
 
 
 # ------------------- ingestion hardening (globs) -------------------
+
 EXCLUDE_GLOBS = (
-    # your secret_management folder and the creds file
+    # secrets & config
     "**/secret_management/**",
     "**/publish.local.json",
     # typical noise and heavy dirs
@@ -139,6 +173,7 @@ EXCLUDE_GLOBS = (
 
 
 # ------------------- helpers -------------------
+
 def _clear_dir(p: Path) -> None:
     """Delete all contents of a directory (if exists) and recreate it."""
     if p.exists():
@@ -147,7 +182,13 @@ def _clear_dir(p: Path) -> None:
                 if child.is_dir():
                     shutil.rmtree(child, ignore_errors=True)
                 else:
-                    child.unlink(missing_ok=True)  # type: ignore[arg-type]
+                    # Python 3.11+: unlink has missing_ok
+                    try:
+                        child.unlink(missing_ok=True)  # type: ignore[arg-type]
+                    except TypeError:
+                        # Python 3.10 fallback
+                        if child.exists():
+                            child.unlink()
             except Exception:
                 # best-effort cleanup
                 pass
@@ -155,6 +196,7 @@ def _clear_dir(p: Path) -> None:
 
 
 # ------------------- main -------------------
+
 def main(
     limits: Optional[Limits] = None,
     include_globs: Tuple[str, ...] = (),
@@ -187,7 +229,7 @@ def main(
         ),
     )
 
-    # Load publish options (GitHub/local) from secret_management path (or home)
+    # Load publish options (GitHub/local)
     publish = load_publish_config()
 
     # Build config for the packager
@@ -206,7 +248,7 @@ def main(
         prompt_mode=("embed" if prompts is not None else "omit"),
         follow_symlinks=False,
         transport=TRANSPORT,
-        publish=publish,   # ← from publish.local.json (secret_management/) or home fallback
+        publish=publish,   # from publish.local.json (secret_management or other candidate)
     )
 
     # Run the packager
