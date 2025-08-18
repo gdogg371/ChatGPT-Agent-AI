@@ -14,6 +14,21 @@
       "**/*.pyc",
       "**/backend/core/utils/code_bundles/code_bundles/**"
     ],
+    "execution_policy": {
+      "sandbox": {
+        "constraints": {
+          "offline_only": true
+        },
+        "phases": [
+          "on_intake",
+          "end_of_dev_cycle"
+        ],
+        "require_attempt": true,
+        "secrets_policy": {
+          "no_secrets": true
+        }
+      }
+    },
     "include_globs": [],
     "segment_excludes": [
       ".git",
@@ -27,16 +42,29 @@
       "build",
       "output",
       "software"
-    ]
-  },
-  "provenance": {
-    "github": {
-      "base_path": "",
-      "branch": "main",
-      "owner": "gdogg371",
-      "repo": "ChatGPT-Agent-AI"
+    ],
+    "transport": {
+      "chunk_bytes": 64000,
+      "chunk_records": true,
+      "grouping": {
+        "dir_pattern": "design_manifest_{:02d}",
+        "dir_suffix_width": 2,
+        "group_dirs": true,
+        "parts_per_dir": 10
+      },
+      "part_ext": ".txt",
+      "part_stem": "design_manifest",
+      "parts_index": "design_manifest_parts_index.json",
+      "payload_format": "jsonl",
+      "preserve_monolith": false,
+      "split_bytes": 300000,
+      "transport_hint": "txt"
     }
   },
-  "timestamp": "2025-08-18T20:58:11Z",
+  "provenance": {
+    "emitted_prefix": "codebase/",
+    "source_root": "C:\\Users\\cg371\\PycharmProjects\\ChatGPT Bot\\v2\\backend\\core\\utils\\code_bundles\\code_bundles\\codebase"
+  },
+  "timestamp": "2025-08-18T21:41:42Z",
   "version": "1"
 }
