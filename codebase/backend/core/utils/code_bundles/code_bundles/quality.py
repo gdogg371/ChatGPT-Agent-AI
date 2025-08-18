@@ -301,7 +301,7 @@ class QualityParser:
         """
         Capture a minimal, non-sensitive environment snapshot for reproducibility.
         If `include_env_keys` is provided, only those env vars are captured (value trimmed).
-        Otherwise, no environment variables are included to avoid leaking secrets.
+        Otherwise, no environment variables are included to avoid leaking secret_management.
 
         Returns:
             {
