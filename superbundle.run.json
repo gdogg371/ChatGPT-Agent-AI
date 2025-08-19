@@ -8,6 +8,7 @@
       "**/node_modules/**",
       "**/dist/**",
       "**/build/**",
+      "**/output/**",
       "**/software/**",
       "**/__pycache__/**",
       "**/*.pyc",
@@ -39,6 +40,7 @@
       "node_modules",
       "dist",
       "build",
+      "output",
       "software"
     ],
     "transport": {
@@ -61,8 +63,8 @@
   },
   "provenance": {
     "emitted_prefix": "v2/patches/output/patch_code_bundles/",
-    "source_root": "C:\\Users\\cg371\\PycharmProjects\\ChatGPT Bot\\v2\\backend\\core\\utils\\code_bundles\\code_bundles\\v2\\patches\\output\\patch_code_bundles"
+    "source_root": "C:\\Users\\cg371\\PycharmProjects\\ChatGPT Bot\\output\\patch_code_bundles"
   },
-  "timestamp": "2025-08-19T00:22:53Z",
+  "timestamp": "2025-08-19T09:26:44Z",
   "version": "1"
 }
