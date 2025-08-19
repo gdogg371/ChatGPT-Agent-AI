@@ -1,76 +1,115 @@
-# codebase/src/packager/io/runspec_writer.py
+# src/packager/io/runspec_writer.py
 from __future__ import annotations
 
 from pathlib import Path
 from typing import Any, Dict, Optional
 import json
-import time
 
-try:
-    from v2.backend.core.utils.code_bundles.code_bundles.src.packager.core.config import PackConfig, TransportOptions
-except Exception:
-    from ..core.config import PackConfig, TransportOptions  # type: ignore
+def _log(msg: str) -> None:
+    print(f"[packager] {msg}", flush=True)
+
+
+def _as_path(p: Any) -> Path:
+    return p if isinstance(p, Path) else Path(str(p))
+
+
+def _serialize_transport(t: Any) -> Dict[str, Any]:
+    """Safely serialize transport-like object (SimpleNamespace or similar)."""
+    if not t:
+        return {}
+    out: Dict[str, Any] = {}
+    for k in (
+        "chunk_bytes",
+        "chunk_records",
+        "group_dirs",
+        "dir_suffix_width",
+        "parts_per_dir",
+        "part_ext",
+        "part_stem",
+        "parts_index_name",
+        "split_bytes",
+        "transport_as_text",
+        "preserve_monolith",
+    ):
+        if hasattr(t, k):
+            out[k] = getattr(t, k)
+    return out
 
 
 class RunSpecWriter:
-    """Produces a compact, assistant-facing snapshot of a run."""
+    def __init__(self, out_path: Path) -> None:
+        self.out_path = _as_path(out_path)
 
-    def __init__(self, target_path: Path) -> None:
-        self.target_path = target_path
+    def write(self, runspec: Dict[str, Any]) -> Path:
+        self.out_path.parent.mkdir(parents=True, exist_ok=True)
+        data = json.dumps(runspec, ensure_ascii=False, sort_keys=True, indent=2)
+        self.out_path.write_text(data, encoding="utf-8")
+        return self.out_path
 
-    def build_snapshot(
-        self,
-        cfg: PackConfig,
-        provenance: Dict[str, Any],
-        prompts_public: Optional[dict] = None,
-    ) -> Dict[str, Any]:
-        t: TransportOptions = cfg.transport
-        # Build a stable 'config_snapshot' similar to the local superbundle.run.json
-        snapshot = {
-            "config_snapshot": {
-                "emitted_prefix": cfg.emitted_prefix,
-                "exclude_globs": list(cfg.exclude_globs),
-                "include_globs": list(cfg.include_globs),
-                "segment_excludes": list(cfg.segment_excludes),
-                "execution_policy": {
-                    "sandbox": {
-                        "constraints": {
-                            "offline_only": True
-                        },
-                        "phases": ["on_intake", "end_of_dev_cycle"],
-                        "require_attempt": True,
-                        "secrets_policy": {"no_secrets": True},
-                    }
-                },
-                "transport": {
-                    "chunk_bytes": t.chunk_bytes,
-                    "chunk_records": bool(t.chunk_records),
-                    "grouping": {
-                        "dir_pattern": f"{t.part_stem}_{{:0{t.dir_suffix_width}d}}",
-                        "dir_suffix_width": t.dir_suffix_width,
-                        "group_dirs": bool(t.group_dirs),
-                        "parts_per_dir": t.parts_per_dir,
-                    },
-                    "part_ext": t.part_ext,
-                    "part_stem": t.part_stem,
-                    "parts_index": t.parts_index_name,
-                    "payload_format": "jsonl",
-                    "preserve_monolith": False,
-                    "split_bytes": t.split_bytes,
-                    "transport_hint": "txt" if t.transport_as_text else "jsonl",
-                },
-            },
-            "provenance": dict(provenance),
-            "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+    @staticmethod
+    def build_snapshot(a: Any, b: Any, prompts_public: Optional[dict] = None) -> Dict[str, Any]:
+        """
+        Accepts EITHER order:
+          - build_snapshot(cfg, meta, prompts)
+          - build_snapshot(meta, cfg, prompts)
+
+        Where:
+          cfg  ~ object with .source_root, .emitted_prefix, .transport, .out_bundle/out_runspec/out_guide/out_sums
+          meta ~ dict like {"source_root": "...", "emitted_prefix": "..."}
+
+        Returns a dict run-spec.
+        """
+        # Heuristics to disambiguate arguments
+        a_is_cfg = hasattr(a, "source_root") or hasattr(a, "transport") or hasattr(a, "out_bundle")
+        b_is_cfg = hasattr(b, "source_root") or hasattr(b, "transport") or hasattr(b, "out_bundle")
+
+        if a_is_cfg and not b_is_cfg:
+            cfg, meta = a, b
+        elif b_is_cfg and not a_is_cfg:
+            cfg, meta = b, a
+        else:
+            # Fallback: treat 'a' as cfg if it quacks like one; else raise a clear error
+            if a_is_cfg:
+                cfg, meta = a, (b or {})
+            elif b_is_cfg:
+                cfg, meta = b, (a or {})
+            else:
+                raise TypeError("RunSpecWriter.build_snapshot: cannot determine cfg/meta argument order")
+
+        # Build provenance (prefer explicit meta)
+        provenance: Dict[str, Any] = {}
+        if isinstance(meta, dict):
+            provenance.update(meta)
+
+        # Fill missing provenance from cfg if available
+        if not provenance.get("source_root") and hasattr(cfg, "source_root"):
+            provenance["source_root"] = str(cfg.source_root)
+        if not provenance.get("emitted_prefix") and hasattr(cfg, "emitted_prefix"):
+            provenance["emitted_prefix"] = getattr(cfg, "emitted_prefix")
+
+        # Transport (safe serialization)
+        transport = _serialize_transport(getattr(cfg, "transport", None))
+
+        # Paths block (optional, helpful)
+        paths: Dict[str, Any] = {}
+        if hasattr(cfg, "out_bundle"):
+            paths["bundle"] = _as_path(cfg.out_bundle).name
+        if hasattr(cfg, "out_runspec"):
+            paths["runspec"] = _as_path(cfg.out_runspec).name
+        if hasattr(cfg, "out_guide"):
+            paths["guide"] = _as_path(cfg.out_guide).name
+        if hasattr(cfg, "out_sums"):
+            paths["sums"] = _as_path(cfg.out_sums).name
+
+        runspec: Dict[str, Any] = {
             "version": "1",
+            "provenance": provenance,
+            "prompts": prompts_public or {},
         }
-        if prompts_public:
-            snapshot["prompts"] = prompts_public
-        return snapshot
 
-    def write(self, snapshot: Dict[str, Any]) -> None:
-        self.target_path.parent.mkdir(parents=True, exist_ok=True)
-        self.target_path.write_text(
-            json.dumps(snapshot, ensure_ascii=False, sort_keys=True, indent=2),
-            encoding="utf-8",
-        )
+        if transport:
+            runspec["transport"] = transport
+        if paths:
+            runspec["paths"] = paths
+
+        return runspec
