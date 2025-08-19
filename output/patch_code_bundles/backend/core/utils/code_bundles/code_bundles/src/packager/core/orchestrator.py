@@ -379,7 +379,7 @@ class Packager:
         except Exception as e:
             _log(f"Publish(GitHub): code push failed: {type(e).__name__}: {e}")
 
-        # 9) PUBLISH: push output artifacts (handoff/run-spec/sums/split parts)
+        # 9) PUBLISH: push output artifacts (handoff/run-spec, and optionally parts)
         try:
             self._publish_outputs_to_github()
         except Exception as e:
@@ -535,7 +535,7 @@ class Packager:
 
         _log(f"Publish(GitHub): repo={owner}/{repo} branch={branch} base='{base_path}' items={pushed} (code)")
 
-    # ---- NEW: publish output artifacts (handoff/run-spec/sums/parts) ----------
+    # ---- publish output artifacts (handoff/run-spec, and optional parts) -----
     def _publish_outputs_to_github(self) -> None:
         pub = getattr(self.cfg, "publish", None)
         gh = getattr(pub, "github", None) if pub else None
@@ -552,20 +552,43 @@ class Packager:
         base_path = (getattr(gh, "base_path", "") or "").strip().lstrip("/")
 
         out_dir: Path = self.cfg.out_bundle.parent  # e.g., .../output/design_manifest
-        # We want these to appear in the repo under: output/<design_dir_name>/...
         repo_dir_prefix = "/".join(filter(None, [base_path, "output", out_dir.name]))
 
-        # Collect every file under out_dir (recursively)
-        fs_files: List[Path] = [p for p in out_dir.rglob("*") if p.is_file()]
-        if not fs_files:
-            _log("Publish(GitHub): no output files found to push")
-            return
+        # Always push the two key JSON artifacts; push transport parts only if requested.
+        push_parts = bool(getattr(pub, "publish_transport", False))
+
+        targets: List[Path] = [self.cfg.out_guide, self.cfg.out_runspec]
+        if push_parts:
+            # include checksums + any split parts and index
+            targets.append(self.cfg.out_sums)
+            for p in sorted(out_dir.rglob("*")):
+                if p.is_file() and p.name not in {self.cfg.out_guide.name, self.cfg.out_runspec.name, self.cfg.out_sums.name}:
+                    targets.append(p)
+
+        # De-duplicate while preserving order
+        seen: set[Path] = set()
+        deduped: List[Path] = []
+        for p in targets:
+            try:
+                rp = p.resolve()
+            except Exception:
+                rp = p
+            if rp in seen:
+                continue
+            seen.add(rp)
+            deduped.append(p)
+
+        names = [t.name for t in deduped]
+        _log(f"Publish(GitHub): outputs selected ({len(deduped)}): {names}")
 
         pushed = 0
-        for p in fs_files:
-            rel = p.relative_to(out_dir).as_posix()  # e.g., "design_manifest_01/part01.txt" or "assistant_handoff.v1.json"
+        for fpath in deduped:
+            if not fpath.exists() or not fpath.is_file():
+                _log(f"Publish(GitHub): skip missing file '{fpath}'")
+                continue
+            rel = fpath.relative_to(out_dir).as_posix()  # e.g., "assistant_handoff.v1.json"
             repo_path = f"{repo_dir_prefix}/{rel}"
-            content_b64 = base64.b64encode(p.read_bytes()).decode("ascii")
+            content_b64 = base64.b64encode(fpath.read_bytes()).decode("ascii")
             try:
                 self._github_put_file(owner, repo, branch, repo_path, content_b64, token,
                                       message=f"packager: update {repo_path}")
@@ -589,10 +612,9 @@ class Packager:
             "User-Agent": "code-bundles-packager"
         })
         try:
-            with urlopen(req) as resp:
+            with urlopen(req, timeout=20) as resp:
                 data = json.loads(resp.read().decode("utf-8"))
-                sha = data.get("sha")
-                return sha
+                return data.get("sha")
         except HTTPError as e:
             if e.code == 404:
                 return None
@@ -632,8 +654,9 @@ class Packager:
             "Content-Type": "application/json",
             "User-Agent": "code-bundles-packager"
         })
-        with contextlib.closing(urlopen(req)) as resp:
+        with contextlib.closing(urlopen(req, timeout=20)) as resp:
             if resp.status not in (200, 201):
                 raise RuntimeError(f"unexpected status {resp.status}")
+
 
 
