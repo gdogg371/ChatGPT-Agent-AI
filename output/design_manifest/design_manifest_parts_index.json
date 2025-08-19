@@ -1,0 +1,41 @@
+{
+  "chunk_bytes": 64000,
+  "chunk_records": true,
+  "grouping": {
+    "dir_pattern": "design_manifest_{:02d}",
+    "dir_suffix_width": 2,
+    "group_dirs": true,
+    "parts_per_dir": 10
+  },
+  "original_name": "design_manifest.jsonl",
+  "parts": [
+    {
+      "bytes": 300000,
+      "path": "design_manifest_01/design_manifest.part01.txt",
+      "sha256": "96cf570d49d739efd56237ab859ef322d202d0693f1098ef267735ed8eae96ac"
+    },
+    {
+      "bytes": 300000,
+      "path": "design_manifest_01/design_manifest.part02.txt",
+      "sha256": "89455308fffd4db09d6419212b9d6983585f7bcd0e69809582aaa3292949c6dc"
+    },
+    {
+      "bytes": 300000,
+      "path": "design_manifest_01/design_manifest.part03.txt",
+      "sha256": "6f37f04cfe6a701e5ea6559a60d2a91cc1b6ef3250ccbfba8a1c80e89e47950a"
+    },
+    {
+      "bytes": 300000,
+      "path": "design_manifest_01/design_manifest.part04.txt",
+      "sha256": "74c9e1203d2d1e457bc66ee77026fdf5ff655c0b93a1f6c6c2c36c3a71b731e9"
+    },
+    {
+      "bytes": 283803,
+      "path": "design_manifest_01/design_manifest.part05.txt",
+      "sha256": "8aac517abc09c03ca8f7984b5ef23899a5065e8d3461a36e406f4120e98405ef"
+    }
+  ],
+  "payload_format": "jsonl",
+  "reassembled_sha256": "75280e1b40c21cfc8133ba36dfd697809d2cb69f984fff8d8ed8c5cd07e3cd12",
+  "transport_hint": "txt"
+}
