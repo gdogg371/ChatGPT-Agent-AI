@@ -41,7 +41,7 @@ except Exception:
         data: bytes
         sha256: str
 
-# Optional external publisher function (do NOT import non-existent classes)
+# Optional external publisher function (if present in your tree)
 try:
     from packager.io.publisher import publish as _external_publish  # type: ignore
 except Exception:
@@ -230,7 +230,7 @@ class PromptEmbedder:
 
 
 class Packager:
-    """Core orchestrator that writes the bundle, checksums, run spec, and guide; then pushes code files to GitHub."""
+    """Core orchestrator that writes the bundle, checksums, run spec, and guide; then pushes to GitHub."""
     def __init__(self, cfg: PackConfig, rules: Optional[NormalizationRules]) -> None:
         self.cfg = cfg
         self.rules = rules
@@ -373,13 +373,19 @@ class Packager:
         _log(f"Write: checksums → '{self.cfg.out_sums}' ({len(sums_inputs)} artifacts)")
         self.bundle.write_sums(self.cfg.out_sums, sums_inputs)
 
-        # 8) PUBLISH: always push raw code files to GitHub first
+        # 8) PUBLISH: push code files to GitHub (under emitted_prefix)
         try:
             self._publish_code_to_github(records)
         except Exception as e:
             _log(f"Publish(GitHub): code push failed: {type(e).__name__}: {e}")
 
-        # 9) Optional external publisher (handoff/transport/etc.) AFTER code push
+        # 9) PUBLISH: push output artifacts (handoff/run-spec/sums/split parts)
+        try:
+            self._publish_outputs_to_github()
+        except Exception as e:
+            _log(f"Publish(GitHub): outputs push failed: {type(e).__name__}: {e}")
+
+        # 10) Optional external publisher (if present)
         if callable(_external_publish):
             try:
                 _external_publish(self.cfg, records)  # type: ignore[arg-type]
@@ -430,12 +436,9 @@ class Packager:
                 names = [p.name for p in sig.parameters.values()]
                 # Prefer kwargs to avoid positional mismatches
                 if "cfg" in names and "provenance" in names and "prompts" in names:
-                    # Classic shape: (cfg, provenance, prompts)
                     return fn(cfg=self.cfg, provenance=meta, prompts=prompts_public)  # type: ignore[misc]
                 if ("meta" in names or "provenance" in names) and "cfg" in names:
-                    # Newer shape: (meta/provenance, cfg, prompts?)
                     kw = {"cfg": self.cfg}
-                    # The provenance-like param could be named 'meta' or 'provenance'
                     if "meta" in names:
                         kw["meta"] = meta
                     else:
@@ -451,7 +454,6 @@ class Packager:
                 return fn(self.cfg, meta, prompts_public)  # type: ignore[misc]
             except Exception:
                 try:
-                    # Some variants want (meta, cfg, prompts)
                     return fn(meta, self.cfg, prompts_public)  # type: ignore[misc]
                 except Exception as e2:
                     _log(f"RunSpecWriter.build_snapshot incompatible, falling back: {type(e2).__name__}: {e2}")
@@ -460,7 +462,6 @@ class Packager:
         t = getattr(self.cfg, "transport", None)
         transport = {}
         if t:
-            # Copy a few commonly used fields if present
             for k in ("split_bytes", "chunk_bytes", "parts_index_name",
                       "part_ext", "part_stem", "group_dirs", "parts_per_dir",
                       "dir_suffix_width", "transport_as_text", "preserve_monolith"):
@@ -495,7 +496,6 @@ class Packager:
 
         emitted_prefix = self.cfg.emitted_prefix.rstrip("/") + "/"
 
-        # Decide which files to push: only the raw code paths under emitted_prefix
         def is_binary_path(p: str) -> bool:
             p_lower = p.lower()
             for ext in (".dll", ".so", ".dylib", ".exe", ".bin", ".pdf", ".zip"):
@@ -524,7 +524,6 @@ class Packager:
             _log("Publish(GitHub): no code files selected to push")
             return
 
-        # Push via GitHub Contents API (create or update)
         pushed = 0
         for repo_path, content_b64 in to_push:
             try:
@@ -535,6 +534,46 @@ class Packager:
                 _log(f"Publish(GitHub): failed PUT '{repo_path}': {type(e).__name__}: {e}")
 
         _log(f"Publish(GitHub): repo={owner}/{repo} branch={branch} base='{base_path}' items={pushed} (code)")
+
+    # ---- NEW: publish output artifacts (handoff/run-spec/sums/parts) ----------
+    def _publish_outputs_to_github(self) -> None:
+        pub = getattr(self.cfg, "publish", None)
+        gh = getattr(pub, "github", None) if pub else None
+        token = getattr(pub, "github_token", "") if pub else ""
+        mode = getattr(pub, "mode", None) if pub else None
+
+        if mode not in ("github", "both") or not gh or not token:
+            _log("Publish(GitHub): outputs disabled or missing credentials; skipping")
+            return
+
+        owner = getattr(gh, "owner", "").strip()
+        repo = getattr(gh, "repo", "").strip()
+        branch = getattr(gh, "branch", "main").strip() or "main"
+        base_path = (getattr(gh, "base_path", "") or "").strip().lstrip("/")
+
+        out_dir: Path = self.cfg.out_bundle.parent  # e.g., .../output/design_manifest
+        # We want these to appear in the repo under: output/<design_dir_name>/...
+        repo_dir_prefix = "/".join(filter(None, [base_path, "output", out_dir.name]))
+
+        # Collect every file under out_dir (recursively)
+        fs_files: List[Path] = [p for p in out_dir.rglob("*") if p.is_file()]
+        if not fs_files:
+            _log("Publish(GitHub): no output files found to push")
+            return
+
+        pushed = 0
+        for p in fs_files:
+            rel = p.relative_to(out_dir).as_posix()  # e.g., "design_manifest_01/part01.txt" or "assistant_handoff.v1.json"
+            repo_path = f"{repo_dir_prefix}/{rel}"
+            content_b64 = base64.b64encode(p.read_bytes()).decode("ascii")
+            try:
+                self._github_put_file(owner, repo, branch, repo_path, content_b64, token,
+                                      message=f"packager: update {repo_path}")
+                pushed += 1
+            except Exception as e:
+                _log(f"Publish(GitHub): failed PUT '{repo_path}': {type(e).__name__}: {e}")
+
+        _log(f"Publish(GitHub): repo={owner}/{repo} branch={branch} base='{base_path}' items={pushed} (outputs)")
 
     # ---- minimal GitHub API helpers (urllib, no third-party deps) ------------
     def _github_get_sha(self, owner: str, repo: str, branch: str, repo_path: str, token: str) -> Optional[str]:
@@ -596,4 +635,5 @@ class Packager:
         with contextlib.closing(urlopen(req)) as resp:
             if resp.status not in (200, 201):
                 raise RuntimeError(f"unexpected status {resp.status}")
+
 
