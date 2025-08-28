@@ -1,0 +1,22 @@
+#config/db.yml
+# Database configuration (YAML-only; consumed by loader.py).
+# For SQLite, you may provide either:
+#   - url: "sqlite:///absolute/or/relative/path/to.db"
+#   - or path: "relative/or/absolute/path/to.db"
+# If both are provided, loader will fail.
+
+# EITHER provide a URL:
+# url: "sqlite:///databases/bot_dev.db"
+
+# OR provide a path (recommended for SQLite):
+path: "databases/bot_dev.db"
+
+# Optional schema directory used by the init_sqlite_dev tool.
+# If you run the initializer, ensure this directory exists and contains .sql files.
+# Leave commented out if not using the initializer.
+# schema_dir: "db/schema"
+
+# Optional SQLite pragmas (applied by your DB layer if supported).
+pragmas:
+  journal_mode: "WAL"
+  synchronous: "NORMAL"
