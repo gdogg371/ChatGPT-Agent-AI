@@ -1,0 +1,3 @@
+# local publishing secret_management
+publish.local.json
+*.local.json
