@@ -1,0 +1,16 @@
+{
+  "parts": [
+    {
+      "header": "__assistant_handoff.v1.json__",
+      "sha256": "6e8e2ddd7f8938f4729e95336a3f52420a76536fc040f7ae392365f7faad28dc",
+      "bytes": 30
+    },
+    {
+      "header": "__design_manifest.jsonl__",
+      "sha256": "1454af980a4b7663a9cd05effaebab2920d7a31720f4daf638ff36d1f36d81ad",
+      "bytes": 26
+    }
+  ],
+  "total_bytes": 56,
+  "is_chunked": false
+}
