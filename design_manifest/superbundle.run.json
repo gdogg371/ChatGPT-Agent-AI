@@ -1,0 +1,27 @@
+{
+  "paths": {
+    "bundle": "design_manifest.jsonl",
+    "guide": "assistant_handoff.v1.json",
+    "runspec": "superbundle.run.json",
+    "sums": "design_manifest.SHA256SUMS"
+  },
+  "prompts": {},
+  "provenance": {
+    "emitted_prefix": "output/patch_code_bundles",
+    "source_root": "C:\\Users\\cg371\\PycharmProjects\\ChatGPT Bot"
+  },
+  "transport": {
+    "chunk_bytes": 64000,
+    "chunk_records": true,
+    "dir_suffix_width": 2,
+    "group_dirs": true,
+    "part_ext": ".txt",
+    "part_stem": "design_manifest",
+    "parts_index_name": "design_manifest_parts_index.json",
+    "parts_per_dir": 10,
+    "preserve_monolith": false,
+    "split_bytes": 300000,
+    "transport_as_text": true
+  },
+  "version": "1"
+}
