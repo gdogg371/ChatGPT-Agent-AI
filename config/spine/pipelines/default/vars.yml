@@ -1,0 +1,59 @@
+# LLM / Provider (secrets like API keys stay in secrets.yml)
+provider: openai
+model: gpt-4o-mini
+
+# Introspection DB (strict FETCH expects these exact keys)
+sqlalchemy_url: "sqlite:///C:/Users/cg371/PycharmProjects/ChatGPT Bot/databases/bot_dev.db"
+sqlalchemy_table: "introspection_index"
+status: "todo"        # ← renamed from status_filter
+max_rows: 3
+
+# Filters (added so pipeline interpolation never fails)
+exclude_globs:
+  - "**/__pycache__/**"
+  - "output/**"
+segment_excludes: []
+
+# Outputs
+out_base: "output/patches_received"
+out_file: "output/patches_received/summary.json"  # added to satisfy ${out_file} in pipeline
+
+# Fixed patch target (apply patches into v3 instead of a transient mirror)
+patch_target_root: "C:\\Users\\cg371\\PycharmProjects\\ChatGPT Bot\\v3"
+patch_seed_strategy: "once"   # once | always | skip
+strip_prefix: ""              # added to satisfy ${strip_prefix} in pipeline
+
+# Stage toggles (engine reads these but will safely ignore if a provider doesn't use them)
+run_fetch_targets: true
+run_build_prompts: true
+run_run_llm: true
+run_unpack: true
+run_sanitize: true
+run_verify: true
+run_save_patch: true
+run_apply_patch_sandbox: true
+run_archive_and_replace: false
+run_rollback: false
+
+# Extras (kept exactly as you had them)
+docstrings_model_path: "C:\\Users\\cg371\\PycharmProjects\\ChatGPT Bot\\software\\ai_models\\mistral\\mistral-7b-instruct-v0.1.Q4_K_M.gguf"
+ask_spec:
+  response_format: json
+  temperature: 0
+
+# Code Bundle (dual-purpose packager) — UNCHANGED
+code_bundle:
+  mode: pipeline
+  include_design_manifest: true
+  chunk_manifest: auto
+  split_bytes: 300000
+  group_dirs: true
+  publish_github: false
+
+
+
+
+
+
+
+
