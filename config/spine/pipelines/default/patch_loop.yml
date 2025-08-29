@@ -1,0 +1,51 @@
+# Pipeline for the docstring patch loop (no inline defaults; variables come from vars.yml via the runner).
+
+steps:
+  # 1) Scan/index docstrings into the introspection DB (creates/updates rows)
+  #- id: scan_docstrings
+  #  capability: introspect.docstrings.scan.v1
+  #  payload:
+  #    sqlalchemy_url: ${sqlalchemy_url}
+  #    sqlalchemy_table: ${sqlalchemy_table}
+  #    scan_root: ${SCAN_ROOT}
+  #    exclude_globs: ${exclude_globs}
+  #    segment_excludes: ${segment_excludes}
+  #    status: ${status_filter}
+  #    model_path: ${docstrings_model_path}
+
+  # 2) Run the LLM engine over the indexed rows
+  - id: run_engine
+    capability: llm.engine.run.v1
+    payload:
+      # Required scalars
+      provider: ${provider}
+      model: ${model}
+      max_rows: ${max_rows}
+      sqlalchemy_url: ${sqlalchemy_url}
+      sqlalchemy_table: ${sqlalchemy_table}
+      status_filter: ${status_filter}
+
+      # Filters
+      exclude_globs: ${exclude_globs}
+      segment_excludes: ${segment_excludes}
+
+      # Stage toggles (canonical)
+      run_fetch_targets: ${run_fetch_targets}
+      run_build_prompts: ${run_build_prompts}
+      run_run_llm: ${run_run_llm}
+      run_unpack: ${run_unpack}
+      run_sanitize: ${run_sanitize}
+      run_verify: ${run_verify}
+      run_save_patch: ${run_save_patch}
+      run_apply_patch_sandbox: ${run_apply_patch_sandbox}
+      run_archive_and_replace: ${run_archive_and_replace}
+      run_rollback: ${run_rollback}
+
+      # Outputs
+      out_base: ${out_base}
+
+      # Ask spec for LLM prompts (dict)
+      ask_spec: ${ask_spec}
+
+
+
