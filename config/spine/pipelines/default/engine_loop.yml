@@ -1,0 +1,53 @@
+# Generic LLM engine pipeline (domain-agnostic).
+# Ensures the run goes through code_bundles via Spine providers.
+# Uses variables from default/vars.yml.
+
+steps:
+  # 0) Always snapshot the code bundle first (no direct imports from code_bundles).
+  - id: bundle_make
+    capability: packager.bundle.make.v1
+    payload:
+      root: ${patch_target_root}
+      project_root: ${patch_target_root}
+      out_base: ${out_base}
+
+  # 1) Run the general-purpose engine (includes BUILD → LLM → SANITIZE → VERIFY).
+  - id: engine
+    capability: llm.engine.run.v1
+    payload:
+      # LLM selection
+      provider: ${provider}
+      model: ${model}
+      ask_spec: ${ask_spec}
+
+      # Introspection source (optional if 'items' provided directly)
+      sqlalchemy_url: ${sqlalchemy_url}
+      sqlalchemy_table: ${sqlalchemy_table}
+      status: ${status}
+      max_rows: ${max_rows}
+
+      # Filters
+      exclude_globs: ${exclude_globs}
+      segment_excludes: ${segment_excludes}
+
+      # Stage toggles (engine will tolerate missing/unused flags)
+      run_fetch_targets: ${run_fetch_targets}
+      run_build_prompts: ${run_build_prompts}
+      run_run_llm: ${run_run_llm}
+      run_unpack: ${run_unpack}
+      run_sanitize: ${run_sanitize}
+      run_verify: ${run_verify}
+      run_save_patch: ${run_save_patch}
+      run_apply_patch_sandbox: ${run_apply_patch_sandbox}
+      run_archive_and_replace: ${run_archive_and_replace}
+      run_rollback: ${run_rollback}
+
+      # Patch application options
+      patch_target_root: ${patch_target_root}
+      patch_seed_strategy: ${patch_seed_strategy}
+      strip_prefix: ${strip_prefix}
+      mirror_to: ${patch_target_root}
+
+      # Outputs
+      out_base: ${out_base}
+      out_file: ${out_file}
