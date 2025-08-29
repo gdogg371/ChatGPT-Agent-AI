@@ -1,0 +1,149 @@
+# File: v2/backend/core/config/spine/capabilities.yml
+# Canonical map: capability → provider target ("module.path:function")
+
+# ---- Engine (pipeline façade) ------------------------------------------------
+llm.engine.run.v1:
+  target: v2.backend.core.prompt_pipeline.executor.engine:run_v1
+  input_schema: llm.engine.run.v1.input
+  output_schema: llm.engine.run.v1.output
+
+retriever.enrich.v1:
+  target: v2.backend.core.prompt_pipeline.executor.providers:enrich_v1
+  input_schema: retriever.enrich.v1.input
+  output_schema: retriever.enrich.v1.output
+
+# Generic, pipeline-agnostic builder
+prompts.build.v1:
+  target: v2.backend.core.docstrings.providers:build_prompts_v1
+  input_schema: docstrings.prompts.build.v1.input
+  output_schema: docstrings.prompts.build.v1.output
+
+results.unpack.v1:
+  target: v2.backend.core.prompt_pipeline.executor.providers:unpack_results_v1
+
+# ---- Docstrings --------------------------------------------------------------
+#docstrings.prompts.build.v1:
+#  target: v2.backend.core.docstrings.providers:build_prompts_v1
+#  input_schema: docstrings.prompts.build.v1.input
+#  output_schema: docstrings.prompts.build.v1.output
+
+docstrings.sanitize.v1:
+  target: v2.backend.core.docstrings.providers:sanitize_outputs_v1
+  input_schema: docstrings.sanitize.v1.input
+  output_schema: docstrings.sanitize.v1.output
+
+docstrings.verify.v1:
+  target: v2.backend.core.docstrings.providers:verify_batch_v1
+  input_schema: docstrings.verify.v1.input
+  output_schema: docstrings.verify.v1.output
+
+# >>> Generic names the engine calls (kept alongside docstrings.* for clarity)
+sanitize.v1:
+  target: v2.backend.core.docstrings.providers:sanitize_outputs_v1
+  input_schema: docstrings.sanitize.v1.input
+  output_schema: docstrings.sanitize.v1.output
+
+verify.v1:
+  target: v2.backend.core.docstrings.providers:verify_batch_v1
+  input_schema: docstrings.verify.v1.input
+  output_schema: docstrings.verify.v1.output
+
+patch.plan.v1:
+  target: v2.backend.core.docstrings.patchplan:build_patchplan_v1
+
+# ---- Introspection DB / Analyzer --------------------------------------------
+#introspect.read_docstrings.v1:
+#  target: v2.backend.core.introspect.providers:read_docstrings_v1
+
+introspect.fetch.v1:
+  target: v2.backend.core.introspect.providers:fetch_v1
+  input_schema: introspect.fetch.v1.input
+  output_schema: introspect.fetch.v1.output
+
+#introspect.write.v1:
+#  target: v2.backend.core.introspect.providers:write_v1
+#  input_schema: introspect.write.v1.input
+#  output_schema: introspect.write.v1.output
+
+# ---- Code bundle utilities ---------------------------------------------------
+codebundle.inject_prompts.v1:
+  target: v2.backend.core.utils.code_bundles.code_bundles.spine_targets:inject_prompts_v1
+  input_schema: codebundle.code_bundles.inject_prompts.v1.input
+  output_schema: codebundle.code_bundles.inject_prompts.v1.output
+
+# NEW: keep our engine’s injection step available (falls back if code_bundles hook is missing)
+packager.bundle.inject_prompt.v1:
+  target: v2.backend.core.spine.providers.packager_bundle_inject_prompt:run_v1
+
+# ---- LLM direct --------------------------------------------------------------
+llm.complete.v1:
+  target: v2.backend.core.prompt_pipeline.llm.providers:complete_v1
+  input_schema: llm.complete.v1.input
+  output_schema: llm.complete.v1.output
+
+llm.complete_batches.v1:
+  target: v2.backend.core.prompt_pipeline.llm.providers:complete_batches_v1
+
+# ---- Patch engine ------------------------------------------------------------
+patch.run.v1:
+  target: v2.backend.core.patch_engine.providers:run_v1
+  input_schema: patch.run.v1.input
+  output_schema: patch.run.v1.output
+
+patch.apply_files.v1:
+  target: v2.backend.core.patch_engine.providers:apply_files_v1
+  input_schema: patch.apply_files.v1.input
+  output_schema: patch.apply_files.v1.output
+
+# ---- Tasks / Utilities -------------------------------------------------------
+tasks.verify.v1:
+  target: v2.backend.core.tasks.providers:verify_v1
+  input_schema: tasks.verify.v1.input
+  output_schema: tasks.verify.v1.output
+
+# ---- Added capabilities: packager + utils -----------------------------------
+packager.pack.run.v1:
+  target: v2.backend.core.spine.providers.packager_pack_run:run_v1
+  timeout_secs: 900
+  summary: "Run the code-bundle packager and (optionally) publish artifacts."
+
+packager.bundle.make.v1:
+  target: v2.backend.core.spine.providers.packager_bundle_make:run_v1
+  timeout_secs: 600
+  summary: "Create a JSONL code bundle (+ SHA256SUMS) from a source tree."
+
+packager.bundle.unpack.v1:
+  target: v2.backend.core.spine.providers.packager_bundle_unpack:run_v1
+  timeout_secs: 600
+  summary: "Unpack a JSONL code bundle onto the filesystem."
+
+utils.download_models.v1:
+  target: v2.backend.core.spine.providers.utils_download_models:run_v1
+  timeout_secs: 3600
+  summary: "Download local AI models/assets using the project’s downloader module."
+
+utils.db.init_sqlite_dev.v1:
+  target: v2.backend.core.spine.providers.utils_db_init_sqlite_dev:run_v1
+  timeout_secs: 300
+  summary: "Initialize a development SQLite database."
+
+utils.db.load_sqlite_vec.v1:
+  target: v2.backend.core.spine.providers.utils_db_load_sqlite_vec:run_v1
+  timeout_secs: 120
+  summary: "Load a SQLite extension (e.g., vector) and optionally run a test query."
+
+utils.code.index.v1:
+  target: v2.backend.core.spine.providers.utils_code_index:run_v1
+  timeout_secs: 900
+  summary: "Index/scan code into CSV/JSON/JSONL using the project’s indexer."
+
+utils.io.zip.v1:
+  target: v2.backend.core.spine.providers.utils_io_zip:run_v1
+  timeout_secs: 600
+  summary: "Create a deterministic ZIP of a directory."
+
+# ---- Context building (adapter hook) -----------------------------------------
+context.build:
+  target: v2.backend.core.docstrings.prompt_api:context_build
+
+
