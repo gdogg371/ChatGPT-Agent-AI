@@ -258,8 +258,12 @@ def _gh_list_dir(owner: str, repo: str, path: str, branch: str, token: str):
 def _gh_walk_files(owner: str, repo: str, path: str, branch: str, token: str):
     """Yield dicts with 'path' and 'sha' for every file under path (recursive)."""
     stack = [path]
+    seen = set()
     while stack:
         cur = stack.pop()
+        if cur in seen:
+            continue
+        seen.add(cur)
         items = _gh_list_dir(owner, repo, cur, branch, token)
         if isinstance(items, dict) and items.get("type") == "file":
             yield {"path": items["path"], "sha": items["sha"]}
@@ -273,7 +277,7 @@ def _gh_walk_files(owner: str, repo: str, path: str, branch: str, token: str):
 
 def github_clean_remote_repo(*, owner: str, repo: str, branch: str, base_path: str, token: str) -> None:
     """Recursively delete ALL files under base_path ('' means repo root) on GitHub."""
-    root = base_path.strip("/")
+    root = (base_path or "").strip("/")
     print(
         f"[packager] Publish(GitHub): cleaning remote repo "
         f"(owner={owner} repo={repo} branch={branch} base='{root or '/'}')"
@@ -294,6 +298,16 @@ def github_clean_remote_repo(*, owner: str, repo: str, branch: str, base_path: s
     print(f"[packager] Publish(GitHub): removed {deleted}/{len(files)} remote files")
 
 
+def _print_full_raw_links(owner: str, repo: str, branch: str, token: str) -> None:
+    """Print full list of raw.githubusercontent.com links for the entire repo."""
+    print("\n=== Raw GitHub Links (full repo) ===")
+    all_files = list(_gh_walk_files(owner, repo, "", branch, token))
+    for it in sorted(all_files, key=lambda d: d["path"]):
+        url = f"https://raw.githubusercontent.com/{owner}/{repo}/{branch}/{it['path']}"
+        print(url)
+    print(f"=== ({len(all_files)} files) ===\n")
+
+
 # ──────────────────────────────────────────────────────────────────────────────
 # Config builder
 # ──────────────────────────────────────────────────────────────────────────────
@@ -312,7 +326,7 @@ def build_cfg(
     publish_handoff: bool = True,
     publish_transport: bool = True,
     local_publish_root: Optional[Path] = None,
-    clean_before_publish: bool = True,
+    clean_before_publish: bool = False,
 ) -> NS:
     """
     Construct the Packager config namespace.
@@ -327,7 +341,7 @@ def build_cfg(
     out_guide = (artifact_out / "assistant_handoff.v1.json").resolve()
     out_sums = (artifact_out / "design_manifest.SHA256SUMS").resolve()
 
-    # Transport constants (unchanged defaults; concrete behavior is driven by vars.yml code_bundle)
+    # Transport defaults (behavior controlled by vars.yml code_bundle)
     transport = Transport(
         chunk_bytes=64000,
         chunk_records=True,
@@ -370,7 +384,7 @@ def build_cfg(
         github=gh,
         github_token=(gh_token or ""),
         local_publish_root=(local_publish_root.resolve() if local_publish_root else None),
-        clean_before_publish=bool(clean_before_publish),
+        clean_before_publish=bool(clean_before_publish),  # (artifacts-only clean)
     )
 
     cfg = NS(
@@ -432,19 +446,18 @@ def _load_publish_overrides(repo_root: Path) -> Dict[str, Any]:
 
 
 def _merge_publish(pub: Dict[str, Any], overrides: Dict[str, Any]) -> Dict[str, Any]:
-    """Shallow merge pub with overrides; deep-merge 'github' map."""
+    """Shallow merge pub with overrides; deep-merge 'github' map; pass-through common flags."""
     merged = dict(pub or {})
-    if "mode" in overrides and overrides["mode"]:
-        merged["mode"] = overrides["mode"]
-    if "github_token" in overrides and overrides["github_token"]:
-        merged["github_token"] = overrides["github_token"]
-
+    # simple keys
+    for k in ("mode", "github_token", "clean_before_publish", "clean_repo_root", "clean_artifacts"):
+        if k in overrides and overrides[k] is not None:
+            merged[k] = overrides[k]
+    # github sub-map
     gh = dict(merged.get("github") or {})
     og = dict(overrides.get("github") or {})
     if og:
         gh.update({k: v for k, v in og.items() if v not in (None, "")})
     merged["github"] = gh
-
     if og.get("token"):
         if "github_token" in merged and merged["github_token"]:
             print("[packager] WARN: both github_token and github.token provided; using github_token")
@@ -515,12 +528,9 @@ def _read_code_bundle_params() -> Dict[str, Any]:
                 "chunk_manifest": str(cb.get("chunk_manifest", "auto")).strip().lower(),
                 "split_bytes": int(cb.get("split_bytes", 300000) or 300000),
                 "group_dirs": bool(cb.get("group_dirs", True)),
-                # passthroughs users may have: include_design_manifest, publish_github (ignored here)
             }
-            # normalize enum
             if out["chunk_manifest"] not in {"auto", "always", "never"}:
                 out["chunk_manifest"] = "auto"
-            # hard floor
             if out["split_bytes"] < 1024:
                 out["split_bytes"] = 1024
             return out
@@ -582,7 +592,6 @@ def _write_parts_from_jsonl(
     def make_name(i: int) -> str:
         serial = f"{i+1:04d}"
         if group_dirs:
-            # file-encoded group label so listing remains flat
             group = (i // max(1, parts_per_dir))
             g = f"{group:0{dir_suffix_width}d}"
             return f"{part_stem}_{g}_{serial}{part_ext}"
@@ -633,10 +642,7 @@ def _append_parts_artifacts_into_manifest(
     part_ext: str,
     parts_index_name: str,
 ) -> int:
-    """
-    After parts are created, append their artifact records to the manifest so
-    downstream tooling can discover them without scanning the filesystem.
-    """
+    """Append artifact records for transport parts so downstream can discover them."""
     app = ManifestAppender(manifest_path)
     count = emit_transport_parts(
         appender=app,
@@ -661,7 +667,6 @@ def _maybe_chunk_manifest_and_update(
       - Append artifact records into the manifest
       - Remove monolith if cfg.transport.preserve_monolith is False
       - Update (or remove) SHA256SUMS accordingly
-    Returns a small report dict.
     """
     params = _read_code_bundle_params()
     mode = params.get("chunk_manifest", "auto")
@@ -673,7 +678,6 @@ def _maybe_chunk_manifest_and_update(
     part_stem = str(cfg.transport.part_stem)
     part_ext = str(cfg.transport.part_ext)
     index_name = str(cfg.transport.parts_index_name)
-    index_path = parts_dir / index_name
 
     report = {
         "kind": which,
@@ -689,12 +693,10 @@ def _maybe_chunk_manifest_and_update(
 
     size = int(manifest_path.stat().st_size)
     if not _should_chunk(mode, size, split_bytes):
-        # ensure sums (for monolith) if present
         write_sha256sums_for_file(target_file=manifest_path, out_sums_path=Path(cfg.out_sums))
         report["decision"] = "no-chunk"
         return report
 
-    # Create parts + index (flat files; grouping encoded in filenames)
     parts, index = _write_parts_from_jsonl(
         src_manifest=manifest_path,
         dest_dir=parts_dir,
@@ -707,7 +709,6 @@ def _maybe_chunk_manifest_and_update(
     )
     (parts_dir / index_name).write_text(json.dumps(index, ensure_ascii=False, indent=2), encoding="utf-8")
 
-    # Append artifact records for the newly-created parts
     added = _append_parts_artifacts_into_manifest(
         manifest_path=manifest_path,
         parts_dir=parts_dir,
@@ -717,18 +718,14 @@ def _maybe_chunk_manifest_and_update(
     )
     print(f"[packager] chunk({which}): wrote {len(parts)} parts; appended {added} artifact records")
 
-    # Remove/keep monolith as per transport.preserve_monolith
     if not bool(getattr(cfg.transport, "preserve_monolith", False)):
         try:
-            manifest_path.unlink(missing_ok=True)  # py3.8+: ignore error if not exists
+            manifest_path.unlink(missing_ok=True)
         except TypeError:
-            # Python < 3.8 compatibility
             if manifest_path.exists():
                 manifest_path.unlink()
-        # ensure no dangling sums
         write_sha256sums_for_file(target_file=manifest_path, out_sums_path=Path(cfg.out_sums))
     else:
-        # refresh sums for monolith
         write_sha256sums_for_file(target_file=manifest_path, out_sums_path=Path(cfg.out_sums))
 
     report.update({"decision": "chunked", "parts": len(parts)})
@@ -760,7 +757,7 @@ def _publish_to_github(
     target = GitHubTarget(owner=gh.owner, repo=gh.repo, branch=gh.branch, base_path="")
     pub = GitHubPublisher(target=target, token=token)
 
-    # Optionally clean remote artifacts directory first (safer than nuking repo root)
+    # Optional: clean artifacts dir (legacy behavior; delta mode disables this)
     if bool(getattr(cfg.publish, "clean_before_publish", False)):
         try:
             github_clean_remote_repo(
@@ -785,7 +782,7 @@ def _publish_to_github(
     for name in ("assistant_handoff.v1.json", "superbundle.run.json", "design_manifest.SHA256SUMS"):
         p = art_dir / name
         if name == "design_manifest.SHA256SUMS":
-            p = sums_path  # explicit override target
+            p = sums_path
         if p.exists() and p.is_file():
             candidates.append((p, f"design_manifest/{p.name}"))
 
@@ -809,6 +806,110 @@ def _publish_to_github(
 
     print(f"[packager] Publish(GitHub): artifacts: {len(candidates)}")
     pub.publish_many_files(candidates, message="publish: design manifest", throttle_every=50, sleep_secs=0.5)
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Delta pruning (code + artifacts) for GitHub repo
+# ──────────────────────────────────────────────────────────────────────────────
+def _is_managed_path(
+    rel_posix: str,
+    include_globs: List[str],
+    exclude_globs: List[str],
+    segment_excludes: List[str],
+    case_insensitive: bool,
+) -> bool:
+    parts = Path(rel_posix).parts
+    if _seg_excluded(parts, segment_excludes, case_insensitive):
+        return False
+    if include_globs and not _match_any(rel_posix, include_globs, case_insensitive):
+        return False
+    if exclude_globs and _match_any(rel_posix, exclude_globs, case_insensitive):
+        return False
+    return True
+
+
+def _prune_remote_code_delta(
+    *,
+    cfg: NS,
+    gh_owner: str,
+    gh_repo: str,
+    gh_branch: str,
+    token: str,
+    discovered_repo: List[Tuple[Path, str]],
+) -> int:
+    """Delete remote code files that are no longer present locally (exclude artifacts subtree)."""
+    local_set = {rel for (_p, rel) in discovered_repo}
+    include_globs = list(cfg.include_globs)
+    exclude_globs = list(cfg.exclude_globs)
+    seg_excludes = list(cfg.segment_excludes)
+    casei = bool(getattr(cfg, "case_insensitive", False))
+
+    # Remote files at repo root (recursive)
+    remote_files = list(_gh_walk_files(gh_owner, gh_repo, "", gh_branch, token))
+    to_delete = []
+    for it in remote_files:
+        path = it["path"]
+        if path.startswith("design_manifest/"):
+            continue  # artifacts handled separately
+        if not _is_managed_path(path, include_globs, exclude_globs, seg_excludes, casei):
+            continue
+        if path not in local_set:
+            to_delete.append(it)
+
+    if not to_delete:
+        print("[packager] Delta prune (code): nothing to delete")
+        return 0
+
+    print(f"[packager] Delta prune (code): deleting {len(to_delete)} stale files")
+    deleted = 0
+    for i, it in enumerate(sorted(to_delete, key=lambda d: d["path"])):
+        try:
+            _gh_delete_file(gh_owner, gh_repo, it["path"], it["sha"], gh_branch, token, "remove stale file (code)")
+            deleted += 1
+            if i and (i % 50 == 0):
+                time.sleep(0.5)
+        except Exception as e:
+            print(f"[packager] WARN: failed delete (code) {it['path']}: {type(e).__name__}: {e}")
+    return deleted
+
+
+def _prune_remote_artifacts_delta(
+    *,
+    cfg: NS,
+    gh_owner: str,
+    gh_repo: str,
+    gh_branch: str,
+    token: str,
+) -> int:
+    """Delete remote artifacts under design_manifest/ that are not present locally."""
+    art_dir = Path(cfg.out_bundle).parent
+    local_names = set()
+    for p in art_dir.glob("*"):
+        if p.is_file():
+            local_names.add(p.name)
+    # Remote artifacts
+    remote = list(_gh_walk_files(gh_owner, gh_repo, "design_manifest", gh_branch, token))
+    to_delete = []
+    for it in remote:
+        name = Path(it["path"]).name
+        if name not in local_names:
+            to_delete.append(it)
+
+    if not to_delete:
+        print("[packager] Delta prune (artifacts): nothing to delete")
+        return 0
+
+    print(f"[packager] Delta prune (artifacts): deleting {len(to_delete)} stale files")
+    deleted = 0
+    for i, it in enumerate(sorted(to_delete, key=lambda d: d["path"])):
+        try:
+            _gh_delete_file(gh_owner, gh_repo, it["path"], it["sha"], gh_branch, token, "remove stale file (artifacts)")
+            deleted += 1
+            if i and (i % 50 == 0):
+                time.sleep(0.5)
+        except Exception as e:
+            print(f"[packager] WARN: failed delete (artifacts) {it['path']}: {type(e).__name__}: {e}")
+    return deleted
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -837,7 +938,6 @@ def _map_record_paths_inplace(rec: Dict[str, Any], map_path_fn) -> None:
         if key in rec and isinstance(rec[key], str):
             rec[key] = map_path_fn(rec[key])
 
-    # Best-effort: map examples.{license_files|headers|notices} lists
     examples = rec.get("examples")
     if isinstance(examples, dict):
         for k, v in list(examples.items()):
@@ -861,18 +961,11 @@ def augment_manifest(
       - graph.edge (coalesced)
       - artifact (standard + transport parts)
       - bundle.summary
-      - NEW: doc.coverage, code.complexity, owners.index, env.index, entrypoints.index,
-             html.index, sql.index, js_ts.index, deps.index (+ summary),
-             git.* (repo/ignore/submodule/summary), license.* (file/header/notice/summary),
-             secrets.* (finding/summary), asset.* (file/summary)
-
-    path_mode:
-      - "local"  : new records get paths prefixed with emitted_prefix
-      - "github" : new records use repo-root relative paths
+      - wired scanners (doc coverage, complexity, owners, env, entrypoints, html/sql/js_ts/deps, git, license, secrets, assets)
     """
     app = ManifestAppender(Path(cfg.out_bundle))
 
-    # Ensure header present (front-insert if needed)
+    # Ensure header present
     header = build_manifest_header(
         manifest_version="1.0",
         generated_at=datetime.now(timezone.utc).isoformat(),
@@ -901,11 +994,10 @@ def augment_manifest(
     quality_count = 0
     edges_accum: List[Dict[str, Any]] = []
 
-    # Only process .py files for index/quality
+    # python.module + edges
     for local, rel in discovered_repo:
         if not rel.endswith(".py"):
             continue
-        # python.module + edges
         mod_rec, edges = index_python_file(
             repo_root=Path(cfg.source_root),
             local_path=local,
@@ -917,7 +1009,6 @@ def augment_manifest(
             module_count += 1
         if edges:
             for e in edges:
-                # Respect both src_path / dst_path if present
                 if "src_path" in e and isinstance(e["src_path"], str):
                     e["src_path"] = map_path(e["src_path"])
                 else:
@@ -946,8 +1037,7 @@ def augment_manifest(
 
     t3 = time.perf_counter()
 
-    # --- NEW WIRED SCANNERS -------------------------------------------------
-    # Helpers to invoke a scanner, map its 'path'-like fields, and append
+    # --- wired scanners -------------------------------------------------
     def run_scanner(name: str, fn, *args, **kwargs):
         try:
             records = fn(*args, **kwargs) or []
@@ -976,9 +1066,9 @@ def augment_manifest(
     wired_counts["license"] = run_scanner("license_scan", scan_license, Path(cfg.source_root), discovered_repo)
     wired_counts["secrets"] = run_scanner("secrets_scan", scan_secrets, Path(cfg.source_root), discovered_repo)
     wired_counts["assets"] = run_scanner("assets_index", scan_assets, Path(cfg.source_root), discovered_repo)
-    # ------------------------------------------------------------------------
+    # --------------------------------------------------------------------
 
-    # artifact records (manifest/sums/run/guide + optional transport parts)
+    # artifacts (manifest/sums/run/guide + optional transport parts)
     art_count = 0
     art_count += emit_standard_artifacts(
         appender=app,
@@ -995,7 +1085,6 @@ def augment_manifest(
         parts_index_name=str(cfg.transport.parts_index_name),
     )
 
-    # bundle.summary
     summary = build_bundle_summary(
         counts={
             "files": len(discovered_repo),
@@ -1003,7 +1092,6 @@ def augment_manifest(
             "edges": len(edges_dedup),
             "metrics": quality_count,
             "artifacts": art_count,
-            # include wired scanner record totals (approximate)
             **{f"wired.{k}": v for k, v in wired_counts.items()},
         },
         durations_ms={
@@ -1041,6 +1129,11 @@ def main() -> int:
     do_github = mode in {"github", "both"}
     print(f"[packager] mode: {mode} (local={do_local}, github={do_github})")
 
+    # Flags per agreement
+    clean_repo_root = bool(pub.get("clean_repo_root", False))
+    # legacy artifact-only clean flag (kept for compat, used only if full clean disabled)
+    clean_artifacts = bool(pub.get("clean_artifacts", pub.get("clean_before_publish", False)))
+
     # Paths per requirements
     artifact_root = (repo_root / "output" / "design_manifest").resolve()
     code_output_root = (repo_root / "output" / "patch_code_bundles").resolve()
@@ -1049,9 +1142,9 @@ def main() -> int:
     source_root = repo_root  # direct-source (no staging)
 
     github = dict(pub.get("github") or {})
-    gh_owner = github.get("owner")
-    gh_repo = github.get("repo")
-    gh_branch = github.get("branch", "main")
+    gh_owner = str(github.get("owner") or "")
+    gh_repo = str(github.get("repo") or "")
+    gh_branch = str(github.get("branch") or "main")
 
     # Resolve token
     gh_token, token_src = _resolve_token(pack, pub)
@@ -1068,17 +1161,18 @@ def main() -> int:
         src=source_root,
         artifact_out=artifact_root,
         publish_mode=mode,
-        gh_owner=str(gh_owner) if gh_owner else None,
-        gh_repo=str(gh_repo) if gh_repo else None,
-        gh_branch=str(gh_branch or "main"),
-        gh_base="",  # ignored by publisher; forced to repo root anyway
+        gh_owner=gh_owner if gh_owner else None,
+        gh_repo=gh_repo if gh_repo else None,
+        gh_branch=gh_branch or "main",
+        gh_base="",
         gh_token=str(gh_token or ""),
         publish_codebase=bool(pub.get("publish_codebase", True)),
         publish_analysis=bool(pub.get("publish_analysis", False)),
         publish_handoff=bool(pub.get("publish_handoff", True)),
         publish_transport=bool(pub.get("publish_transport", True)),
         local_publish_root=None,
-        clean_before_publish=True,  # we force clean of artifacts dir before publish in code below
+        # delta mode disables artifacts clean; full-clean ignores this and wipes repo root
+        clean_before_publish=bool(clean_artifacts) if (do_github and not clean_repo_root) else False,
     )
 
     # Provenance + active filters
@@ -1119,16 +1213,11 @@ def main() -> int:
         copied = copy_snapshot(discovered_repo, code_output_root)
         print(f"[packager] Local snapshot: copied {copied} files to {code_output_root}")
 
-    # ── PATH MODE & REWRITE STRATEGY ────────────────────────────────────────
-    # We want:
-    #  - local : manifest paths = local snapshot (prefix emitted_prefix)
-    #  - github: manifest paths = repo-root
-    #  - both  : local manifest stays local; github gets a rewritten copy
+    # PATH mode & rewriting
     manifest_path = Path(cfg.out_bundle)
     sums_path = Path(cfg.out_sums)
     emitted_prefix = str(cfg.emitted_prefix).strip("/")
 
-    # Helper: rewrite manifest to a target path with specific path mode
     def _rewrite_to_mode(manifest_in: Path, out_path: Path, to_mode: str):
         out_path.parent.mkdir(parents=True, exist_ok=True)
         rewrite_manifest_paths(
@@ -1139,10 +1228,8 @@ def main() -> int:
         )
         return out_path
 
-    # 1) LOCAL enrich (if local or both)
+    # LOCAL enrich
     if do_local:
-        # ensure any file paths remain local-mode for augmentation
-        # (no-op rewrite; keep same target file)
         augment_manifest(
             cfg=cfg,
             discovered_repo=discovered_repo,
@@ -1150,16 +1237,13 @@ def main() -> int:
             mode_github=do_github,
             path_mode="local",
         )
-        # Defer chunking until after augmentation (so parts include augmented lines)
 
-    # 2) GITHUB enrich (github-only or both)
+    # GITHUB enrich (create a github-path variant)
     gh_manifest_override: Optional[Path] = None
     gh_sums_override: Optional[Path] = None
     if do_github:
-        # Create a GitHub-paths variant of the manifest next to local one
         gh_manifest_override = manifest_path.parent / "design_manifest.github.jsonl"
         _rewrite_to_mode(manifest_in=manifest_path, out_path=gh_manifest_override, to_mode="github")
-        # Temporarily point cfg.out_bundle/sums to GH variant for augmentation
         local_bundle, local_sums = cfg.out_bundle, cfg.out_sums
         try:
             cfg.out_bundle = gh_manifest_override
@@ -1176,16 +1260,12 @@ def main() -> int:
             cfg.out_bundle = local_bundle
             cfg.out_sums = local_sums
 
-    # ── CHUNKING (transport parts) ─────────────────────────────────────────
-    # Perform after augmentation so parts include *all* manifest lines.
-    # LOCAL
+    # CHUNKING (after augmentation)
     if do_local:
         rep = _maybe_chunk_manifest_and_update(cfg=cfg, which="local")
         print(f"[packager] chunk report (local): {rep}")
 
-    # GITHUB variant (if produced)
     if do_github and gh_manifest_override and gh_manifest_override.exists():
-        # Use a temporary cfg with override bundle/sums targeting GH variant
         local_bundle, local_sums = cfg.out_bundle, cfg.out_sums
         try:
             cfg.out_bundle = gh_manifest_override
@@ -1196,18 +1276,59 @@ def main() -> int:
             cfg.out_bundle = local_bundle
             cfg.out_sums = local_sums
 
-    # ── SHA256SUMS (finalize for local monolith if it still exists) ───────
+    # SHA256 for local monolith if present
     if do_local and Path(cfg.out_bundle).exists():
         write_sha256sums_for_file(target_file=Path(cfg.out_bundle), out_sums_path=Path(cfg.out_sums))
 
-    # ── PUBLISH TO GITHUB (code + artifacts) ───────────────────────────────
+    # GITHUB PUBLISH FLOW
     if do_github:
-        _publish_to_github(
-            cfg=cfg,
-            code_items_repo_rel=discovered_repo,
-            manifest_override=gh_manifest_override if (gh_manifest_override and gh_manifest_override.exists()) else None,
-            sums_override=gh_sums_override if (gh_sums_override and gh_sums_override.exists()) else None,
-        )
+        # Full-wipe mode
+        if clean_repo_root:
+            try:
+                github_clean_remote_repo(owner=gh_owner, repo=gh_repo, branch=gh_branch, base_path="", token=str(gh_token))
+            except Exception as e:
+                print(f"[packager] WARN: full repo clean failed: {type(e).__name__}: {e}")
+
+            _publish_to_github(
+                cfg=cfg,
+                code_items_repo_rel=discovered_repo,
+                manifest_override=gh_manifest_override if (gh_manifest_override and gh_manifest_override.exists()) else None,
+                sums_override=gh_sums_override if (gh_sums_override and gh_sums_override.exists()) else None,
+            )
+
+            # Always print full raw links after publish
+            _print_full_raw_links(gh_owner, gh_repo, gh_branch, str(gh_token))
+
+        # Delta mode
+        else:
+            _publish_to_github(
+                cfg=cfg,
+                code_items_repo_rel=discovered_repo,
+                manifest_override=gh_manifest_override if (gh_manifest_override and gh_manifest_override.exists()) else None,
+                sums_override=gh_sums_override if (gh_sums_override and gh_sums_override.exists()) else None,
+            )
+
+            # Prune deletions for code + artifacts
+            try:
+                deleted_code = _prune_remote_code_delta(
+                    cfg=cfg,
+                    gh_owner=gh_owner,
+                    gh_repo=gh_repo,
+                    gh_branch=gh_branch,
+                    token=str(gh_token),
+                    discovered_repo=discovered_repo,
+                )
+                deleted_art = _prune_remote_artifacts_delta(
+                    cfg=cfg,
+                    gh_owner=gh_owner,
+                    gh_repo=gh_repo,
+                    gh_branch=gh_branch,
+                    token=str(gh_token),
+                )
+                print(f"[packager] Delta prune: code={deleted_code}, artifacts={deleted_art}")
+            finally:
+                # Always print full raw links after delta publish + prune
+                _print_full_raw_links(gh_owner, gh_repo, gh_branch, str(gh_token))
 
     print("[packager] done.")
     return 0
@@ -1222,3 +1343,4 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         print("[packager] interrupted.")
         raise SystemExit(130)
+
