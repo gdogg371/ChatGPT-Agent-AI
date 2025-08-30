@@ -62,7 +62,7 @@ publish:
   ingest_root: "."          # external source tree to ingest into staging_root/codebase
   local_publish_root: "output/patch_code_bundles/published"
   clean_before_publish: false
-  clean_repo_root: false   # when true, wipe entire repo before publish
+  clean_repo_root: true   # when true, wipe entire repo before publish
   clean_artifacts: false
 
   github:
