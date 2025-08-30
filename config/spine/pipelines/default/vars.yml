@@ -47,7 +47,7 @@ code_bundle:
   mode: pipeline
   include_design_manifest: true
   chunk_manifest: auto
-  split_bytes: 300000
+  split_bytes: 150000
   group_dirs: true
   publish_github: false
 
