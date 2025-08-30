@@ -1,0 +1,28 @@
+{
+  "record_type": "parts_index",
+  "total_parts": 4,
+  "split_bytes": 300000,
+  "parts": [
+    {
+      "name": "design_manifest_00_0001.txt",
+      "size": 300419,
+      "lines": 1123
+    },
+    {
+      "name": "design_manifest_00_0002.txt",
+      "size": 300525,
+      "lines": 679
+    },
+    {
+      "name": "design_manifest_00_0003.txt",
+      "size": 300663,
+      "lines": 805
+    },
+    {
+      "name": "design_manifest_00_0004.txt",
+      "size": 33270,
+      "lines": 134
+    }
+  ],
+  "source": "design_manifest.github.jsonl"
+}
