@@ -1,4 +1,4 @@
-{"case_insensitive":true,"exclude_globs":["**/.git/**","**/__pycache__/**","**/*.pyc","**/.mypy_cache/**","**/.pytest_cache/**","**/.idea/**","**/.vscode/**","secret_management/**","**/node_modules/**","**/dist/**","**/build/**","**/.venv/**","**/venv/**","**/tests/**"],"follow_symlinks":true,"generated_at":"2025-08-30T11:44:01.044060+00:00","include_globs":["config/**","cold_start/**","recovery/**","scripts/**","v2/**"],"kind":"manifest.header","manifest_version":"1.0","modes":{"github":true,"local":true},"segment_excludes":[".git","__pycache__",".mypy_cache",".pytest_cache",".idea",".vscode","node_modules","dist","build",".venv","venv","v1","secret_management","output","Archive","archive","databases","logs","software","terrafom","tests","tests_adhoc","tests_adhoc2"],"source_root":"C:\\Users\\cg371\\PycharmProjects\\ChatGPT Bot","tool_versions":{"packager.orchestrator":"C:/Users/cg371/PycharmProjects/ChatGPT Bot/v2/backend/core/utils/code_bundles/code_bundles/src/packager/core/orchestrator.py","run_pack":"C:/Users/cg371/PycharmProjects/ChatGPT Bot/v2/backend/core/utils/code_bundles/code_bundles/run_pack.py"}}
+{"case_insensitive":true,"exclude_globs":["**/.git/**","**/__pycache__/**","**/*.pyc","**/.mypy_cache/**","**/.pytest_cache/**","**/.idea/**","**/.vscode/**","secret_management/**","**/node_modules/**","**/dist/**","**/build/**","**/.venv/**","**/venv/**","**/tests/**"],"follow_symlinks":true,"generated_at":"2025-08-30T16:04:59.368264+00:00","include_globs":["config/**","cold_start/**","recovery/**","scripts/**","v2/**"],"kind":"manifest.header","manifest_version":"1.0","modes":{"github":true,"local":true},"segment_excludes":[".git","__pycache__",".mypy_cache",".pytest_cache",".idea",".vscode","node_modules","dist","build",".venv","venv","v1","secret_management","output","Archive","archive","databases","logs","software","terrafom","tests","tests_adhoc","tests_adhoc2"],"source_root":"C:\\Users\\cg371\\PycharmProjects\\ChatGPT Bot","tool_versions":{"packager.orchestrator":"C:/Users/cg371/PycharmProjects/ChatGPT Bot/v2/backend/core/utils/code_bundles/code_bundles/src/packager/core/orchestrator.py","run_pack":"C:/Users/cg371/PycharmProjects/ChatGPT Bot/v2/backend/core/utils/code_bundles/code_bundles/run_pack.py"}}
 {"kind":"file","path":"cold_start/__init__.py","sha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}
 {"kind":"file","path":"cold_start/bootstrap.sh","sha256":"82819ee831f023b219c2e4862509e4eba3f819085d596e82744501ffba033711"}
 {"kind":"file","path":"cold_start/bootstrap_check.py","sha256":"1c5cad94b1fe386a16e4cccc7552a4a76f22affc0af1dc8af35ef87e157e06ea"}
@@ -9,7 +9,7 @@
 {"kind":"file","path":"config/db.yml","sha256":"64ce6590892a5bca4856d292d41b3412d91588978739519e2bfd78b9aaaa16d8"}
 {"kind":"file","path":"config/llm.yml","sha256":"badd0428024601842cd361c15d03bcdd7f6287a778c2c3a7a20ce16525daad53"}
 {"kind":"file","path":"config/normalize.yml","sha256":"0fd1089353393650f3fdf2dbaf16cc4eb29ce7fb2545c8592044dd6abea7b89c"}
-{"kind":"file","path":"config/packager.yml","sha256":"ec8a2a4320a81b329141276d1224fac72ea2f6ca10accbd2a17d0fc66edeaeed"}
+{"kind":"file","path":"config/packager.yml","sha256":"bd9e51f8abce39b03ace7f829c5fdca90395ff37a17c15e0ba9b7fa1cd590138"}
 {"kind":"file","path":"config/spine.yml","sha256":"799cd90e6e4c4688951cf06abd995cc3dae127f6ab69e293421e6586d1be54de"}
 {"kind":"file","path":"config/spine/capabilities.yml","sha256":"d3f30948a34c9cb2fe1862bf4535b515539d6e861b1c60115998eb37cdd61ccf"}
 {"kind":"file","path":"config/spine/pipelines/default/llm.yml","sha256":"9736367659166c1d60f05e053bb8ad965c3e8245716fe618d976165251706427"}
@@ -250,7 +250,7 @@
 {"kind":"file","path":"v2/backend/core/utils/code_bundles/code_bundles_OLD/patch_pack.py","sha256":"67b6fe0ffc482b006b34c36ea5addfc70ad695a2e4f139874985f3de9ca39fd4"}
 {"kind":"file","path":"v2/backend/core/utils/code_bundles/code_bundles_OLD/python_index.py","sha256":"cfb64217f587803de08616c37fa46b8b9feb1b64bbeaf665fe4f6e5f992940c4"}
 {"kind":"file","path":"v2/backend/core/utils/code_bundles/code_bundles_OLD/quality.py","sha256":"e5c7e7622bfffc378be46de6d02ec13f838062aa74739fc4f46c3a9103fb1620"}
-{"kind":"file","path":"v2/backend/core/utils/code_bundles/code_bundles_OLD/run_pack.py","sha256":"89ea800ea28c8c75d213cc894c0c8c6e05e342d95213f6d206ce948e53bf717f"}
+{"kind":"file","path":"v2/backend/core/utils/code_bundles/code_bundles_OLD/run_pack.py","sha256":"1d742b7d17aad8cecfd398421a00662e285c5d169f1ab2cb104bacd40fc9de8a"}
 {"kind":"file","path":"v2/backend/core/utils/code_bundles/code_bundles_OLD/src/packager/core/config.py","sha256":"e5c320564d4cae1accc6fda413c5464fc46f10e9bf730674c63333e5a9483568"}
 {"kind":"file","path":"v2/backend/core/utils/code_bundles/code_bundles_OLD/src/packager/core/discovery.py","sha256":"d802a85a4581d93c00139c91bfe7a999dc19547e192cf93c695c06d368f07002"}
 {"kind":"file","path":"v2/backend/core/utils/code_bundles/code_bundles_OLD/src/packager/core/errors.py","sha256":"f4a23c2ac3fd215497eae3fdfca863527a9613b912fd908ab72da5e08eed30c3"}
@@ -286,6 +286,10 @@
 {"kind":"file","path":"v2/backend/core/utils/scanners/code_indexer.py","sha256":"05cac01c8b5a4c9a6746c5b2ec4d64f47b274d92f163f56b81e492b28d993dbb"}
 {"kind":"file","path":"v2/backend/core/utils/scanners/code_length.py","sha256":"78b61038a0a9d5fa2eabab633465f598f4ed232ca7725aaed775a3c1b708a5af"}
 {"kind":"file","path":"v2/backend/core/utils/scanners/dir_crawler.py","sha256":"4c2a93c5599724a82b76c5577964a24f0cb3ff250d4935cb56f1387d982e3289"}
+{"kind":"file","path":"v2/backend/core/utils/standalone/__init__.py","sha256":"70fd98b1c6d663e0238a8c065f20af6454a5c985ed8cf94a50535f9b064f89f8"}
+{"kind":"file","path":"v2/backend/core/utils/standalone/patch_report.json","sha256":"e5503737640f6a099a3596de3c8b2df8478aac34cf9321223fab01a367404afd"}
+{"kind":"file","path":"v2/backend/core/utils/standalone/standalone_patch_apply_verify.py","sha256":"cb0c8670c69735fa79a5c8bea7df3b3ecf8f81550b4c1faced06f56468cabce2"}
+{"kind":"file","path":"v2/backend/core/utils/standalone/wire_python_ast_plugin.patch","sha256":"c3666c0a86914fca971e53542d4c1155d4503b6c6228ce5d3620a69b3d57005e"}
 {"kind":"file","path":"v2/cli/__init__.py","sha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}
 {"kind":"file","path":"v2/cli/docstring.py","sha256":"d2f4b096c207828ec90604b48d6577ff7b891879a360c6724f8526ffb8e2b393"}
 {"kind":"file","path":"v2/databases/bot_dev.db","sha256":"26a2ff9dd8ab1da0bef233e7b1e9c0fd2451e2b069777335b03c05626149b16a"}
@@ -302,15 +306,15 @@
 {"kind":"file","path":"v2/patches/executor/run_patch_loop.py","sha256":"ca40b19cc348ede77e915a3bafedc27880455e0f982b5c57f2bd25093cbbbd3b"}
 {"kind":"file","path":"v2/patches/executor/run_patch_loop_local.py","sha256":"25ed1d6a19d30e2a9a87253f6d07957c383301fc4053e259a911352f1779e2b9"}
 {"kind":"file","path":"v2/routes/__init__.py","sha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}
-{"kind":"file","path":"analysis/cs_syntax.json","sha256":"d94efb2545df683782201905b6a1701b01c312a6c6362fd09da492e66598523c"}
+{"kind":"file","path":"analysis/cs_syntax.json","sha256":"41f04209c7bf1669e2e4ec125dc33abfc3f04ced3008f33efb4329df0c9ed740"}
 {"kind":"file","path":"analysis/graphs/cs_usings.json","sha256":"275926278521c4631631f080fe97b317a6547bbaef0a0c4f6eb8fede102bc170"}
-{"kind":"file","path":"analysis/cs_symbols.json","sha256":"9125536cf578e563faf6e19e276002c6ce61e1e21bc880d2c95347d3a4389186"}
-{"kind":"file","path":"analysis/html_assets.json","sha256":"b7abe64b5788605ad4d82bcf26bb4c38b3116e3251507da168c2d051837dd2d9"}
-{"kind":"file","path":"analysis/js_syntax.json","sha256":"d94efb2545df683782201905b6a1701b01c312a6c6362fd09da492e66598523c"}
+{"kind":"file","path":"analysis/cs_symbols.json","sha256":"3592a84fe5200536c7036689d339784a20675a27914763098157a0b55a71715c"}
+{"kind":"file","path":"analysis/html_assets.json","sha256":"978c7bb800cdb90f88fcd827dcd14a0b2adc25e85229b3ecec61c3ddbd36ae0e"}
+{"kind":"file","path":"analysis/js_syntax.json","sha256":"41f04209c7bf1669e2e4ec125dc33abfc3f04ced3008f33efb4329df0c9ed740"}
 {"kind":"file","path":"analysis/graphs/js_imports.json","sha256":"645d821ea2a64df11644bbf7b2a4478103f4e49c8d2e323b56ff080fd2b9417d"}
-{"kind":"file","path":"analysis/sql_syntax.json","sha256":"d94efb2545df683782201905b6a1701b01c312a6c6362fd09da492e66598523c"}
-{"kind":"file","path":"analysis/graphs/sql_refs.json","sha256":"9d84c6dd3b66c946307a4ad046b2a99089776693b2e1e7c54da361dd26a806ba"}
-{"kind":"file","path":"analysis/ts_syntax.json","sha256":"d94efb2545df683782201905b6a1701b01c312a6c6362fd09da492e66598523c"}
+{"kind":"file","path":"analysis/sql_syntax.json","sha256":"41f04209c7bf1669e2e4ec125dc33abfc3f04ced3008f33efb4329df0c9ed740"}
+{"kind":"file","path":"analysis/graphs/sql_refs.json","sha256":"7652b0bdd78d0dd9a177741191653a1c6a734b54043b026ffb36e532b0532003"}
+{"kind":"file","path":"analysis/ts_syntax.json","sha256":"41f04209c7bf1669e2e4ec125dc33abfc3f04ced3008f33efb4329df0c9ed740"}
 {"kind":"file","path":"analysis/graphs/ts_imports.json","sha256":"d9677f6c9c2d20e5b08f3a94c86a21f5f598478fee0a8007fcdc82be2bdcadd7"}
 {"imports":[],"kind":"python.module","module":"cold_start","path":"cold_start/__init__.py","symbols":{"classes":[],"functions":[]}}
 {"imports":["sqlite3","sys","datetime.datetime"],"kind":"python.module","module":"cold_start.bootstrap_check","path":"cold_start/bootstrap_check.py","symbols":{"classes":[],"functions":["check_locks","check_exists","main"]}}
@@ -493,6 +497,8 @@
 {"imports":["__future__.annotations","ast","json","os","sys","re","hashlib","time","platform","dataclasses.dataclass","dataclasses.asdict","pathlib.Path","typing.Dict","typing.List","typing.Optional","typing.Tuple","typing.Union","typing.Iterable","typing.Set"],"kind":"python.module","module":"v2.backend.core.utils.scanners.code_indexer","path":"v2/backend/core/utils/scanners/code_indexer.py","symbols":{"classes":["FileRec","ImportRec","FuncRec","ClassRec","CallEdge","ModuleIndex","PyModuleVisitor","SqlDef","SqlRef","SqlEdge","SqlFileIndex","ShFunction","ShEdge","ShFileIndex","Resolved"],"functions":["sha256_bytes","sha256_file","rel_module_name","first_line","get_attr_name","fmt_signature","count_loc","scan_files","_strip_sql_comments","_canon_sql_name","index_sql_file","_tokenize_sh_commands","index_sh_file","index_python_file","build_index","write_chunks_single_file","run","__init__","visit_Import","visit_ImportFrom","visit_ClassDef","_make_func","visit_FunctionDef","visit_AsyncFunctionDef","_handle_function_like","visit_Call","_resolve_call_target","__init__"]}}
 {"imports":["os","collections.defaultdict"],"kind":"python.module","module":"v2.backend.core.utils.scanners.code_length","path":"v2/backend/core/utils/scanners/code_length.py","symbols":{"classes":[],"functions":["is_script_file"]}}
 {"imports":["os"],"kind":"python.module","module":"v2.backend.core.utils.scanners.dir_crawler","path":"v2/backend/core/utils/scanners/dir_crawler.py","symbols":{"classes":[],"functions":["crawl_directory","print_yaml_like"]}}
+{"imports":[],"kind":"python.module","module":"v2.backend.core.utils.standalone","path":"v2/backend/core/utils/standalone/__init__.py","symbols":{"classes":[],"functions":[]}}
+{"imports":["__future__.annotations","hashlib","json","os","re","shutil","sqlite3","dataclasses.dataclass","pathlib.Path","typing.List","typing.Tuple","typing.Optional","typing.Dict","tomllib","yaml","ast"],"kind":"python.module","module":"v2.backend.core.utils.standalone.standalone_patch_apply_verify","path":"v2/backend/core/utils/standalone/standalone_patch_apply_verify.py","symbols":{"classes":["HunkLine","Hunk","FilePatch"],"functions":["sha256_bytes","parse_unified_diff","apply_hunks_to_text","ast_fingerprint","validate_text","ensure_within_root","apply_patches","run","read_file_header","clean"]}}
 {"imports":[],"kind":"python.module","module":"v2.cli","path":"v2/cli/__init__.py","symbols":{"classes":[],"functions":[]}}
 {"imports":["__future__.annotations","argparse","os","sys","pathlib.Path","typing.Optional","typing.List","typing.Dict","typing.Any","v2.backend.core.spine.Spine","v2.backend.core.spine.to_dict","v2.backend.core.db.access.db_init.DB_PATH","v2.backend.core.utils.db.init_sqlite_dev"],"kind":"python.module","module":"v2.cli.docstring","path":"v2/cli/docstring.py","symbols":{"classes":[],"functions":["_init_db_at_writer_path","_ensure_env_for_scanner","_sqlite_url_from_dbpath","_default_caps_path","_artifact_problem_summary","_extract_result","main"]}}
 {"imports":[],"kind":"python.module","module":"v2.models","path":"v2/models/__init__.py","symbols":{"classes":[],"functions":[]}}
@@ -544,11 +550,3 @@
 {"avg_fn_len":16.67,"cyclomatic":8,"kind":"quality.metric","language":"python","loc":87,"n_classes":3,"n_functions":3,"notes":null,"path":"v2/backend/core/patch_engine/evaluator.py","sloc":72}
 {"avg_fn_len":62.33,"cyclomatic":18,"kind":"quality.metric","language":"python","loc":240,"n_classes":0,"n_functions":3,"notes":null,"path":"v2/backend/core/patch_engine/interactive_run.py","sloc":187}
 {"avg_fn_len":41.75,"cyclomatic":36,"kind":"quality.metric","language":"python","loc":182,"n_classes":0,"n_functions":4,"notes":null,"path":"v2/backend/core/patch_engine/ops_compile.py","sloc":142}
-{"avg_fn_len":0.0,"cyclomatic":1,"kind":"quality.metric","language":"python","loc":77,"n_classes":6,"n_functions":0,"notes":null,"path":"v2/backend/core/patch_engine/plan.py","sloc":59}
-{"avg_fn_len":38.78,"cyclomatic":131,"kind":"quality.metric","language":"python","loc":398,"n_classes":0,"n_functions":9,"notes":null,"path":"v2/backend/core/patch_engine/providers.py","sloc":316}
-{"avg_fn_len":3.5,"cyclomatic":3,"kind":"quality.metric","language":"python","loc":44,"n_classes":1,"n_functions":6,"notes":null,"path":"v2/backend/core/patch_engine/run_manifest.py","sloc":34}
-{"avg_fn_len":15.33,"cyclomatic":16,"kind":"quality.metric","language":"python","loc":67,"n_classes":1,"n_functions":3,"notes":null,"path":"v2/backend/core/patch_engine/scope.py","sloc":57}
-{"avg_fn_len":27.25,"cyclomatic":1,"kind":"quality.metric","language":"python","loc":137,"n_classes":0,"n_functions":4,"notes":null,"path":"v2/backend/core/patch_engine/test_engine_smoke.py","sloc":99}
-{"avg_fn_len":7.18,"cyclomatic":20,"kind":"quality.metric","language":"python","loc":110,"n_classes":0,"n_functions":11,"notes":null,"path":"v2/backend/core/patch_engine/textops.py","sloc":83}
-{"avg_fn_len":9.6,"cyclomatic":21,"kind":"quality.metric","language":"python","loc":124,"n_classes":1,"n_functions":10,"notes":null,"path":"v2/backend/core/patch_engine/workspace.py","sloc":106}
-{"avg_fn_len":0.0,"cyclomatic":1,"kind":"quality.metric","language":"python","loc":1,"n_classes":0,"n_functions":0,"notes":null,"path":"v2/backend/core/prompt_pipeline/__init__.py","sloc":1}
