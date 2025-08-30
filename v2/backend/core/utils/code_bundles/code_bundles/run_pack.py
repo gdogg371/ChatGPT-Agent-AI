@@ -3,12 +3,12 @@
 Packager runner (direct-source; no staging). Platform-agnostic (pathlib).
 
 Local:
-  - Artifacts  -> <repo_root>/output/design_manifest/
-  - Code snap  -> <repo_root>/output/patch_code_bundles/
+  - Artifacts -> /output/design_manifest/
+  - Code snap -> /output/patch_code_bundles/
 
 GitHub:
-  - Artifacts  -> design_manifest/ at repo root
-  - Code       -> repo root (repo-relative paths; no output/ prefix)
+  - Artifacts -> design_manifest/ at repo root
+  - Code      -> repo root (repo-relative paths; no output/ prefix)
 
 Modes:
   - local  -> write local only
@@ -23,15 +23,15 @@ Token precedence:
   env: GITHUB_TOKEN / GH_TOKEN
 
 Overrides (publish.local.json) searched in:
-  <repo_root>/secrets_management/publish.local.json
-  <repo_root>/secret_management/publish.local.json
-  <repo_root>/publish.local.json
-  <repo_root>/config/publish.local.json
-  <repo_root>/v2/publish.local.json
-  <repo_root>/v2/config/publish.local.json
-  <repo_root>/v2/backend/config/publish.local.json
-  <repo_root>/v2/backend/core/config/publish.local.json
-  <this_dir>/publish.local.json
+  /secrets_management/publish.local.json
+  /secret_management/publish.local.json
+  /publish.local.json
+  /config/publish.local.json
+  /v2/publish.local.json
+  /v2/config/publish.local.json
+  /v2/backend/config/publish.local.json
+  /v2/backend/core/config/publish.local.json
+  ./publish.local.json
 """
 from __future__ import annotations
 
@@ -44,7 +44,7 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 from types import SimpleNamespace as NS
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, Iterable, List, Optional, Tuple
 from urllib import error, parse, request
 
 # Ensure we import the LOCAL packager from ./src (force it ahead of site-packages)
@@ -73,7 +73,6 @@ from v2.backend.core.utils.code_bundles.code_bundles.contracts import (
     build_manifest_header,
     build_bundle_summary,
 )
-
 # Newly wired scanners
 from v2.backend.core.utils.code_bundles.code_bundles.doc_coverage import scan as scan_doc_coverage
 from v2.backend.core.utils.code_bundles.code_bundles.complexity import scan as scan_complexity
@@ -97,6 +96,9 @@ from v2.backend.core.configuration.loader import (
     ConfigPaths,
 )
 
+# For reading code_bundle params from vars.yml
+import yaml
+
 
 class Transport(NS):
     pass
@@ -117,7 +119,11 @@ def _match_any(rel_posix: str, globs: List[str], case_insensitive: bool = False)
     return False
 
 
-def _seg_excluded(parts: Tuple[str, ...], segment_excludes: List[str], case_insensitive: bool = False) -> bool:
+def _seg_excluded(
+    parts: Tuple[str, ...],
+    segment_excludes: List[str],
+    case_insensitive: bool = False,
+) -> bool:
     if not segment_excludes:
         return False
     segs = set((s.casefold() if case_insensitive else s) for s in segment_excludes)
@@ -161,17 +167,13 @@ def discover_repo_paths(
             if not p.is_file():
                 continue
             rel_posix = p.relative_to(src_root).as_posix()
-
             # include_globs: if set, require match
             if include_globs and not _match_any(rel_posix, include_globs, case_insensitive):
                 continue
-
             # exclude_globs
             if exclude_globs and _match_any(rel_posix, exclude_globs, case_insensitive):
                 continue
-
             out.append((p, rel_posix))
-
     out.sort(key=lambda t: t[1])
     return out
 
@@ -197,7 +199,7 @@ def _clear_dir_contents(root: Path) -> None:
 
 def copy_snapshot(items: List[Tuple[Path, str]], dest_root: Path) -> int:
     """
-    Copy repo files to dest_root / <repo-relative>, creating parents as needed.
+    Copy repo files to dest_root/<repo-rel>, creating parents as needed.
     Returns number of files copied.
     """
     count = 0
@@ -280,7 +282,6 @@ def github_clean_remote_repo(*, owner: str, repo: str, branch: str, base_path: s
     if not files:
         print("[packager] Publish(GitHub): remote clean - nothing to delete")
         return
-
     deleted = 0
     for i, f in enumerate(sorted(files, key=lambda x: x["path"])):
         try:
@@ -314,8 +315,8 @@ def build_cfg(
     clean_before_publish: bool = True,
 ) -> NS:
     """
-    Construct the Packager config namespace. We point the orchestrator's outputs
-    at 'artifact_out' (local artifacts folder).
+    Construct the Packager config namespace.
+    We point the orchestrator's outputs at 'artifact_out' (local artifacts folder).
     """
     pack = get_packager()
     repo_root = get_repo_root()
@@ -326,7 +327,7 @@ def build_cfg(
     out_guide = (artifact_out / "assistant_handoff.v1.json").resolve()
     out_sums = (artifact_out / "design_manifest.SHA256SUMS").resolve()
 
-    # Transport constants (unchanged)
+    # Transport constants (unchanged defaults; concrete behavior is driven by vars.yml code_bundle)
     transport = Transport(
         chunk_bytes=64000,
         chunk_records=True,
@@ -381,23 +382,20 @@ def build_cfg(
         follow_symlinks=follow_symlinks,
         case_insensitive=case_insensitive,
         segment_excludes=list(getattr(pack, "segment_excludes", [])),
-
         # artifacts (local filesystem)
         out_bundle=out_bundle,
         out_runspec=out_runspec,
         out_guide=out_guide,
         out_sums=out_sums,
-
         # features
         transport=transport,
         publish=publish,
-
         prompts=None,
         prompt_mode="none",
     )
 
     artifact_out.mkdir(parents=True, exist_ok=True)
-    (repo_root / "").exists()
+    (repo_root / "").exists()  # touch
     return cfg
 
 
@@ -410,8 +408,8 @@ def _load_publish_overrides(repo_root: Path) -> Dict[str, Any]:
     Returns {} if not found or unreadable.
     """
     candidates = [
-        repo_root / "secrets_management" / "publish.local.json",   # plural
-        repo_root / "secret_management" / "publish.local.json",    # singular
+        repo_root / "secrets_management" / "publish.local.json",  # plural
+        repo_root / "secret_management" / "publish.local.json",   # singular
         repo_root / "publish.local.json",
         repo_root / "config" / "publish.local.json",
         repo_root / "v2" / "publish.local.json",
@@ -446,6 +444,7 @@ def _merge_publish(pub: Dict[str, Any], overrides: Dict[str, Any]) -> Dict[str, 
     if og:
         gh.update({k: v for k, v in og.items() if v not in (None, "")})
     merged["github"] = gh
+
     if og.get("token"):
         if "github_token" in merged and merged["github_token"]:
             print("[packager] WARN: both github_token and github.token provided; using github_token")
@@ -457,7 +456,7 @@ def _merge_publish(pub: Dict[str, Any], overrides: Dict[str, Any]) -> Dict[str, 
 def _resolve_token(pack, pub: Dict[str, Any]) -> Tuple[str, str]:
     """
     Return (token, source_label) using precedence:
-    publish.github_token -> publish.github.token -> pack.publish.github_token -> secrets -> env
+      publish.github_token -> publish.github.token -> pack.publish.github_token -> secrets -> env
     """
     # 1) publish.* (overrides applied)
     t = str(pub.get("github_token") or "").strip()
@@ -495,7 +494,249 @@ def _resolve_token(pack, pub: Dict[str, Any]) -> Tuple[str, str]:
 
 
 # ──────────────────────────────────────────────────────────────────────────────
-# GitHub publishing (forced to repo root)
+# Code-bundle params from vars.yml (strictly scoped)
+# ──────────────────────────────────────────────────────────────────────────────
+def _read_code_bundle_params() -> Dict[str, Any]:
+    """
+    Read code_bundle.* from the active spine profile's vars.yml.
+    We intentionally do NOT change loader.get_pipeline_vars; this is a focused read.
+    Safe defaults if absent.
+    """
+    try:
+        paths = ConfigPaths.detect()
+        vars_yml = paths.spine_profile_dir / "vars.yml"
+        if not vars_yml.exists():
+            vars_yml = paths.spine_profile_dir / "vars.yaml"
+        if vars_yml.exists():
+            with vars_yml.open("r", encoding="utf-8") as f:
+                data = yaml.safe_load(f) or {}
+            cb = dict((data or {}).get("code_bundle") or {})
+            out = {
+                "chunk_manifest": str(cb.get("chunk_manifest", "auto")).strip().lower(),
+                "split_bytes": int(cb.get("split_bytes", 300000) or 300000),
+                "group_dirs": bool(cb.get("group_dirs", True)),
+                # passthroughs users may have: include_design_manifest, publish_github (ignored here)
+            }
+            # normalize enum
+            if out["chunk_manifest"] not in {"auto", "always", "never"}:
+                out["chunk_manifest"] = "auto"
+            # hard floor
+            if out["split_bytes"] < 1024:
+                out["split_bytes"] = 1024
+            return out
+    except Exception as e:
+        print(f"[packager] WARN: failed to read code_bundle params: {type(e).__name__}: {e}")
+    return {"chunk_manifest": "auto", "split_bytes": 300000, "group_dirs": True}
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Transport chunking (manifest -> parts)
+# ──────────────────────────────────────────────────────────────────────────────
+def _should_chunk(kind: str, size_bytes: int, split_bytes: int) -> bool:
+    if kind == "always":
+        return True
+    if kind == "never":
+        return False
+    # auto
+    return size_bytes > max(1, int(split_bytes))
+
+
+def _write_parts_from_jsonl(
+    *,
+    src_manifest: Path,
+    dest_dir: Path,
+    part_stem: str,
+    part_ext: str,
+    split_bytes: int,
+    group_dirs: bool,
+    dir_suffix_width: int,
+    parts_per_dir: int,
+) -> Tuple[List[Path], Dict[str, Any]]:
+    """
+    Split a JSONL manifest into top-level parts staying <= split_bytes each.
+    We write files directly into dest_dir as:
+        design_manifest_0001.txt
+        design_manifest_0002.txt
+    If group_dirs=True, we *encode* the grouping in the filename to preserve
+    compatibility with emit_transport_parts() (no recursive globbing):
+        design_manifest_00_0001.txt
+        design_manifest_00_0002.txt
+        design_manifest_01_0011.txt
+    Returns (parts_paths, index_dict).
+    """
+    dest_dir.mkdir(parents=True, exist_ok=True)
+
+    if not src_manifest.exists():
+        return [], {"record_type": "parts_index", "total_parts": 0, "split_bytes": split_bytes, "parts": []}
+
+    text = src_manifest.read_text(encoding="utf-8", errors="replace")
+    lines = [ln if ln.endswith("\n") else (ln + "\n") for ln in text.splitlines()]
+
+    parts: List[Path] = []
+    parts_meta: List[Dict[str, Any]] = []
+
+    buf: List[str] = []
+    buf_bytes = 0
+    part_idx = 0
+
+    def make_name(i: int) -> str:
+        serial = f"{i+1:04d}"
+        if group_dirs:
+            # file-encoded group label so listing remains flat
+            group = (i // max(1, parts_per_dir))
+            g = f"{group:0{dir_suffix_width}d}"
+            return f"{part_stem}_{g}_{serial}{part_ext}"
+        return f"{part_stem}_{serial}{part_ext}"
+
+    def flush():
+        nonlocal buf, buf_bytes, part_idx
+        if not buf:
+            return
+        name = make_name(part_idx)
+        p = dest_dir / name
+        p.write_text("".join(buf), encoding="utf-8")
+        parts.append(p)
+        parts_meta.append(
+            {
+                "name": p.name,
+                "size": int(p.stat().st_size),
+                "lines": len(buf),
+            }
+        )
+        part_idx += 1
+        buf = []
+        buf_bytes = 0
+
+    for s in lines:
+        s_len = len(s.encode("utf-8"))
+        if buf and (buf_bytes + s_len) > split_bytes:
+            flush()
+        buf.append(s)
+        buf_bytes += s_len
+    flush()
+
+    index = {
+        "record_type": "parts_index",
+        "total_parts": len(parts_meta),
+        "split_bytes": int(split_bytes),
+        "parts": parts_meta,
+        "source": src_manifest.name,
+    }
+    return parts, index
+
+
+def _append_parts_artifacts_into_manifest(
+    *,
+    manifest_path: Path,
+    parts_dir: Path,
+    part_stem: str,
+    part_ext: str,
+    parts_index_name: str,
+) -> int:
+    """
+    After parts are created, append their artifact records to the manifest so
+    downstream tooling can discover them without scanning the filesystem.
+    """
+    app = ManifestAppender(manifest_path)
+    count = emit_transport_parts(
+        appender=app,
+        parts_dir=parts_dir,
+        part_stem=part_stem,
+        part_ext=part_ext,
+        parts_index_name=parts_index_name,
+    )
+    return count
+
+
+def _maybe_chunk_manifest_and_update(
+    *,
+    cfg: NS,
+    which: str,  # "local" | "github"
+) -> Dict[str, Any]:
+    """
+    Decide whether to chunk cfg.out_bundle based on code_bundle params.
+    If chunking happens:
+      - Write part files under the artifact directory
+      - Write parts index JSON
+      - Append artifact records into the manifest
+      - Remove monolith if cfg.transport.preserve_monolith is False
+      - Update (or remove) SHA256SUMS accordingly
+    Returns a small report dict.
+    """
+    params = _read_code_bundle_params()
+    mode = params.get("chunk_manifest", "auto")
+    split_bytes = int(params.get("split_bytes", 300000) or 300000)
+    group_dirs = bool(params.get("group_dirs", True))
+
+    manifest_path = Path(cfg.out_bundle)
+    parts_dir = manifest_path.parent
+    part_stem = str(cfg.transport.part_stem)
+    part_ext = str(cfg.transport.part_ext)
+    index_name = str(cfg.transport.parts_index_name)
+    index_path = parts_dir / index_name
+
+    report = {
+        "kind": which,
+        "decision": "skipped",
+        "parts": 0,
+        "bytes": int(manifest_path.stat().st_size) if manifest_path.exists() else 0,
+        "split_bytes": split_bytes,
+    }
+
+    if not manifest_path.exists():
+        print(f"[packager] chunk({which}): manifest missing; nothing to do")
+        return report
+
+    size = int(manifest_path.stat().st_size)
+    if not _should_chunk(mode, size, split_bytes):
+        # ensure sums (for monolith) if present
+        write_sha256sums_for_file(target_file=manifest_path, out_sums_path=Path(cfg.out_sums))
+        report["decision"] = "no-chunk"
+        return report
+
+    # Create parts + index (flat files; grouping encoded in filenames)
+    parts, index = _write_parts_from_jsonl(
+        src_manifest=manifest_path,
+        dest_dir=parts_dir,
+        part_stem=part_stem,
+        part_ext=part_ext,
+        split_bytes=split_bytes,
+        group_dirs=group_dirs,
+        dir_suffix_width=int(getattr(cfg.transport, "dir_suffix_width", 2)),
+        parts_per_dir=int(getattr(cfg.transport, "parts_per_dir", 10)),
+    )
+    (parts_dir / index_name).write_text(json.dumps(index, ensure_ascii=False, indent=2), encoding="utf-8")
+
+    # Append artifact records for the newly-created parts
+    added = _append_parts_artifacts_into_manifest(
+        manifest_path=manifest_path,
+        parts_dir=parts_dir,
+        part_stem=part_stem,
+        part_ext=part_ext,
+        parts_index_name=index_name,
+    )
+    print(f"[packager] chunk({which}): wrote {len(parts)} parts; appended {added} artifact records")
+
+    # Remove/keep monolith as per transport.preserve_monolith
+    if not bool(getattr(cfg.transport, "preserve_monolith", False)):
+        try:
+            manifest_path.unlink(missing_ok=True)  # py3.8+: ignore error if not exists
+        except TypeError:
+            # Python < 3.8 compatibility
+            if manifest_path.exists():
+                manifest_path.unlink()
+        # ensure no dangling sums
+        write_sha256sums_for_file(target_file=manifest_path, out_sums_path=Path(cfg.out_sums))
+    else:
+        # refresh sums for monolith
+        write_sha256sums_for_file(target_file=manifest_path, out_sums_path=Path(cfg.out_sums))
+
+    report.update({"decision": "chunked", "parts": len(parts)})
+    return report
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# GitHub publishing (forced artifacts under 'design_manifest/' at repo root)
 # ──────────────────────────────────────────────────────────────────────────────
 def _publish_to_github(
     cfg: NS,
@@ -505,81 +746,88 @@ def _publish_to_github(
     sums_override: Optional[Path] = None,
 ) -> None:
     """
-    Push codebase + artifacts to GitHub at the REPO ROOT.
-    Artifacts are written under 'design_manifest/' at the repo root.
+    Push codebase + artifacts to GitHub.
+    - Code is published to the repo root using repo-relative paths.
+    - Artifacts are published under 'design_manifest/' at the repo root.
     """
+    if not cfg.publish.github:
+        raise ConfigError("GitHub mode requires 'publish.github' coordinates")
     gh = cfg.publish.github
-    token = cfg.publish.github_token
-    if not gh or not token:
-        print("[packager] Publish(GitHub): skipped (no github target or token)")
-        return
+    token = str(cfg.publish.github_token or "").strip()
+    if not token:
+        raise ConfigError("GitHub mode requires a token")
 
-    # Force repo root (ignore any configured base_path)
     target = GitHubTarget(owner=gh.owner, repo=gh.repo, branch=gh.branch, base_path="")
-    pub = GitHubPublisher(target, token)
+    pub = GitHubPublisher(target=target, token=token)
 
-    # 1) Codebase files (repo-relative to repo root)
-    if cfg.publish.publish_codebase:
-        items = [(local, rel.lstrip("/")) for local, rel in code_items_repo_rel]
-        print(f"[packager] Publish(GitHub): code ({len(items)} files)")
-        print(f"[packager] Publish(GitHub): first 10 code paths →", [rel for _loc, rel in items[:10]])
-        pub.publish_many_files(items, message="publish: code")
+    # Optionally clean remote artifacts directory first (safer than nuking repo root)
+    if bool(getattr(cfg.publish, "clean_before_publish", False)):
+        try:
+            github_clean_remote_repo(
+                owner=gh.owner, repo=gh.repo, branch=gh.branch, base_path="design_manifest", token=token
+            )
+        except Exception as e:
+            print(f"[packager] WARN: remote clean failed: {type(e).__name__}: {e}")
 
-    # 2) Artifacts under 'design_manifest/' at repo root
-    artifacts: List[Tuple[Path, str]] = []
-    bundle_path = Path(manifest_override) if manifest_override else Path(cfg.out_bundle)
+    # 1) Publish code files at repo root
+    print(f"[packager] Publish(GitHub): code files: {len(code_items_repo_rel)}")
+    pub.publish_many_files(code_items_repo_rel, message="publish: code snapshot", throttle_every=50, sleep_secs=0.5)
+
+    # 2) Publish artifacts under 'design_manifest/'
+    art_dir = Path(cfg.out_bundle).parent
+    candidates: List[Tuple[Path, str]] = []
+
+    # Choose which manifest/sums to publish (override allows github-variant)
+    manifest_path = Path(manifest_override) if manifest_override else Path(cfg.out_bundle)
     sums_path = Path(sums_override) if sums_override else Path(cfg.out_sums)
 
-    if bundle_path and bundle_path.exists():
-        artifacts.append((bundle_path, "design_manifest/design_manifest.jsonl"))
-    if sums_path and sums_path.exists():
-        artifacts.append((sums_path, "design_manifest/design_manifest.SHA256SUMS"))
-    if cfg.out_runspec and Path(cfg.out_runspec).exists() and cfg.publish.publish_transport:
-        artifacts.append((Path(cfg.out_runspec), "design_manifest/superbundle.run.json"))
-    if cfg.out_guide and Path(cfg.out_guide).exists() and cfg.publish.publish_handoff:
-        artifacts.append((Path(cfg.out_guide), "design_manifest/assistant_handoff.v1.json"))
+    # Standard artifacts
+    for name in ("assistant_handoff.v1.json", "superbundle.run.json", "design_manifest.SHA256SUMS"):
+        p = art_dir / name
+        if name == "design_manifest.SHA256SUMS":
+            p = sums_path  # explicit override target
+        if p.exists() and p.is_file():
+            candidates.append((p, f"design_manifest/{p.name}"))
 
-    # Optional split parts (kept adjacent to out_bundle) — keep them under design_manifest/ too
-    parts_dir = Path(cfg.out_bundle).parent
-    part_files = sorted(parts_dir.glob(f"{cfg.transport.part_stem}*{cfg.transport.part_ext}"))
-    part_index = parts_dir / cfg.transport.parts_index_name
-    if cfg.publish.publish_transport and part_files:
-        for pf in part_files:
-            artifacts.append((pf, f"design_manifest/{pf.name}"))
-        if part_index.exists():
-            artifacts.append((part_index, f"design_manifest/{part_index.name}"))
+    # Manifest (if monolith exists)
+    if manifest_path.exists():
+        candidates.append((manifest_path, f"design_manifest/{manifest_path.name}"))
 
-    if artifacts:
-        print(f"[packager] Publish(GitHub): artifacts ({len(artifacts)} files)")
-        print(f"[packager] Publish(GitHub): artifact paths →", [rel for _loc, rel in artifacts])
-        pub.publish_many_files(artifacts, message="publish: artifacts")
+    # Parts index and parts (if present)
+    idx = art_dir / str(getattr(cfg.transport, "parts_index_name", "design_manifest_parts_index.json"))
+    if idx.exists():
+        candidates.append((idx, f"design_manifest/{idx.name}"))
+    part_stem = str(getattr(cfg.transport, "part_stem", "design_manifest"))
+    part_ext = str(getattr(cfg.transport, "part_ext", ".txt"))
+    for p in sorted(art_dir.glob(f"{part_stem}*{part_ext}")):
+        if p.is_file():
+            candidates.append((p, f"design_manifest/{p.name}"))
 
-    print("[packager] Publish(GitHub): done")
+    if not candidates:
+        print("[packager] Publish(GitHub): nothing to publish in artifacts")
+        return
 
-
-def print_github_raw_urls(owner: str, repo: str, branch: str, paths: List[str]) -> None:
-    """Print raw.githubusercontent.com URLs for convenience (repo-root paths)."""
-    base = f"https://raw.githubusercontent.com/{owner}/{repo}/refs/heads/{branch}/"
-    for p in paths:
-        print(base + p.lstrip("/"))
+    print(f"[packager] Publish(GitHub): artifacts: {len(candidates)}")
+    pub.publish_many_files(candidates, message="publish: design manifest", throttle_every=50, sleep_secs=0.5)
 
 
 # ──────────────────────────────────────────────────────────────────────────────
-# Manifest augmentation (post-pass)
+# Manifest enrichment helpers
 # ──────────────────────────────────────────────────────────────────────────────
-def _tool_versions() -> Dict[str, str]:
-    py = f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
+def _tool_versions() -> Dict[str, Any]:
     try:
-        packager_src = inspect.getsourcefile(orch_mod) or "unknown"
+        orch_path = Path(inspect.getsourcefile(orch_mod) or "")
+        return {
+            "packager.orchestrator": orch_path.as_posix() if orch_path else "?",
+            "run_pack": Path(__file__).as_posix(),
+        }
     except Exception:
-        packager_src = "unknown"
-    return {"python": py, "packager_orchestrator": str(packager_src)}
+        return {"run_pack": Path(__file__).as_posix()}
 
 
-def _map_record_paths_inplace(rec: Dict[str, Any], map_path) -> None:
+def _map_record_paths_inplace(rec: Dict[str, Any], map_path_fn) -> None:
     """
-    Remap known path-bearing fields in-place for a record.
-
+    Map path-like fields in-place. Best-effort for known shapes.
     This covers:
       - 'path'
       - 'src_path', 'dst_path'
@@ -587,14 +835,14 @@ def _map_record_paths_inplace(rec: Dict[str, Any], map_path) -> None:
     """
     for key in ("path", "src_path", "dst_path"):
         if key in rec and isinstance(rec[key], str):
-            rec[key] = map_path(rec[key])
+            rec[key] = map_path_fn(rec[key])
 
     # Best-effort: map examples.{license_files|headers|notices} lists
     examples = rec.get("examples")
     if isinstance(examples, dict):
         for k, v in list(examples.items()):
             if isinstance(v, list):
-                examples[k] = [map_path(x) if isinstance(x, str) else x for x in v]
+                examples[k] = [map_path_fn(x) if isinstance(x, str) else x for x in v]
 
 
 def augment_manifest(
@@ -613,15 +861,14 @@ def augment_manifest(
       - graph.edge (coalesced)
       - artifact (standard + transport parts)
       - bundle.summary
-      - NEW: doc.coverage, code.complexity, owners.index, env.index,
-             entrypoints.index, html.index, sql.index, js_ts.index,
-             deps.index (+ summary), git.* (repo/ignore/submodule/summary),
-             license.* (file/header/notice/summary),
+      - NEW: doc.coverage, code.complexity, owners.index, env.index, entrypoints.index,
+             html.index, sql.index, js_ts.index, deps.index (+ summary),
+             git.* (repo/ignore/submodule/summary), license.* (file/header/notice/summary),
              secrets.* (finding/summary), asset.* (file/summary)
 
     path_mode:
-      - "local": new records get paths prefixed with emitted_prefix
-      - "github": new records use repo-root relative paths
+      - "local"  : new records get paths prefixed with emitted_prefix
+      - "github" : new records use repo-root relative paths
     """
     app = ManifestAppender(Path(cfg.out_bundle))
 
@@ -658,7 +905,6 @@ def augment_manifest(
     for local, rel in discovered_repo:
         if not rel.endswith(".py"):
             continue
-
         # python.module + edges
         mod_rec, edges = index_python_file(
             repo_root=Path(cfg.source_root),
@@ -717,46 +963,19 @@ def augment_manifest(
         return n
 
     wired_counts: Dict[str, int] = {}
-
-    wired_counts["doc_coverage"] = run_scanner(
-        "doc_coverage", scan_doc_coverage, Path(cfg.source_root), discovered_repo
-    )
-    wired_counts["complexity"] = run_scanner(
-        "complexity", scan_complexity, Path(cfg.source_root), discovered_repo
-    )
-    wired_counts["owners"] = run_scanner(
-        "owners_index", scan_owners, Path(cfg.source_root), discovered_repo
-    )
-    wired_counts["env"] = run_scanner(
-        "env_index", scan_env, Path(cfg.source_root), discovered_repo
-    )
-    wired_counts["entrypoints"] = run_scanner(
-        "entrypoints", scan_entrypoints, Path(cfg.source_root), discovered_repo
-    )
-    wired_counts["html"] = run_scanner(
-        "html_index", scan_html, Path(cfg.source_root), discovered_repo
-    )
-    wired_counts["sql"] = run_scanner(
-        "sql_index", scan_sql, Path(cfg.source_root), discovered_repo
-    )
-    wired_counts["js_ts"] = run_scanner(
-        "js_ts_index", scan_js_ts, Path(cfg.source_root), discovered_repo
-    )
-    wired_counts["deps"] = run_scanner(
-        "deps_index", scan_deps, Path(cfg.source_root), discovered_repo
-    )
-    wired_counts["git"] = run_scanner(
-        "git_info", scan_git, Path(cfg.source_root), discovered_repo
-    )
-    wired_counts["license"] = run_scanner(
-        "license_scan", scan_license, Path(cfg.source_root), discovered_repo
-    )
-    wired_counts["secrets"] = run_scanner(
-        "secrets_scan", scan_secrets, Path(cfg.source_root), discovered_repo
-    )
-    wired_counts["assets"] = run_scanner(
-        "assets_index", scan_assets, Path(cfg.source_root), discovered_repo
-    )
+    wired_counts["doc_coverage"] = run_scanner("doc_coverage", scan_doc_coverage, Path(cfg.source_root), discovered_repo)
+    wired_counts["complexity"] = run_scanner("complexity", scan_complexity, Path(cfg.source_root), discovered_repo)
+    wired_counts["owners"] = run_scanner("owners_index", scan_owners, Path(cfg.source_root), discovered_repo)
+    wired_counts["env"] = run_scanner("env_index", scan_env, Path(cfg.source_root), discovered_repo)
+    wired_counts["entrypoints"] = run_scanner("entrypoints", scan_entrypoints, Path(cfg.source_root), discovered_repo)
+    wired_counts["html"] = run_scanner("html_index", scan_html, Path(cfg.source_root), discovered_repo)
+    wired_counts["sql"] = run_scanner("sql_index", scan_sql, Path(cfg.source_root), discovered_repo)
+    wired_counts["js_ts"] = run_scanner("js_ts_index", scan_js_ts, Path(cfg.source_root), discovered_repo)
+    wired_counts["deps"] = run_scanner("deps_index", scan_deps, Path(cfg.source_root), discovered_repo)
+    wired_counts["git"] = run_scanner("git_info", scan_git, Path(cfg.source_root), discovered_repo)
+    wired_counts["license"] = run_scanner("license_scan", scan_license, Path(cfg.source_root), discovered_repo)
+    wired_counts["secrets"] = run_scanner("secrets_scan", scan_secrets, Path(cfg.source_root), discovered_repo)
+    wired_counts["assets"] = run_scanner("assets_index", scan_assets, Path(cfg.source_root), discovered_repo)
     # ------------------------------------------------------------------------
 
     # artifact records (manifest/sums/run/guide + optional transport parts)
@@ -799,7 +1018,7 @@ def augment_manifest(
         "[packager] Augment manifest: "
         f"modules={module_count}, metrics={quality_count}, edges={len(edges_dedup)}, "
         f"artifacts={art_count}, path_mode={path_mode}, "
-        f"wired={{" + ", ".join(f"{k}:{v}" for k, v in wired_counts.items()) + "}}"
+        "wired={" + ", ".join(f"{k}:{v}" for k, v in wired_counts.items()) + "}"
     )
 
 
@@ -859,7 +1078,7 @@ def main() -> int:
         publish_handoff=bool(pub.get("publish_handoff", True)),
         publish_transport=bool(pub.get("publish_transport", True)),
         local_publish_root=None,
-        clean_before_publish=True,  # we force clean at repo root in code below
+        clean_before_publish=True,  # we force clean of artifacts dir before publish in code below
     )
 
     # Provenance + active filters
@@ -869,7 +1088,8 @@ def main() -> int:
     print(f"[packager] include_globs: {list(cfg.include_globs)}")
     print(f"[packager] exclude_globs: {list(cfg.exclude_globs)}")
     print(f"[packager] segment_excludes: {list(cfg.segment_excludes)}")
-    print(f"[packager] follow_symlinks: {cfg.follow_symlinks}  case_insensitive: {cfg.case_insensitive}")
+    print(f"[packager] follow_symlinks: {cfg.follow_symlinks} case_insensitive: {cfg.case_insensitive}")
+
     print("[packager] Packager: start]")
 
     # Clear local destinations according to mode
@@ -901,34 +1121,28 @@ def main() -> int:
 
     # ── PATH MODE & REWRITE STRATEGY ────────────────────────────────────────
     # We want:
-    #   - local: manifest paths = local snapshot (prefix emitted_prefix)
-    #   - github: manifest paths = repo-root
-    #   - both: local manifest stays local; github gets a rewritten copy
-    #
+    #  - local : manifest paths = local snapshot (prefix emitted_prefix)
+    #  - github: manifest paths = repo-root
+    #  - both  : local manifest stays local; github gets a rewritten copy
     manifest_path = Path(cfg.out_bundle)
     sums_path = Path(cfg.out_sums)
     emitted_prefix = str(cfg.emitted_prefix).strip("/")
 
-    if do_github and not do_local:
-        # GitHub-only: rewrite any pre-existing 'file' paths to repo-root first,
-        # then enrich with github-style paths, then refresh sums.
+    # Helper: rewrite manifest to a target path with specific path mode
+    def _rewrite_to_mode(manifest_in: Path, out_path: Path, to_mode: str):
+        out_path.parent.mkdir(parents=True, exist_ok=True)
         rewrite_manifest_paths(
-            manifest_in=manifest_path,
-            manifest_out=manifest_path,
+            manifest_in=manifest_in,
+            manifest_out=out_path,
             emitted_prefix=emitted_prefix,
-            to_mode="github",
+            to_mode=to_mode,
         )
-        augment_manifest(
-            cfg=cfg,
-            discovered_repo=discovered_repo,
-            mode_local=do_local,
-            mode_github=do_github,
-            path_mode="github",
-        )
-        write_sha256sums_for_file(target_file=manifest_path, out_sums_path=sums_path)
+        return out_path
 
-    elif do_local and not do_github:
-        # Local-only: enrich with local-style paths and refresh sums.
+    # 1) LOCAL enrich (if local or both)
+    if do_local:
+        # ensure any file paths remain local-mode for augmentation
+        # (no-op rewrite; keep same target file)
         augment_manifest(
             cfg=cfg,
             discovered_repo=discovered_repo,
@@ -936,104 +1150,75 @@ def main() -> int:
             mode_github=do_github,
             path_mode="local",
         )
-        write_sha256sums_for_file(target_file=manifest_path, out_sums_path=sums_path)
+        # Defer chunking until after augmentation (so parts include augmented lines)
 
-    else:
-        # BOTH:
-        # 1) Enrich local manifest with local paths and refresh sums.
-        augment_manifest(
-            cfg=cfg,
-            discovered_repo=discovered_repo,
-            mode_local=True,
-            mode_github=True,
-            path_mode="local",
-        )
-        write_sha256sums_for_file(target_file=manifest_path, out_sums_path=sums_path)
-
-        # 2) Build a GitHub-variant copy with repo-root paths (and its sums)
-        gh_manifest = manifest_path.parent / "design_manifest.github.jsonl"
-        gh_sums = manifest_path.parent / "design_manifest.github.SHA256SUMS"
-        rewrite_manifest_paths(
-            manifest_in=manifest_path,
-            manifest_out=gh_manifest,
-            emitted_prefix=emitted_prefix,
-            to_mode="github",
-        )
-        write_sha256sums_for_file(target_file=gh_manifest, out_sums_path=gh_sums)
-
-    # GITHUB: clean root, then publish code (repo-relative) + artifacts under design_manifest/
+    # 2) GITHUB enrich (github-only or both)
+    gh_manifest_override: Optional[Path] = None
+    gh_sums_override: Optional[Path] = None
     if do_github:
+        # Create a GitHub-paths variant of the manifest next to local one
+        gh_manifest_override = manifest_path.parent / "design_manifest.github.jsonl"
+        _rewrite_to_mode(manifest_in=manifest_path, out_path=gh_manifest_override, to_mode="github")
+        # Temporarily point cfg.out_bundle/sums to GH variant for augmentation
+        local_bundle, local_sums = cfg.out_bundle, cfg.out_sums
         try:
-            github_clean_remote_repo(
-                owner=cfg.publish.github.owner,
-                repo=cfg.publish.github.repo,
-                branch=cfg.publish.github.branch,
-                base_path="",  # force root clean
-                token=cfg.publish.github_token,
+            cfg.out_bundle = gh_manifest_override
+            cfg.out_sums = manifest_path.parent / "design_manifest.github.SHA256SUMS"
+            augment_manifest(
+                cfg=cfg,
+                discovered_repo=discovered_repo,
+                mode_local=do_local,
+                mode_github=do_github,
+                path_mode="github",
             )
-        except Exception as e:
-            print(f"[packager] Publish(GitHub): remote clean failed: {type(e).__name__}: {e}", file=sys.stderr)
+            gh_sums_override = Path(cfg.out_sums)
+        finally:
+            cfg.out_bundle = local_bundle
+            cfg.out_sums = local_sums
 
-        # Use overrides in BOTH mode so GitHub gets repo-root paths
-        manifest_override = None
-        sums_override = None
-        if do_local and do_github:
-            manifest_override = manifest_path.parent / "design_manifest.github.jsonl"
-            sums_override = manifest_path.parent / "design_manifest.github.SHA256SUMS"
+    # ── CHUNKING (transport parts) ─────────────────────────────────────────
+    # Perform after augmentation so parts include *all* manifest lines.
+    # LOCAL
+    if do_local:
+        rep = _maybe_chunk_manifest_and_update(cfg=cfg, which="local")
+        print(f"[packager] chunk report (local): {rep}")
 
+    # GITHUB variant (if produced)
+    if do_github and gh_manifest_override and gh_manifest_override.exists():
+        # Use a temporary cfg with override bundle/sums targeting GH variant
+        local_bundle, local_sums = cfg.out_bundle, cfg.out_sums
+        try:
+            cfg.out_bundle = gh_manifest_override
+            cfg.out_sums = gh_sums_override or (gh_manifest_override.parent / "design_manifest.github.SHA256SUMS")
+            rep = _maybe_chunk_manifest_and_update(cfg=cfg, which="github")
+            print(f"[packager] chunk report (github): {rep}")
+        finally:
+            cfg.out_bundle = local_bundle
+            cfg.out_sums = local_sums
+
+    # ── SHA256SUMS (finalize for local monolith if it still exists) ───────
+    if do_local and Path(cfg.out_bundle).exists():
+        write_sha256sums_for_file(target_file=Path(cfg.out_bundle), out_sums_path=Path(cfg.out_sums))
+
+    # ── PUBLISH TO GITHUB (code + artifacts) ───────────────────────────────
+    if do_github:
         _publish_to_github(
-            cfg,
-            discovered_repo,
-            manifest_override=manifest_override,
-            sums_override=sums_override,
+            cfg=cfg,
+            code_items_repo_rel=discovered_repo,
+            manifest_override=gh_manifest_override if (gh_manifest_override and gh_manifest_override.exists()) else None,
+            sums_override=gh_sums_override if (gh_sums_override and gh_sums_override.exists()) else None,
         )
 
-        # Convenience: print raw URLs for code root + artifact paths
-        code_repo_paths = [rel for (_local, rel) in discovered_repo]
-        art_repo_paths = [
-            "design_manifest/design_manifest.jsonl",
-            "design_manifest/design_manifest.SHA256SUMS",
-            "design_manifest/superbundle.run.json",
-            "design_manifest/assistant_handoff.v1.json",
-        ]
-        if cfg.publish.publish_transport:
-            parts_dir = Path(cfg.out_bundle).parent
-            part_files = sorted(parts_dir.glob(f"{cfg.transport.part_stem}*{cfg.transport.part_ext}"))
-            part_index = parts_dir / cfg.transport.parts_index_name
-            art_repo_paths.extend([f"design_manifest/{pf.name}" for pf in part_files])
-            if part_index.exists():
-                art_repo_paths.append(f"design_manifest/{part_index.name}")
-
-        print("[packager] GitHub Raw URLs (code + artifacts):")
-        print_github_raw_urls(cfg.publish.github.owner, cfg.publish.github.repo, cfg.publish.github.branch, code_repo_paths + art_repo_paths)
-
+    print("[packager] done.")
     return 0
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
-
-
-__all__ = [
-    "build_cfg",
-    "discover_repo_paths",
-    "copy_snapshot",
-    "github_clean_remote_repo",
-    "augment_manifest",
-    "main",
-]
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    try:
+        raise SystemExit(main())
+    except ConfigError as ce:
+        print(f"[packager] CONFIG ERROR: {ce}")
+        raise SystemExit(2)
+    except KeyboardInterrupt:
+        print("[packager] interrupted.")
+        raise SystemExit(130)
