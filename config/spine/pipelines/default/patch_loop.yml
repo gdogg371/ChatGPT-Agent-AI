@@ -1,0 +1,61 @@
+# General-purpose patch loop pipeline (variables provided via vars.yml).
+# Ensures the run *always* goes through code_bundles via Spine providers.
+
+steps:
+  # 0) Create a code bundle snapshot (no changes inside code_bundles; invoked via Spine)
+  - id: bundle_make
+    capability: packager.bundle.make.v1
+    payload:
+      root: ${patch_target_root}
+      project_root: ${patch_target_root}
+      out_base: ${out_base}
+
+  # 1) Engine orchestration (FETCH → ENRICH → BUILD → LLM → SANITIZE → VERIFY → PATCH)
+  - id: run_engine
+    capability: llm.engine.run.v1
+    payload:
+      # Required scalars
+      provider: ${provider}
+      model: ${model}
+      max_rows: ${max_rows}
+
+      # Introspection source
+      sqlalchemy_url: ${sqlalchemy_url}
+      sqlalchemy_table: ${sqlalchemy_table}
+      # IMPORTANT: canonical var
+      status: ${status}
+
+      # Filters
+      exclude_globs: ${exclude_globs}
+      segment_excludes: ${segment_excludes}
+
+      # Stage toggles (engine-level feature flags)
+      run_fetch_targets: ${run_fetch_targets}
+      run_build_prompts: ${run_build_prompts}
+      run_run_llm: ${run_run_llm}
+      run_unpack: ${run_unpack}
+      run_sanitize: ${run_sanitize}
+      run_verify: ${run_verify}
+      run_save_patch: ${run_save_patch}
+      run_apply_patch_sandbox: ${run_apply_patch_sandbox}
+      run_archive_and_replace: ${run_archive_and_replace}
+      run_rollback: ${run_rollback}
+
+      # Patch application options
+      patch_target_root: ${patch_target_root}
+      patch_seed_strategy: ${patch_seed_strategy}
+      strip_prefix: ${strip_prefix}
+      mirror_to: ${patch_target_root}
+
+      # Outputs
+      out_base: ${out_base}
+      out_file: ${out_file}
+
+      # Ask spec (prompt knobs; forwarded to the builder and llm)
+      ask_spec: ${ask_spec}
+
+
+
+
+
+
