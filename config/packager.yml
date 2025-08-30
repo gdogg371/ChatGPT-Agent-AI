@@ -54,6 +54,8 @@ segment_excludes:
   - "tests_adhoc"
   - "tests_adhoc2"
 
+publish_analysis: true
+
 # Publish coordinates. Paths may be relative to the repo root; loader resolves them.
 publish:
   mode: "both"             # "local" | "github" | "both"
