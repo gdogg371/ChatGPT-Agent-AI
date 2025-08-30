@@ -5,38 +5,38 @@
   "parts": [
     {
       "name": "design_manifest_00_0001.txt",
-      "size": 150396,
+      "size": 150548,
       "lines": 552
     },
     {
       "name": "design_manifest_00_0002.txt",
-      "size": 150049,
-      "lines": 579
+      "size": 150158,
+      "lines": 590
     },
     {
       "name": "design_manifest_00_0003.txt",
-      "size": 150231,
-      "lines": 259
+      "size": 149999,
+      "lines": 263
     },
     {
       "name": "design_manifest_00_0004.txt",
-      "size": 150385,
-      "lines": 414
+      "size": 150318,
+      "lines": 391
     },
     {
       "name": "design_manifest_00_0005.txt",
-      "size": 149489,
-      "lines": 564
+      "size": 150550,
+      "lines": 592
     },
     {
       "name": "design_manifest_00_0006.txt",
-      "size": 149928,
-      "lines": 256
+      "size": 150141,
+      "lines": 264
     },
     {
       "name": "design_manifest_00_0007.txt",
-      "size": 39389,
-      "lines": 145
+      "size": 50007,
+      "lines": 163
     }
   ],
   "source": "design_manifest.github.jsonl"
