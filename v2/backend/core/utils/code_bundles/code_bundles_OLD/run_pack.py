@@ -26,7 +26,7 @@ import packager.core.orchestrator as orch_mod     # for provenance print
 DEFAULT_SRC    = Path(r"C:\Users\cg371\PycharmProjects\ChatGPT Bot\output\patch_code_bundles")
 DEFAULT_OUT    = Path(r"C:\Users\cg371\PycharmProjects\ChatGPT Bot\output\design_manifest")
 DEFAULT_INGEST = Path(r"C:\Users\cg371\PycharmProjects\ChatGPT Bot\v2")
-DEFAULT_SECRET = Path(r"C:\Users\cg371\PycharmProjects\ChatGPT Bot\secret_management\publish.local.json")
+DEFAULT_SECRET = Path(r"/Archive/publish.local.json")
 
 # --- Tiny holder classes to avoid config import mismatches ---------------------
 class Transport(NS): pass
