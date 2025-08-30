@@ -1,0 +1,24 @@
+{
+  "repo_root": "C:\\Users\\cg371\\PycharmProjects\\ChatGPT Bot\\v2\\backend\\core\\utils\\code_bundles",
+  "work_root": "C:\\Users\\cg371\\PycharmProjects\\ChatGPT Bot\\v2\\backend\\core\\utils\\standalone\\ChatGPT_Bot_STAGED",
+  "inplace": false,
+  "changes": [],
+  "errors": [
+    {
+      "file": "v2/backend/core/utils/code_bundles/code_bundles/src/packager/languages/__init__.py",
+      "error": "context_mismatch"
+    },
+    {
+      "file": "v2/backend/core/utils/code_bundles/code_bundles/src/packager/languages/python/__init__.py",
+      "error": "context_mismatch"
+    },
+    {
+      "file": "v2/backend/core/utils/code_bundles/code_bundles/src/packager/languages/python/plugin.py",
+      "error": "context_mismatch"
+    },
+    {
+      "file": "config/packager.yml",
+      "error": "context_mismatch"
+    }
+  ]
+}
