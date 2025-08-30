@@ -5,37 +5,37 @@
   "parts": [
     {
       "name": "design_manifest_00_0001.txt",
-      "size": 150428,
-      "lines": 553
+      "size": 150532,
+      "lines": 554
     },
     {
       "name": "design_manifest_00_0002.txt",
-      "size": 150530,
-      "lines": 573
+      "size": 150354,
+      "lines": 572
     },
     {
       "name": "design_manifest_00_0003.txt",
-      "size": 149924,
+      "size": 149776,
       "lines": 256
     },
     {
       "name": "design_manifest_00_0004.txt",
-      "size": 150418,
-      "lines": 432
+      "size": 150396,
+      "lines": 431
     },
     {
       "name": "design_manifest_00_0005.txt",
-      "size": 150080,
-      "lines": 542
+      "size": 150460,
+      "lines": 544
     },
     {
       "name": "design_manifest_00_0006.txt",
-      "size": 150150,
-      "lines": 256
+      "size": 150157,
+      "lines": 257
     },
     {
       "name": "design_manifest_00_0007.txt",
-      "size": 29257,
+      "size": 29533,
       "lines": 125
     }
   ],
