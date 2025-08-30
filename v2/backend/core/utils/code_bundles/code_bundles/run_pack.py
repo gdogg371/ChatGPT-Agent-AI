@@ -1,8 +1,11 @@
-# File: v2/backend/core/utils/code_bundles/code_bundles/run_pack.py
 """
-Packager runner (direct-source; no staging). Platform-agnostic (pathlib).
-The GitHub token is sourced ONLY from secret_management/secrets.yml via
-loader.get_secrets(...).github_token. Tokens in publish.local.json are ignored.
+Packager runner (direct-source). Single source of truth:
+- Config:   config/packager.yml  -> publish.*
+- Token:    secret_management/secrets.yml -> github.api_key
+- No reads of publish.local.json.
+
+Code publish respects publish.github.base_path.
+Artifacts publish to repo-root/design_manifest/.
 """
 
 from __future__ import annotations
@@ -16,7 +19,7 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 from types import SimpleNamespace as NS
-from typing import Any, Dict, Iterable, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 from urllib import error, parse, request
 
 # Ensure we import the LOCAL packager from ./src (force it ahead of site-packages)
@@ -175,7 +178,7 @@ def copy_snapshot(items: List[Tuple[Path, str]], dest_root: Path) -> int:
 
 
 # ──────────────────────────────────────────────────────────────────────────────
-# GitHub helpers (no token from overrides or env — token comes ONLY from loader)
+# GitHub helpers (token only from secrets.yml via loader)
 # ──────────────────────────────────────────────────────────────────────────────
 def _gh_headers(token: str) -> dict:
     return {
@@ -328,7 +331,7 @@ def build_cfg(
         publish_handoff=bool(publish_handoff),
         publish_transport=bool(publish_transport),
         github=gh,
-        github_token=(gh_token or ""),  # set only from loader.get_secrets(...)
+        github_token=(gh_token or ""),  # from secrets.yml only
         local_publish_root=(local_publish_root.resolve() if local_publish_root else None),
         clean_before_publish=bool(clean_before_publish),
     )
@@ -354,68 +357,6 @@ def build_cfg(
     artifact_out.mkdir(parents=True, exist_ok=True)
     (repo_root / "").exists()
     return cfg
-
-
-# ──────────────────────────────────────────────────────────────────────────────
-# publish.local.json overrides (tokens ignored/scrubbed)
-# ──────────────────────────────────────────────────────────────────────────────
-def _load_publish_overrides(repo_root: Path) -> Dict[str, Any]:
-    candidates = [
-        repo_root / "secrets_management" / "publish.local.json",
-        repo_root / "secret_management" / "publish.local.json",
-        repo_root / "publish.local.json",
-        repo_root / "config" / "publish.local.json",
-        repo_root / "v2" / "publish.local.json",
-        repo_root / "v2" / "config" / "publish.local.json",
-        repo_root / "v2" / "backend" / "config" / "publish.local.json",
-        repo_root / "v2" / "backend" / "core" / "config" / "publish.local.json",
-        ROOT / "publish.local.json",
-    ]
-    for p in candidates:
-        try:
-            if p.exists():
-                with p.open("r", encoding="utf-8") as f:
-                    data = json.load(f)
-                if isinstance(data, dict):
-                    print(f"[packager] Loaded overrides from: {p}")
-                    return data
-        except Exception as e:
-            print(f"[packager] WARN: failed to read {p}: {type(e).__name__}: {e}")
-    return {}
-
-
-def _merge_publish(pub: Dict[str, Any], overrides: Dict[str, Any]) -> Dict[str, Any]:
-    """
-    Merge publish config with overrides from publish.local.json while
-    explicitly SCRUBBING token fields from overrides.
-    """
-    merged = dict(pub or {})
-    # simple keys (keep)
-    for k in ("mode", "clean_before_publish", "clean_repo_root", "clean_artifacts"):
-        if k in overrides and overrides[k] is not None:
-            merged[k] = overrides[k]
-
-    # github sub-map (keep coords; ignore token)
-    gh = dict(merged.get("github") or {})
-    og = dict(overrides.get("github") or {})
-    if og:
-        # copy everything EXCEPT token
-        for k, v in og.items():
-            if k in ("token",):  # scrubbed
-                if v not in (None, ""):
-                    print("[packager] NOTE: publish.local.json github.token is ignored. "
-                          "Use secret_management/secrets.yml -> github.api_key")
-                continue
-            if v not in (None, ""):
-                gh[k] = v
-    merged["github"] = gh
-
-    # top-level github_token (scrubbed)
-    if "github_token" in overrides and overrides["github_token"]:
-        print("[packager] NOTE: publish.local.json github_token is ignored. "
-              "Use secret_management/secrets.yml -> github.api_key")
-
-    return merged
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -617,6 +558,7 @@ def _publish_to_github(
     cfg: NS,
     code_items_repo_rel: List[Tuple[Path, str]],
     *,
+    base_path: str,
     manifest_override: Optional[Path] = None,
     sums_override: Optional[Path] = None,
 ) -> None:
@@ -627,10 +569,20 @@ def _publish_to_github(
     if not token:
         raise ConfigError("GitHub mode requires a token from secret_management/secrets.yml -> github.api_key")
 
-    target = GitHubTarget(owner=gh.owner, repo=gh.repo, branch=gh.branch, base_path="")
+    # Apply base_path to destination repo paths for CODE
+    base_prefix = (base_path or "").strip().strip("/")
+    if base_prefix:
+        code_payload = []
+        for (local, rel) in code_items_repo_rel:
+            dest = f"{base_prefix}/{rel}"
+            code_payload.append((local, dest))
+    else:
+        code_payload = code_items_repo_rel
+
+    target = GitHubTarget(owner=gh.owner, repo=gh.repo, branch=gh.branch, base_path="")  # base_path handled above
     pub = GitHubPublisher(target=target, token=token)
 
-    # Optional artifacts clean (only if configured)
+    # Optional artifacts clean (artifacts only)
     if bool(getattr(cfg.publish, "clean_before_publish", False)):
         try:
             github_clean_remote_repo(
@@ -640,10 +592,10 @@ def _publish_to_github(
             print(f"[packager] WARN: remote clean failed: {type(e).__name__}: {e}")
 
     # Code files
-    print(f"[packager] Publish(GitHub): code files: {len(code_items_repo_rel)}")
-    pub.publish_many_files(code_items_repo_rel, message="publish: code snapshot", throttle_every=50, sleep_secs=0.5)
+    print(f"[packager] Publish(GitHub): code files: {len(code_payload)} to base_path='{base_prefix or '/'}'")
+    pub.publish_many_files(code_payload, message="publish: code snapshot", throttle_every=50, sleep_secs=0.5)
 
-    # Artifacts
+    # Artifacts (always at repo-root/design_manifest)
     art_dir = Path(cfg.out_bundle).parent
     candidates: List[Tuple[Path, str]] = []
 
@@ -705,20 +657,29 @@ def _prune_remote_code_delta(
     gh_branch: str,
     token: str,
     discovered_repo: List[Tuple[Path, str]],
+    base_path: str,
 ) -> int:
-    local_set = {rel for (_p, rel) in discovered_repo}
+    # Local set includes base_path prefix if set
+    base_prefix = (base_path or "").strip().strip("/")
+    if base_prefix:
+        local_set = {f"{base_prefix}/{rel}" for (_p, rel) in discovered_repo}
+    else:
+        local_set = {rel for (_p, rel) in discovered_repo}
+
     include_globs = list(cfg.include_globs)
     exclude_globs = list(cfg.exclude_globs)
     seg_excludes = list(cfg.segment_excludes)
     casei = bool(getattr(cfg, "case_insensitive", False))
 
-    remote_files = list(_gh_walk_files(gh_owner, gh_repo, "", gh_branch, token))
+    # Remote files under base_path (or repo root if empty)
+    remote_files = list(_gh_walk_files(gh_owner, gh_repo, base_prefix, gh_branch, token))
     to_delete = []
     for it in remote_files:
         path = it["path"]
         if path.startswith("design_manifest/"):
-            continue
-        if not _is_managed_path(path, include_globs, exclude_globs, seg_excludes, casei):
+            continue  # artifacts handled separately
+        if not _is_managed_path(path[len(base_prefix) + 1 :] if base_prefix and path.startswith(base_prefix + "/") else path,
+                                include_globs, exclude_globs, seg_excludes, casei):
             continue
         if path not in local_set:
             to_delete.append(it)
@@ -727,7 +688,7 @@ def _prune_remote_code_delta(
         print("[packager] Delta prune (code): nothing to delete")
         return 0
 
-    print(f"[packager] Delta prune (code): deleting {len(to_delete)} stale files")
+    print(f"[packager] Delta prune (code): deleting {len(to_delete)} stale files under '{base_prefix or '/'}'")
     deleted = 0
     for i, it in enumerate(sorted(to_delete, key=lambda d: d["path"])):
         try:
@@ -956,11 +917,7 @@ def main() -> int:
     pack = get_packager()
     repo_root = get_repo_root()
 
-    # Base publish config + overrides (tokens in overrides are ignored)
-    pub_yaml = dict(getattr(pack, "publish", {}) or {})
-    overrides = _load_publish_overrides(repo_root)
-    pub = _merge_publish(pub_yaml, overrides) if overrides else pub_yaml
-
+    pub = dict(getattr(pack, "publish", {}) or {})
     mode = str(pub.get("mode", "local")).lower()
     if mode not in {"local", "github", "both"}:
         raise ConfigError("publish.mode must be 'local', 'github', or 'both'")
@@ -968,7 +925,7 @@ def main() -> int:
     do_github = mode in {"github", "both"}
     print(f"[packager] mode: {mode} (local={do_local}, github={do_github})")
 
-    # Clean flags
+    # Clean flags — all from packager.yml
     clean_repo_root = bool(pub.get("clean_repo_root", False))
     clean_artifacts = bool(pub.get("clean_artifacts", pub.get("clean_before_publish", False)))
 
@@ -979,11 +936,12 @@ def main() -> int:
     # Source scan root
     source_root = repo_root
 
-    # GitHub coords
+    # GitHub coords (from packager.yml)
     github = dict(pub.get("github") or {})
     gh_owner = str(github.get("owner") or "").strip()
     gh_repo = str(github.get("repo") or "").strip()
     gh_branch = str(github.get("branch") or "main").strip()
+    gh_base = str(github.get("base_path") or "").strip()
 
     # Token ONLY from secrets.yml via loader
     secrets = get_secrets(ConfigPaths.detect())
@@ -996,10 +954,10 @@ def main() -> int:
         missing = [k for k, v in (("owner", gh_owner), ("repo", gh_repo), ("branch", gh_branch)) if not v]
         if missing:
             raise ConfigError(
-                f"Missing GitHub {'/'.join(missing)}. Set these in publish.local.json under github.{{owner,repo,branch}}."
+                f"Missing GitHub {'/'.join(missing)}. Set these in config/packager.yml under publish.github.{{owner,repo,branch}}."
             )
 
-    # Build cfg
+    # Build cfg for orchestrator
     cfg = build_cfg(
         src=source_root,
         artifact_out=artifact_root,
@@ -1007,7 +965,7 @@ def main() -> int:
         gh_owner=gh_owner if gh_owner else None,
         gh_repo=gh_repo if gh_repo else None,
         gh_branch=gh_branch or "main",
-        gh_base="",
+        gh_base=gh_base,
         gh_token=gh_token if do_github else None,
         publish_codebase=bool(pub.get("publish_codebase", True)),
         publish_analysis=bool(pub.get("publish_analysis", False)),
@@ -1060,7 +1018,7 @@ def main() -> int:
             path_mode="local",
         )
 
-    # GITHUB augment (make a github-path variant)
+    # GITHUB augment (github-path variant)
     manifest_path = Path(cfg.out_bundle)
     gh_manifest_override: Optional[Path] = None
     gh_sums_override: Optional[Path] = None
@@ -1116,13 +1074,16 @@ def main() -> int:
     if do_github:
         if clean_repo_root:
             try:
-                github_clean_remote_repo(owner=gh_owner, repo=gh_repo, branch=gh_branch, base_path="", token=str(gh_token))
+                github_clean_remote_repo(
+                    owner=gh_owner, repo=gh_repo, branch=gh_branch, base_path="", token=str(gh_token)
+                )
             except Exception as e:
                 print(f"[packager] WARN: full repo clean failed: {type(e).__name__}: {e}")
 
             _publish_to_github(
                 cfg=cfg,
                 code_items_repo_rel=discovered_repo,
+                base_path=gh_base,
                 manifest_override=gh_manifest_override if (gh_manifest_override and gh_manifest_override.exists()) else None,
                 sums_override=gh_sums_override if (gh_sums_override and gh_sums_override.exists()) else None,
             )
@@ -1132,6 +1093,7 @@ def main() -> int:
             _publish_to_github(
                 cfg=cfg,
                 code_items_repo_rel=discovered_repo,
+                base_path=gh_base,
                 manifest_override=gh_manifest_override if (gh_manifest_override and gh_manifest_override.exists()) else None,
                 sums_override=gh_sums_override if (gh_sums_override and gh_sums_override.exists()) else None,
             )
@@ -1143,6 +1105,7 @@ def main() -> int:
                     gh_branch=gh_branch,
                     token=str(gh_token),
                     discovered_repo=discovered_repo,
+                    base_path=gh_base,
                 )
                 deleted_art = _prune_remote_artifacts_delta(
                     cfg=cfg,
@@ -1168,3 +1131,4 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         print("[packager] interrupted.")
         raise SystemExit(130)
+
