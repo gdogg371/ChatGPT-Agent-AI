@@ -1,0 +1,226 @@
+diff --git a/v2/backend/core/utils/code_bundles/code_bundles/src/packager/languages/__init__.py b/v2/backend/core/utils/code_bundles/code_bundles/src/packager/languages/__init__.py
+new file mode 100644
+index 0000000..1111111
+--- /dev/null
++++ b/v2/backend/core/utils/code_bundles/code_bundles/src/packager/languages/__init__.py
+@@ -0,0 +0 @@
+
+diff --git a/v2/backend/core/utils/code_bundles/code_bundles/src/packager/languages/python/__init__.py b/v2/backend/core/utils/code_bundles/code_bundles/src/packager/languages/python/__init__.py
+new file mode 100644
+index 0000000..1111111
+--- /dev/null
++++ b/v2/backend/core/utils/code_bundles/code_bundles/src/packager/languages/python/__init__.py
+@@ -0,0 +0 @@
+
+diff --git a/v2/backend/core/utils/code_bundles/code_bundles/src/packager/languages/python/plugin.py b/v2/backend/core/utils/code_bundles/code_bundles/src/packager/languages/python/plugin.py
+new file mode 100644
+index 0000000..1111111
+--- /dev/null
++++ b/v2/backend/core/utils/code_bundles/code_bundles/src/packager/languages/python/plugin.py
+@@ -0,0 +199 @@
+# v2/backend/core/utils/code_bundles/code_bundles/src/packager/languages/python/plugin.py
+from __future__ import annotations
+import ast
+from dataclasses import dataclass, asdict
+from typing import Dict, List, Tuple
+
+# ---- Required discovery hooks ----
+EXTENSIONS = (".py", ".pyi")
+
+class _Plugin:
+    name = "python"
+    extensions = EXTENSIONS
+
+    def analyze(self, files: List[Tuple[str, bytes]]) -> Dict[str, object]:
+        py = [(p, b) for p, b in files if isinstance(p, str) and p.endswith(self.extensions)]
+        ldt, docs, quality = _analyze_ast(py)
+        return {
+            "analysis/python/ldt.json": ldt,
+            "analysis/python/docs/coverage.json": docs,
+            "analysis/python/quality.json": quality,
+        }
+
+PLUGIN = _Plugin()
+
+# ---- AST in-memory analysis ----
+@dataclass
+class PyModuleRec:
+    kind: str
+    path: str
+    module: str
+    symbols: Dict[str, List[str]]
+    imports: List[str]
+
+def _module_name_from_rel(rel: str) -> str:
+    if rel.endswith("__init__.py"):
+        pkg = rel.rsplit("/", 1)[0] if "/" in rel else ""
+        return pkg.replace("/", ".").strip(".")
+    if rel.endswith(".py"):
+        return rel[:-3].replace("/", ".").strip(".")
+    return rel.replace("/", ".").strip(".")
+
+def _safe_decode(b: bytes) -> str:
+    try:
+        return b.decode("utf-8")
+    except Exception:
+        return b.decode("utf-8", errors="replace")
+
+def _collect_defs_imports(tree: ast.AST):
+    classes: List[str] = []
+    functions: List[str] = []
+    imports: List[str] = []
+    for node in ast.walk(tree):
+        if isinstance(node, ast.ClassDef):
+            classes.append(node.name)
+        elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            functions.append(node.name)
+        elif isinstance(node, ast.Import):
+            for alias in node.names:
+                if alias.name:
+                    imports.append(alias.name)
+        elif isinstance(node, ast.ImportFrom):
+            mod = node.module or ""
+            for alias in node.names:
+                name = alias.name or ""
+                dotted = f"{mod}.{name}" if mod and name else (mod or name)
+                if dotted:
+                    imports.append(dotted)
+    return {"classes": classes, "functions": functions}, imports
+
+def _has_doc(node: ast.AST) -> bool:
+    doc = ast.get_docstring(node, clean=False)
+    return bool(doc and str(doc).strip())
+
+def _doc_coverage_for_module(tree: ast.AST):
+    module_has = _has_doc(tree)
+    classes_total = classes_with = 0
+    methods_total = methods_with = 0
+    functions_total = functions_with = 0
+    for node in getattr(tree, "body", []):
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            functions_total += 1
+            if _has_doc(node):
+                functions_with += 1
+        elif isinstance(node, ast.ClassDef):
+            classes_total += 1
+            if _has_doc(node):
+                classes_with += 1
+            for cnode in getattr(node, "body", []):
+                if isinstance(cnode, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                    methods_total += 1
+                    if _has_doc(cnode):
+                        methods_with += 1
+    doc_total = 1 + classes_total + methods_total + functions_total
+    doc_with = (1 if module_has else 0) + classes_with + methods_with + functions_with
+    def cov(n: int, d: int):
+        return (n / float(d)) if d > 0 else None
+    return {
+        "module_doc": bool(module_has),
+        "classes": {"total": classes_total, "with_doc": classes_with, "coverage": cov(classes_with, classes_total)},
+        "methods": {"total": methods_total, "with_doc": methods_with, "coverage": cov(methods_with, methods_total)},
+        "functions": {"total": functions_total, "with_doc": functions_with, "coverage": cov(functions_with, functions_total)},
+        "overall": {"documentables": doc_total, "with_doc": doc_with, "coverage": cov(doc_with, doc_total)},
+    }
+
+_COMPLEXITY_NODES = (
+    ast.If, ast.For, ast.AsyncFor, ast.While, ast.With, ast.AsyncWith,
+    ast.Try, ast.ExceptHandler, ast.BoolOp, ast.IfExp, ast.comprehension
+)
+
+def _text_loc_sloc(text: str):
+    loc = 0
+    sloc = 0
+    for line in text.splitlines():
+        loc += 1
+        s = line.strip()
+        if not s:
+            continue
+        if s.startswith("#"):
+            continue
+        sloc += 1
+    return loc, sloc
+
+def _cyclomatic(tree: ast.AST) -> int:
+    score = 1
+    for n in ast.walk(tree):
+        if isinstance(n, _COMPLEXITY_NODES):
+            score += 1
+    return score
+
+def _analyze_ast(files: List[Tuple[str, bytes]]):
+    modules = []; edges = []; docs = []; quality = []
+    for rel, data in files:
+        rel_posix = rel.replace("\\\\", "/")
+        if not rel_posix.endswith(".py"):
+            continue
+        text = _safe_decode(data)
+        try:
+            tree = ast.parse(text, filename=rel_posix)
+        except Exception:
+            mod_name = _module_name_from_rel(rel_posix)
+            modules.append(asdict(PyModuleRec(kind="python.module", path=rel_posix, module=mod_name,
+                                              symbols={"classes": [], "functions": []}, imports=[])))
+            docs.append({"kind": "docs.coverage", "path": rel_posix, "module_doc": False,
+                        "classes": {"total": 0, "with_doc": 0, "coverage": None},
+                        "methods": {"total": 0, "with_doc": 0, "coverage": None},
+                        "functions": {"total": 0, "with_doc": 0, "coverage": None},
+                        "overall": {"documentables": 0, "with_doc": 0, "coverage": None}})
+            quality.append({"kind": "quality.metric", "path": rel_posix, "language": "python",
+                            "sloc": 0, "loc": 0, "cyclomatic": 0, "n_functions": 0, "n_classes": 0,
+                            "avg_fn_len": 0.0, "notes": ["parse_error"]})
+            continue
+
+        symbols, imports = _collect_defs_imports(tree)
+        mod_name = _module_name_from_rel(rel_posix)
+        modules.append(asdict(PyModuleRec(kind="python.module", path=rel_posix, module=mod_name,
+                                          symbols=symbols, imports=imports)))
+        for imp in imports:
+            edges.append({"kind": "graph.edge", "edge_type": "import", "src_path": rel_posix, "dst": imp})
+
+        d = _doc_coverage_for_module(tree)
+        docs.append({"kind": "docs.coverage", "path": rel_posix, **d})
+
+        loc, sloc = _text_loc_sloc(text)
+        n_funcs = sum(1 for n in ast.walk(tree) if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef)))
+        n_classes = sum(1 for n in ast.walk(tree) if isinstance(n, ast.ClassDef))
+        spans = []
+        for n in ast.walk(tree):
+            if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                st = int(getattr(n, "lineno", 0) or 0)
+                en = int(getattr(n, "end_lineno", 0) or 0)
+                if st and en and en >= st:
+                    spans.append(en - st + 1)
+        avg_fn_len = (sum(spans) / len(spans)) if spans else 0.0
+        quality.append({"kind": "quality.metric", "path": rel_posix, "language": "python",
+                        "sloc": sloc, "loc": loc, "cyclomatic": _cyclomatic(tree),
+                        "n_functions": n_funcs, "n_classes": n_classes,
+                        "avg_fn_len": round(avg_fn_len, 2)})
+
+    modules_total = len(docs)
+    modules_with = sum(1 for r in docs if r.get("module_doc"))
+    classes_total = sum(int(r["classes"]["total"]) for r in docs if "classes" in r)
+    classes_with = sum(int(r["classes"]["with_doc"]) for r in docs if "classes" in r)
+    methods_total = sum(int(r["methods"]["total"]) for r in docs if "methods" in r)
+    methods_with = sum(int(r["methods"]["with_doc"]) for r in docs if "methods" in r)
+    functions_total = sum(int(r["functions"]["total"]) for r in docs if "functions" in r)
+    functions_with = sum(int(r["functions"]["with_doc"]) for r in docs if "functions" in r)
+    overall_doc_total = sum(int(r["overall"]["documentables"]) for r in docs if "overall" in r)
+    overall_doc_with = sum(int(r["overall"]["with_doc"]) for r in docs if "overall" in r)
+    def cov(n, d): return (n / float(d)) if d > 0 else None
+
+    ldt = {"kind": "python.ldt", "modules": modules, "edges": edges}
+    docs.append({"kind": "docs.coverage.summary", "files": modules_total, "totals": {
+        "modules": {"total": modules_total, "with_doc": modules_with, "coverage": cov(modules_with, modules_total)},
+        "classes": {"total": classes_total, "with_doc": classes_with, "coverage": cov(classes_with, classes_total)},
+        "methods": {"total": methods_total, "with_doc": methods_with, "coverage": cov(methods_with, methods_total)},
+        "functions": {"total": functions_total, "with_doc": functions_with, "coverage": cov(functions_with, functions_total)},
+        "overall": {"documentables": overall_doc_total, "with_doc": overall_doc_with, "coverage": cov(overall_doc_with, overall_doc_total)},
+    }})
+    return ldt, docs, quality
+diff --git a/config/packager.yml b/config/packager.yml
+index abcdef0..1234567 100644
+--- a/config/packager.yml
++++ b/config/packager.yml
+@@ -1,1 +1,2 @@
+ publish:
++publish_analysis: true
