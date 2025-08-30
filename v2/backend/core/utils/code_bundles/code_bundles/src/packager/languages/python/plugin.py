@@ -1,122 +1,165 @@
 # File: v2/backend/core/utils/code_bundles/code_bundles/src/packager/languages/python/plugin.py
 from __future__ import annotations
 
-"""
-Python language plugin (list-tolerant analyze).
-
-This implementation focuses on robustness:
-- Accepts either a single file path or a list/tuple of file paths.
-- Never passes a list into Path/open/os.* functions.
-- Produces a conservative result structure that orchestrators can consume.
-
-Expected usage (orchestrator examples this tolerates):
-    analyze(files=[...], root="...")              # common
-    analyze(inputs=[...], project_root="...")     # alternate key names
-    analyze("file.py", "C:/repo")                 # positional fallback
-
-No external dependencies.
-"""
-
+import ast
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Optional
+from typing import Any, Dict, List, Sequence, Tuple, Union, Optional
+
+# ---- Public plugin contract --------------------------------------------------
+# The loader expects a module-level `PLUGIN` object exposing:
+#   - name: str
+#   - extensions: Tuple[str, ...]
+#   - analyze(files) -> Dict[str, Any]   # returns {artifact_path: json-serializable}
+#
+# `files` is typically a sequence of (rel_path: str, data: bytes) tuples.
+# This plugin also accepts {path: bytes} dicts or sequences of paths (it’ll read from disk).
+
+PLUGIN_NAME = "python"
+EXTENSIONS: Tuple[str, ...] = (".py", ".pyi")
+
+BytesLike = Union[bytes, bytearray, memoryview]
 
 
-def _as_file_list(x: Any) -> List[str]:
+# ---- Internal helpers --------------------------------------------------------
+@dataclass(frozen=True)
+class FileEntry:
+    path: str
+    data: bytes
+
+
+def _is_py(p: str) -> bool:
+    p = str(p)
+    return any(p.endswith(ext) for ext in EXTENSIONS)
+
+
+def _coerce_files(files: Any) -> List[FileEntry]:
     """
-    Normalize a value that could be a string, Path, list/tuple of either, or None
-    into a clean list of POSIX-ish path strings.
+    Accepts:
+      - Sequence[Tuple[str, bytes]]  (preferred)
+      - Dict[str, bytes]
+      - Sequence[str | Path]         (fallback: reads from disk)
+    Filters to Python extensions.
     """
-    if x is None:
-        return []
-    if isinstance(x, (list, tuple, set)):
-        items = list(x)
-    else:
-        items = [x]
+    out: List[FileEntry] = []
 
-    out: List[str] = []
-    for it in items:
-        if isinstance(it, Path):
-            out.append(it.as_posix())
-        elif isinstance(it, str):
-            out.append(it)
-        else:
-            # Best-effort stringification; avoids TypeError on Path(...)
-            out.append(str(it))
+    if isinstance(files, dict):
+        for p, b in files.items():
+            if _is_py(p):
+                out.append(FileEntry(str(p), bytes(b)))
+        return out
+
+    if isinstance(files, Sequence):
+        for item in files:
+            if isinstance(item, tuple) and len(item) == 2:
+                p, b = item
+                if _is_py(p):
+                    out.append(FileEntry(str(p), bytes(b)))
+            elif isinstance(item, (str, Path)):
+                p = str(item)
+                if _is_py(p):
+                    try:
+                        out.append(FileEntry(p, Path(p).read_bytes()))
+                    except Exception:
+                        out.append(FileEntry(p, b""))
+        return out
+
+    # Unknown shape -> nothing
     return out
 
 
-def _resolve_rel(root: Optional[str], p: Path) -> str:
-    """
-    Best-effort relpath under root; falls back to POSIX path if outside root.
-    """
-    if not root:
-        return p.as_posix()
+def _safe_decode(data: bytes) -> str:
     try:
-        return str(p.resolve().relative_to(Path(root).resolve()).as_posix())
+        return data.decode("utf-8")
     except Exception:
-        return p.as_posix()
+        return data.decode("utf-8", "replace")
 
 
-def analyze(*args: Any, **kwargs: Any) -> Dict[str, Any]:
+def _analyze_one(path: str, src: str) -> Dict[str, Any]:
     """
-    List-tolerant analyzer entrypoint.
-
-    Parameters accepted (any combination):
-      - files: List[str|Path] | str | Path
-      - inputs: alias for files
-      - root: str (preferred)
-      - project_root: alias for root
-
-    Positional fallback:
-      - args[0] -> files
-      - args[1] -> root
-
-    Returns:
-      {
-        "ok": bool,
-        "files_processed": int,
-        "items": [
-          {"path": "<abs_or_given>", "relpath": "<relative_if_possible>"},
-          ...
-        ],
-        "warnings": [ "...", ... ]   # optional
-      }
+    Lightweight AST scan:
+      - LOC
+      - function/class counts
+      - imported modules (unique, sorted)
     """
-    # Extract parameters from kwargs first
-    files_arg = kwargs.get("files")
-    if files_arg is None:
-        files_arg = kwargs.get("inputs")
+    report: Dict[str, Any] = {
+        "path": path,
+        "loc": src.count("\n") + (1 if src and not src.endswith("\n") else 0),
+        "functions": 0,
+        "classes": 0,
+        "imports": [],
+        "errors": None,
+    }
 
-    root = kwargs.get("root") or kwargs.get("project_root")
+    try:
+        tree = ast.parse(src, filename=path)
+        funcs = 0
+        classes = 0
+        imports: List[str] = []
 
-    # Positional fallbacks if not provided in kwargs
-    if files_arg is None and len(args) >= 1:
-        files_arg = args[0]
-    if root is None and len(args) >= 2:
-        root = args[1]
+        for node in ast.walk(tree):
+            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                funcs += 1
+            elif isinstance(node, ast.ClassDef):
+                classes += 1
+            elif isinstance(node, ast.Import):
+                for a in node.names:
+                    if a.name:
+                        imports.append(a.name)
+            elif isinstance(node, ast.ImportFrom):
+                mod = node.module or ""
+                if mod:
+                    imports.append(mod)
 
-    file_list = _as_file_list(files_arg)
-    root_path = Path(root).resolve() if root else None
+        report["functions"] = funcs
+        report["classes"] = classes
+        report["imports"] = sorted(set(i for i in imports if i))
 
-    items: List[Dict[str, Any]] = []
-    warnings: List[str] = []
-    processed = 0
+    except Exception as e:
+        report["errors"] = repr(e)
 
-    for fp in file_list:
-        try:
-            p = Path(fp)
-            # Do not fail on non-existent paths; just record what we can.
-            rel = _resolve_rel(str(root_path) if root_path else None, p)
-            items.append({"path": p.as_posix(), "relpath": rel})
-            processed += 1
-        except Exception as e:
-            # Swallow per-file errors to keep the whole batch robust.
-            warnings.append(f"{fp}: {e}")
-
-    result: Dict[str, Any] = {"ok": True, "files_processed": processed, "items": items}
-    if warnings:
-        result["warnings"] = warnings
-    return result
+    return report
 
 
-__all__ = ["analyze"]
+# ---- Plugin implementation ---------------------------------------------------
+class _PythonPlugin:
+    name = PLUGIN_NAME
+    extensions = EXTENSIONS
+
+    def analyze(self, files: Any) -> Dict[str, Any]:
+        entries = _coerce_files(files)
+
+        file_reports: List[Dict[str, Any]] = []
+        total_loc = 0
+        total_funcs = 0
+        total_classes = 0
+
+        for fe in entries:
+            src = _safe_decode(fe.data)
+            rep = _analyze_one(fe.path, src)
+            file_reports.append(rep)
+            total_loc += int(rep.get("loc", 0) or 0)
+            total_funcs += int(rep.get("functions", 0) or 0)
+            total_classes += int(rep.get("classes", 0) or 0)
+
+        summary = {
+            "plugin": self.name,
+            "version": 1,
+            "files": len(entries),
+            "total_loc": total_loc,
+            "total_functions": total_funcs,
+            "total_classes": total_classes,
+        }
+
+        # Artifacts mapping: {relative_output_path: JSON-serializable object}
+        return {
+            "python/index.json": {
+                "summary": summary,
+                "files": file_reports,
+            }
+        }
+
+
+PLUGIN = _PythonPlugin()
+__all__ = ["PLUGIN"]
+
