@@ -4,7 +4,52 @@ import json
 from pathlib import Path
 from typing import Any, Dict, Iterator, List, Mapping
 
-from packager.emitters.registry import canonicalize_family as canon_fallback
+# Fallback aliases so this reader does not depend on registry.canonicalize_family
+_FALLBACK_ALIASES: Dict[str, str] = {
+    # AST dotted/variants
+    "ast.call": "ast_calls",
+    "ast.calls": "ast_calls",
+    "call": "ast_calls",
+    "ast.symbol": "ast_symbols",
+    "ast.symbols": "ast_symbols",
+    "file": "ast_symbols",
+    "class": "ast_symbols",
+    "function": "ast_symbols",
+    "ast.import": "ast_imports",
+    "ast.imports": "ast_imports",
+    "import": "ast_imports",
+    "import_from": "ast_imports",
+    "ast.import_from": "ast_imports",
+    "from": "ast_imports",
+    "edge.import": "ast_imports",
+    "ast.docstring": "docs",
+
+    # Scanner → canonical
+    "js_ts": "js",
+    "owners_index": "codeowners",
+    "assets": "asset",
+    "asset.index": "asset",
+    "git_info": "git",
+    "license_scan": "license",
+    "secrets_scan": "secrets",
+    "env_index": "env",
+    "deps_index": "deps",
+    "html_index": "html",
+    "sql.index": "sql",
+    "sql_index": "sql",
+
+    # Docs/quality variants
+    "docs.coverage": "docs",
+    "doc_coverage": "docs",
+    "quality.complexity": "quality",
+
+    # IO/core
+    "artifact": "io_core",
+    "manifest": "io_core",
+    "manifest.header": "io_core",
+    "manifest.summary": "io_core",
+    "module_index": "io_core",
+}
 
 
 class ManifestReader:
@@ -12,7 +57,7 @@ class ManifestReader:
     Streams rows from the chunked design manifest.
 
     It prefers the alias map supplied by loader (from config/packager.yml: family_aliases),
-    then falls back to the registry's canonicalize rules.
+    then falls back to the internal _FALLBACK_ALIASES.
     """
 
     def __init__(
@@ -27,11 +72,14 @@ class ManifestReader:
         self.manifest_dir = manifest_dir
         self.parts_index = parts_index
         self.transport = transport or {}
+
         # Normalize keys in the supplied alias map so both dotted and underscored work
         self.alias_map: Dict[str, str] = {}
         for k, v in (family_aliases or {}).items():
-            self.alias_map[str(k)] = str(v)
-            self.alias_map[str(k).replace(".", "_")] = str(v)
+            k = str(k)
+            v = str(v)
+            self.alias_map[k] = v
+            self.alias_map[k.replace(".", "_")] = v
 
         self.part_stem = str(self.transport.get("part_stem", "design_manifest"))
         self.part_ext = str(self.transport.get("part_ext", ".txt"))
@@ -68,12 +116,19 @@ class ManifestReader:
         return sorted(self.manifest_dir.glob(f"{self.part_stem}*{self.part_ext}"))
 
     def _canon(self, fam: str) -> str:
+        # try config-provided aliases
         if fam in self.alias_map:
             return self.alias_map[fam]
         u = fam.replace(".", "_")
         if u in self.alias_map:
             return self.alias_map[u]
-        return canon_fallback(fam)
+        # fallback aliases
+        if fam in _FALLBACK_ALIASES:
+            return _FALLBACK_ALIASES[fam]
+        if u in _FALLBACK_ALIASES:
+            return _FALLBACK_ALIASES[u]
+        # last-resort normalize to underscored
+        return u
 
     def iter_rows(self) -> Iterator[Dict[str, Any]]:
         part_paths = self._read_index_paths()
@@ -89,9 +144,15 @@ class ManifestReader:
                         obj = json.loads(line)
                     except Exception:
                         continue
-                    fam = obj.get("family") or obj.get("kind") or ""
+                    # Prefer explicit 'family'; fall back to common keys used across scanners
+                    fam = (
+                        obj.get("family")
+                        or obj.get("record_type")   # e.g., {"record_type":"ast.call"}
+                        or obj.get("kind")
+                        or obj.get("type")
+                        or ""
+                    )
                     if not fam:
                         continue
-                    fam = str(fam)
-                    obj["family"] = self._canon(fam)
+                    obj["family"] = self._canon(str(fam))
                     yield obj
