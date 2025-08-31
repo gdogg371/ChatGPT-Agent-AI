@@ -1,7 +1,7 @@
 {
   "family": "quality",
-  "items": [],
   "stats": {
-    "count": 0
+    "avg_complexity": 0.0,
+    "count": 582
   }
 }
