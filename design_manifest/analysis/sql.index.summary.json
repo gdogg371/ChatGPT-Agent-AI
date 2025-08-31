@@ -1,7 +1,9 @@
 {
   "family": "sql",
-  "items": [],
   "stats": {
-    "count": 0
+    "count": 176,
+    "kinds": {
+      "sql.index": 176
+    }
   }
 }
