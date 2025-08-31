@@ -1,4 +1,5 @@
-# File: v2/backend/core/utils/code_bundles/code_bundles/src/packager/analysis_emitter.py
+# v2/backend/core/utils/code_bundles/code_bundles/src/packager/analysis_emitter.py
+
 from __future__ import annotations
 
 import json, os, re, sys, hashlib
@@ -119,7 +120,7 @@ class AnalysisEmitter:
 
         self.emitted_prefix = (self.repo_root / str(self.cfg.get("emitted_prefix","output/patch_code_bundles"))).resolve()
         self.analysis_dir = self.emitted_prefix / "analysis"
-        # Also look where your orchestrator wrote analysis this run:
+        # Also look where the orchestrator may have written analysis this run:
         self.alt_analysis_dir = (self.repo_root / "output" / "design_manifest" / "analysis")
 
         self.part_stem = self.cfg.get("transport.part_stem","design_manifest")
@@ -148,11 +149,17 @@ class AnalysisEmitter:
         # Group raw by family
         raw_groups = self._group_raw_by_family(raw_idx)
 
-        # Determine targets:
+        # Determine targets (robust fallback)
         target_families = {fam for fam,mode in self.meta_emit.items() if str(mode).lower()=="both"}
         if not target_families:
-            # Fallback: use configured filenames and whatever is present in raw
-            target_families = set(self.analysis_filenames.keys()) | set(raw_groups.keys())
+            target_families = set(self.analysis_filenames.keys())
+        if not target_families:
+            target_families = set(raw_groups.keys())
+        if not target_families:
+            target_families = {
+                "asset","deps","entrypoints","env","git","license","secrets","sql",
+                "ast_symbols","ast_imports","ast_calls","docs","quality","html","js","cs","sbom","codeowners"
+            }
 
         written: Dict[str, Tuple[Path,str,int]] = {}
         header = {"packager_version": self.cfg.get("version", None),
@@ -167,19 +174,18 @@ class AnalysisEmitter:
 
         # Backfill (keep existing files; write missing)
         if self.strategy in ("backfill","enforce","passthrough"):
-            # In backfill/enforce we’ll produce canonical files when needed
             for fam in sorted(target_families):
                 canon = self._canonical_path_for_family(fam, create=True)
-                # Choose source:
-                data_items: List[Any]
+                # Choose source payload
+                data_items: Optional[List[Any]]
                 if self.strategy == "enforce":
                     data_items = self._pick_items_for_family(fam, existing, raw_groups)
                 else:
                     items = raw_groups.get(fam, [])
-                    data_items = items if items else ([] if self.synthesize_empty else None)  # type: ignore
+                    data_items = items if items else ([] if self.synthesize_empty else None)
 
                 if data_items is None:
-                    continue  # backfill but no synthesize_empty
+                    continue
 
                 doc = envelope(fam, data_items)
                 sha = _write_json(canon, doc)
@@ -326,6 +332,16 @@ class AnalysisEmitter:
                     cnt = 0
                 families.setdefault(self._infer_family_from_filename(p.name) or p.stem.split(".")[0],
                                     {"path": _rel(p, self.emitted_prefix), "sha256": _sha256_file(p), "count": cnt})
+        # Include any existing in alt dir not already present
+        if self.alt_analysis_dir.exists():
+            for p in self.alt_analysis_dir.glob("*.json"):
+                alias = self._infer_family_from_filename(p.name) or p.stem.split(".")[0]
+                if alias not in families:
+                    try:
+                        obj = _read_json(p); cnt = len(obj["items"]) if _is_enveloped(obj) else (len(obj) if isinstance(obj,list) else 1)
+                    except Exception:
+                        cnt = 0
+                    families[alias] = {"path": _rel(p, self.emitted_prefix), "sha256": _sha256_file(p), "count": cnt}
         return {"kind":"design_manifest.analysis/index","version":"1.0","generated_at_utc":_utcnow(),
                 "families": dict(sorted(families.items()))}
 
@@ -334,4 +350,5 @@ class AnalysisEmitter:
 
 def emit_all(repo_root: Path, cfg: Any) -> None:
     AnalysisEmitter(repo_root=repo_root, cfg=cfg).run()
+
 
