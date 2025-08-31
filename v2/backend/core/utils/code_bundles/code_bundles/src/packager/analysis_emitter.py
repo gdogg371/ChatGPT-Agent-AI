@@ -1,10 +1,8 @@
 from __future__ import annotations
 
-import json
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Mapping, Optional
+from typing import Any, Dict
 
-# The SRC dir is already injected by run_pack; imports below assume we are on sys.path
 from packager.core.loader import load_packager_config  # uses config/packager.yml
 from packager.manifest.reader import ManifestReader
 from packager.emitters.backfill import emit_analysis_sidecars
@@ -17,8 +15,7 @@ def _pfx(msg: str) -> str:
 
 def _analysis_dir_from_cfg(cfg) -> Path:
     """
-    Your run_pack publishes artifacts from <cfg.out_bundle>.parent,
-    and expects sidecars under 'analysis/' inside that folder.
+    Sidecars live under the same design_manifest/ folder your run_pack writes to.
     """
     art_dir = Path(cfg.out_bundle).parent
     out = art_dir / "analysis"
@@ -30,23 +27,19 @@ def emit_all(*, repo_root: Path, cfg) -> Dict[str, Any]:
     """
     Entrypoint used by run_pack._load_analysis_emitter(...):
       emit_all(repo_root=<Path>, cfg=<NS from run_pack.build_cfg>)
-
-    Returns an index dict for logging/debugging.
     """
-    # Load full packager config (families, filenames, aliases, controls, emitters policy)
     conf = load_packager_config(repo_root)
 
-    # Decide whether to emit at all:
-    # - Prefer publish.analysis.enabled; fallback to root-level cfg.publish_analysis (legacy)
+    # Respect publish.analysis.enabled, fallback to legacy root flag
     publish_analysis_enabled = bool(conf.publish.get("analysis", {}).get("enabled", False))
     if not publish_analysis_enabled and not bool(getattr(cfg, "publish_analysis", False)):
-        print(_pfx("disabled (both publish.analysis.enabled and root publish_analysis are false)"))
+        print(_pfx("disabled (publish.analysis.enabled=false and root publish_analysis=false)"))
         return {"enabled": False, "families": {}}
 
     # Gate selection
     policy = conf.emitter_policy  # {"mode":"all"} | {"mode":"set","families":[...]}
     if policy.get("mode") == "all":
-        gate = sorted(conf.canonical_families)  # all families where metadata_emission != "none"
+        gate = sorted(conf.canonical_families)  # metadata_emission != "none"
     else:
         gate = sorted(set(policy.get("families", [])))
 
@@ -54,12 +47,10 @@ def emit_all(*, repo_root: Path, cfg) -> Dict[str, Any]:
         print(_pfx("no families selected by emitter policy; nothing to write"))
         return {"enabled": True, "families": {}, "note": "empty gate"}
 
-    # Build manifest reader from the design_manifest parts your run already wrote
+    # Build manifest reader from the design_manifest parts
     manifest_dir = Path(cfg.out_bundle).parent
-    parts_index = manifest_dir / str(conf.transport.get("parts_index", "design_manifest_parts_index.json"))
-    if not parts_index.exists():
-        # Try the canonical name from config even if transport dict omitted 'parts_index'
-        parts_index = manifest_dir / "design_manifest_parts_index.json"
+    parts_index_name = str(conf.transport.get("parts_index_name", "design_manifest_parts_index.json"))
+    parts_index = manifest_dir / parts_index_name
 
     reader = ManifestReader(
         repo_root=repo_root,
@@ -69,7 +60,6 @@ def emit_all(*, repo_root: Path, cfg) -> Dict[str, Any]:
         family_aliases=conf.family_aliases,
     )
 
-    # Output dir is design_manifest/analysis
     out_dir = _analysis_dir_from_cfg(cfg)
 
     # Controls
@@ -80,7 +70,6 @@ def emit_all(*, repo_root: Path, cfg) -> Dict[str, Any]:
 
     print(_pfx(f"strategy={strategy} gate={len(gate)} out={out_dir}"))
 
-    # Emit sidecars
     index = emit_analysis_sidecars(
         manifest_iter=reader.iter_rows(),
         gate=gate,
@@ -92,10 +81,8 @@ def emit_all(*, repo_root: Path, cfg) -> Dict[str, Any]:
         forbid_raw_secrets=forbid_raw_secrets,
     )
 
-    # Write a compact _index.json for quick inspection
     write_json_atomic(out_dir / "_index.json", index)
 
-    # Friendly per-family log
     fams = index.get("families", {})
     emitted = sum(1 for v in fams.values() if v.get("path"))
     total = len(fams)
@@ -103,4 +90,5 @@ def emit_all(*, repo_root: Path, cfg) -> Dict[str, Any]:
                f"(nonzero: {sum(1 for v in fams.values() if v.get('count', 0) > 0)})"))
 
     return index
+
 
