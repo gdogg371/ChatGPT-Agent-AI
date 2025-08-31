@@ -2,15 +2,17 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any, Dict, Iterable, Iterator, List, Mapping, Optional
+from typing import Any, Dict, Iterator, List, Mapping
 
-from packager.emitters.registry import canonicalize_family
+from packager.emitters.registry import canonicalize_family as canon_fallback
 
 
 class ManifestReader:
     """
     Streams rows from the chunked design manifest.
-    Tolerant to variations in parts index shape; falls back to a glob scan if needed.
+
+    It prefers the alias map supplied by loader (from config/packager.yml: family_aliases),
+    then falls back to the registry's canonicalize rules.
     """
 
     def __init__(
@@ -25,7 +27,11 @@ class ManifestReader:
         self.manifest_dir = manifest_dir
         self.parts_index = parts_index
         self.transport = transport or {}
-        self.family_aliases = dict(family_aliases)
+        # Normalize keys in the supplied alias map so both dotted and underscored work
+        self.alias_map: Dict[str, str] = {}
+        for k, v in (family_aliases or {}).items():
+            self.alias_map[str(k)] = str(v)
+            self.alias_map[str(k).replace(".", "_")] = str(v)
 
         self.part_stem = str(self.transport.get("part_stem", "design_manifest"))
         self.part_ext = str(self.transport.get("part_ext", ".txt"))
@@ -35,7 +41,7 @@ class ManifestReader:
             try:
                 with self.parts_index.open("r", encoding="utf-8") as f:
                     idx = json.load(f)
-                parts = []
+                parts: List[Path] = []
                 if isinstance(idx, dict):
                     # Common shapes:
                     # {"parts":[{"path":"design_manifest_0001.txt"}, ...]}
@@ -43,8 +49,11 @@ class ManifestReader:
                         for p in idx["parts"]:
                             if isinstance(p, str):
                                 parts.append(self.manifest_dir / p)
-                            elif isinstance(p, dict) and "path" in p:
-                                parts.append(self.manifest_dir / str(p["path"]))
+                            elif isinstance(p, dict):
+                                # accept "path" or "name"
+                                name = p.get("path") or p.get("name")
+                                if name:
+                                    parts.append(self.manifest_dir / str(name))
                     # {"files":[...]} fallback
                     elif "files" in idx and isinstance(idx["files"], list):
                         for p in idx["files"]:
@@ -57,6 +66,14 @@ class ManifestReader:
 
         # Fallback: glob by stem/ext under manifest_dir
         return sorted(self.manifest_dir.glob(f"{self.part_stem}*{self.part_ext}"))
+
+    def _canon(self, fam: str) -> str:
+        if fam in self.alias_map:
+            return self.alias_map[fam]
+        u = fam.replace(".", "_")
+        if u in self.alias_map:
+            return self.alias_map[u]
+        return canon_fallback(fam)
 
     def iter_rows(self) -> Iterator[Dict[str, Any]]:
         part_paths = self._read_index_paths()
@@ -72,10 +89,9 @@ class ManifestReader:
                         obj = json.loads(line)
                     except Exception:
                         continue
-                    # Expect a family; normalize and yield
                     fam = obj.get("family") or obj.get("kind") or ""
-                    fam = str(fam)
                     if not fam:
                         continue
-                    obj["family"] = canonicalize_family(fam)
+                    fam = str(fam)
+                    obj["family"] = self._canon(fam)
                     yield obj
