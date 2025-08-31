@@ -1,377 +1,602 @@
 {
   "record_type": "parts_index",
-  "total_parts": 74,
+  "total_parts": 119,
   "split_bytes": 150000,
   "parts": [
     {
       "name": "design_manifest_00_0001.txt",
-      "size": 150596,
-      "lines": 716
+      "size": 150621,
+      "lines": 741
     },
     {
       "name": "design_manifest_00_0002.txt",
-      "size": 150494,
-      "lines": 560
-    },
-    {
-      "name": "design_manifest_00_0003.txt",
-      "size": 150585,
-      "lines": 589
-    },
-    {
-      "name": "design_manifest_00_0004.txt",
-      "size": 150415,
-      "lines": 494
-    },
-    {
-      "name": "design_manifest_00_0005.txt",
-      "size": 150378,
+      "size": 150532,
       "lines": 555
     },
     {
+      "name": "design_manifest_00_0003.txt",
+      "size": 150553,
+      "lines": 588
+    },
+    {
+      "name": "design_manifest_00_0004.txt",
+      "size": 150470,
+      "lines": 506
+    },
+    {
+      "name": "design_manifest_00_0005.txt",
+      "size": 150383,
+      "lines": 553
+    },
+    {
       "name": "design_manifest_00_0006.txt",
-      "size": 149894,
-      "lines": 532
+      "size": 150460,
+      "lines": 528
     },
     {
       "name": "design_manifest_00_0007.txt",
-      "size": 150315,
+      "size": 150221,
       "lines": 491
     },
     {
       "name": "design_manifest_00_0008.txt",
-      "size": 150346,
-      "lines": 577
+      "size": 150437,
+      "lines": 571
     },
     {
       "name": "design_manifest_00_0009.txt",
-      "size": 150370,
-      "lines": 520
+      "size": 150418,
+      "lines": 536
     },
     {
       "name": "design_manifest_00_0010.txt",
-      "size": 150437,
-      "lines": 521
+      "size": 150289,
+      "lines": 516
     },
     {
       "name": "design_manifest_01_0011.txt",
-      "size": 150234,
-      "lines": 539
+      "size": 150516,
+      "lines": 532
     },
     {
       "name": "design_manifest_01_0012.txt",
-      "size": 150382,
-      "lines": 452
+      "size": 150069,
+      "lines": 466
     },
     {
       "name": "design_manifest_01_0013.txt",
-      "size": 150324,
-      "lines": 449
+      "size": 150242,
+      "lines": 443
     },
     {
       "name": "design_manifest_01_0014.txt",
-      "size": 150382,
-      "lines": 441
+      "size": 150292,
+      "lines": 440
     },
     {
       "name": "design_manifest_01_0015.txt",
-      "size": 150413,
-      "lines": 455
+      "size": 150151,
+      "lines": 456
     },
     {
       "name": "design_manifest_01_0016.txt",
-      "size": 150053,
-      "lines": 420
-    },
-    {
-      "name": "design_manifest_01_0017.txt",
-      "size": 150218,
-      "lines": 392
-    },
-    {
-      "name": "design_manifest_01_0018.txt",
-      "size": 150366,
+      "size": 150370,
       "lines": 428
     },
     {
-      "name": "design_manifest_01_0019.txt",
-      "size": 150463,
-      "lines": 484
-    },
-    {
-      "name": "design_manifest_01_0020.txt",
-      "size": 150036,
-      "lines": 448
-    },
-    {
-      "name": "design_manifest_02_0021.txt",
-      "size": 149893,
-      "lines": 336
-    },
-    {
-      "name": "design_manifest_02_0022.txt",
-      "size": 150004,
-      "lines": 356
-    },
-    {
-      "name": "design_manifest_02_0023.txt",
-      "size": 150305,
-      "lines": 351
-    },
-    {
-      "name": "design_manifest_02_0024.txt",
-      "size": 150149,
-      "lines": 379
-    },
-    {
-      "name": "design_manifest_02_0025.txt",
-      "size": 150275,
-      "lines": 379
-    },
-    {
-      "name": "design_manifest_02_0026.txt",
-      "size": 150392,
-      "lines": 419
-    },
-    {
-      "name": "design_manifest_02_0027.txt",
-      "size": 149874,
-      "lines": 323
-    },
-    {
-      "name": "design_manifest_02_0028.txt",
-      "size": 150164,
-      "lines": 318
-    },
-    {
-      "name": "design_manifest_02_0029.txt",
-      "size": 150264,
+      "name": "design_manifest_01_0017.txt",
+      "size": 150163,
       "lines": 395
     },
     {
+      "name": "design_manifest_01_0018.txt",
+      "size": 150222,
+      "lines": 418
+    },
+    {
+      "name": "design_manifest_01_0019.txt",
+      "size": 150441,
+      "lines": 483
+    },
+    {
+      "name": "design_manifest_01_0020.txt",
+      "size": 150185,
+      "lines": 459
+    },
+    {
+      "name": "design_manifest_02_0021.txt",
+      "size": 150152,
+      "lines": 340
+    },
+    {
+      "name": "design_manifest_02_0022.txt",
+      "size": 149937,
+      "lines": 355
+    },
+    {
+      "name": "design_manifest_02_0023.txt",
+      "size": 149758,
+      "lines": 352
+    },
+    {
+      "name": "design_manifest_02_0024.txt",
+      "size": 150153,
+      "lines": 374
+    },
+    {
+      "name": "design_manifest_02_0025.txt",
+      "size": 150328,
+      "lines": 377
+    },
+    {
+      "name": "design_manifest_02_0026.txt",
+      "size": 150345,
+      "lines": 422
+    },
+    {
+      "name": "design_manifest_02_0027.txt",
+      "size": 149954,
+      "lines": 327
+    },
+    {
+      "name": "design_manifest_02_0028.txt",
+      "size": 150017,
+      "lines": 319
+    },
+    {
+      "name": "design_manifest_02_0029.txt",
+      "size": 150147,
+      "lines": 376
+    },
+    {
       "name": "design_manifest_02_0030.txt",
-      "size": 150415,
-      "lines": 476
+      "size": 150343,
+      "lines": 469
     },
     {
       "name": "design_manifest_03_0031.txt",
-      "size": 150460,
-      "lines": 505
+      "size": 150412,
+      "lines": 510
     },
     {
       "name": "design_manifest_03_0032.txt",
-      "size": 150431,
-      "lines": 527
+      "size": 150366,
+      "lines": 493
     },
     {
       "name": "design_manifest_03_0033.txt",
-      "size": 150538,
-      "lines": 642
+      "size": 150174,
+      "lines": 348
     },
     {
       "name": "design_manifest_03_0034.txt",
-      "size": 150531,
-      "lines": 681
+      "size": 150391,
+      "lines": 398
     },
     {
       "name": "design_manifest_03_0035.txt",
-      "size": 150760,
-      "lines": 804
+      "size": 149860,
+      "lines": 378
     },
     {
       "name": "design_manifest_03_0036.txt",
-      "size": 150251,
-      "lines": 346
+      "size": 150102,
+      "lines": 392
     },
     {
       "name": "design_manifest_03_0037.txt",
-      "size": 150203,
+      "size": 150021,
       "lines": 372
     },
     {
       "name": "design_manifest_03_0038.txt",
-      "size": 150554,
-      "lines": 567
+      "size": 150212,
+      "lines": 346
     },
     {
       "name": "design_manifest_03_0039.txt",
-      "size": 150443,
-      "lines": 572
+      "size": 150078,
+      "lines": 319
     },
     {
       "name": "design_manifest_03_0040.txt",
-      "size": 150550,
-      "lines": 552
+      "size": 150412,
+      "lines": 413
     },
     {
       "name": "design_manifest_04_0041.txt",
-      "size": 150443,
-      "lines": 519
+      "size": 150250,
+      "lines": 409
     },
     {
       "name": "design_manifest_04_0042.txt",
-      "size": 150438,
-      "lines": 553
+      "size": 150181,
+      "lines": 380
     },
     {
       "name": "design_manifest_04_0043.txt",
-      "size": 150279,
-      "lines": 514
+      "size": 150171,
+      "lines": 294
     },
     {
       "name": "design_manifest_04_0044.txt",
-      "size": 150432,
-      "lines": 505
+      "size": 149897,
+      "lines": 314
     },
     {
       "name": "design_manifest_04_0045.txt",
-      "size": 150406,
-      "lines": 596
+      "size": 149876,
+      "lines": 322
     },
     {
       "name": "design_manifest_04_0046.txt",
-      "size": 150270,
-      "lines": 507
+      "size": 149952,
+      "lines": 298
     },
     {
       "name": "design_manifest_04_0047.txt",
-      "size": 150500,
-      "lines": 518
+      "size": 150315,
+      "lines": 320
     },
     {
       "name": "design_manifest_04_0048.txt",
-      "size": 150334,
-      "lines": 538
+      "size": 150213,
+      "lines": 331
     },
     {
       "name": "design_manifest_04_0049.txt",
-      "size": 150161,
-      "lines": 414
+      "size": 149834,
+      "lines": 360
     },
     {
       "name": "design_manifest_04_0050.txt",
-      "size": 150386,
-      "lines": 457
+      "size": 150056,
+      "lines": 282
     },
     {
       "name": "design_manifest_05_0051.txt",
-      "size": 150428,
-      "lines": 448
+      "size": 150249,
+      "lines": 279
     },
     {
       "name": "design_manifest_05_0052.txt",
-      "size": 150131,
-      "lines": 450
+      "size": 150231,
+      "lines": 310
     },
     {
       "name": "design_manifest_05_0053.txt",
-      "size": 150166,
-      "lines": 398
+      "size": 150152,
+      "lines": 431
     },
     {
       "name": "design_manifest_05_0054.txt",
-      "size": 150117,
-      "lines": 374
+      "size": 150624,
+      "lines": 637
     },
     {
       "name": "design_manifest_05_0055.txt",
-      "size": 150331,
-      "lines": 481
+      "size": 150552,
+      "lines": 608
     },
     {
       "name": "design_manifest_05_0056.txt",
-      "size": 150327,
-      "lines": 479
+      "size": 150794,
+      "lines": 819
     },
     {
       "name": "design_manifest_05_0057.txt",
-      "size": 150092,
-      "lines": 400
+      "size": 150603,
+      "lines": 733
     },
     {
       "name": "design_manifest_05_0058.txt",
-      "size": 150337,
-      "lines": 341
+      "size": 149867,
+      "lines": 372
     },
     {
       "name": "design_manifest_05_0059.txt",
-      "size": 150286,
-      "lines": 362
+      "size": 150063,
+      "lines": 245
     },
     {
       "name": "design_manifest_05_0060.txt",
-      "size": 150211,
-      "lines": 354
+      "size": 150412,
+      "lines": 497
     },
     {
       "name": "design_manifest_06_0061.txt",
-      "size": 150086,
-      "lines": 374
+      "size": 150398,
+      "lines": 558
     },
     {
       "name": "design_manifest_06_0062.txt",
-      "size": 150203,
-      "lines": 383
+      "size": 150376,
+      "lines": 586
     },
     {
       "name": "design_manifest_06_0063.txt",
-      "size": 150043,
-      "lines": 390
+      "size": 150280,
+      "lines": 514
     },
     {
       "name": "design_manifest_06_0064.txt",
-      "size": 150276,
-      "lines": 330
+      "size": 150335,
+      "lines": 546
     },
     {
       "name": "design_manifest_06_0065.txt",
-      "size": 150330,
-      "lines": 341
+      "size": 150508,
+      "lines": 531
     },
     {
       "name": "design_manifest_06_0066.txt",
-      "size": 150251,
-      "lines": 430
+      "size": 149835,
+      "lines": 500
     },
     {
       "name": "design_manifest_06_0067.txt",
-      "size": 150452,
-      "lines": 491
+      "size": 150388,
+      "lines": 567
     },
     {
       "name": "design_manifest_06_0068.txt",
-      "size": 150283,
-      "lines": 522
+      "size": 150458,
+      "lines": 532
     },
     {
       "name": "design_manifest_06_0069.txt",
-      "size": 150364,
-      "lines": 577
+      "size": 150393,
+      "lines": 519
     },
     {
       "name": "design_manifest_06_0070.txt",
-      "size": 150441,
-      "lines": 584
+      "size": 150470,
+      "lines": 525
     },
     {
       "name": "design_manifest_07_0071.txt",
-      "size": 150812,
-      "lines": 883
+      "size": 150483,
+      "lines": 492
     },
     {
       "name": "design_manifest_07_0072.txt",
-      "size": 149774,
-      "lines": 642
+      "size": 150240,
+      "lines": 426
     },
     {
       "name": "design_manifest_07_0073.txt",
-      "size": 149863,
-      "lines": 263
+      "size": 150105,
+      "lines": 447
     },
     {
       "name": "design_manifest_07_0074.txt",
-      "size": 57652,
-      "lines": 175
+      "size": 150284,
+      "lines": 449
+    },
+    {
+      "name": "design_manifest_07_0075.txt",
+      "size": 150362,
+      "lines": 435
+    },
+    {
+      "name": "design_manifest_07_0076.txt",
+      "size": 150380,
+      "lines": 394
+    },
+    {
+      "name": "design_manifest_07_0077.txt",
+      "size": 150221,
+      "lines": 415
+    },
+    {
+      "name": "design_manifest_07_0078.txt",
+      "size": 150394,
+      "lines": 483
+    },
+    {
+      "name": "design_manifest_07_0079.txt",
+      "size": 150174,
+      "lines": 464
+    },
+    {
+      "name": "design_manifest_07_0080.txt",
+      "size": 149853,
+      "lines": 346
+    },
+    {
+      "name": "design_manifest_08_0081.txt",
+      "size": 149954,
+      "lines": 352
+    },
+    {
+      "name": "design_manifest_08_0082.txt",
+      "size": 150166,
+      "lines": 356
+    },
+    {
+      "name": "design_manifest_08_0083.txt",
+      "size": 150260,
+      "lines": 368
+    },
+    {
+      "name": "design_manifest_08_0084.txt",
+      "size": 150208,
+      "lines": 376
+    },
+    {
+      "name": "design_manifest_08_0085.txt",
+      "size": 150164,
+      "lines": 424
+    },
+    {
+      "name": "design_manifest_08_0086.txt",
+      "size": 150245,
+      "lines": 331
+    },
+    {
+      "name": "design_manifest_08_0087.txt",
+      "size": 150032,
+      "lines": 319
+    },
+    {
+      "name": "design_manifest_08_0088.txt",
+      "size": 150187,
+      "lines": 362
+    },
+    {
+      "name": "design_manifest_08_0089.txt",
+      "size": 150351,
+      "lines": 473
+    },
+    {
+      "name": "design_manifest_08_0090.txt",
+      "size": 149907,
+      "lines": 499
+    },
+    {
+      "name": "design_manifest_09_0091.txt",
+      "size": 150483,
+      "lines": 508
+    },
+    {
+      "name": "design_manifest_09_0092.txt",
+      "size": 150298,
+      "lines": 352
+    },
+    {
+      "name": "design_manifest_09_0093.txt",
+      "size": 150133,
+      "lines": 391
+    },
+    {
+      "name": "design_manifest_09_0094.txt",
+      "size": 150158,
+      "lines": 383
+    },
+    {
+      "name": "design_manifest_09_0095.txt",
+      "size": 150110,
+      "lines": 388
+    },
+    {
+      "name": "design_manifest_09_0096.txt",
+      "size": 150180,
+      "lines": 379
+    },
+    {
+      "name": "design_manifest_09_0097.txt",
+      "size": 150122,
+      "lines": 347
+    },
+    {
+      "name": "design_manifest_09_0098.txt",
+      "size": 149978,
+      "lines": 308
+    },
+    {
+      "name": "design_manifest_09_0099.txt",
+      "size": 150256,
+      "lines": 416
+    },
+    {
+      "name": "design_manifest_09_0100.txt",
+      "size": 150129,
+      "lines": 412
+    },
+    {
+      "name": "design_manifest_10_0101.txt",
+      "size": 150204,
+      "lines": 386
+    },
+    {
+      "name": "design_manifest_10_0102.txt",
+      "size": 149955,
+      "lines": 295
+    },
+    {
+      "name": "design_manifest_10_0103.txt",
+      "size": 149933,
+      "lines": 313
+    },
+    {
+      "name": "design_manifest_10_0104.txt",
+      "size": 150274,
+      "lines": 317
+    },
+    {
+      "name": "design_manifest_10_0105.txt",
+      "size": 149860,
+      "lines": 301
+    },
+    {
+      "name": "design_manifest_10_0106.txt",
+      "size": 150033,
+      "lines": 316
+    },
+    {
+      "name": "design_manifest_10_0107.txt",
+      "size": 150153,
+      "lines": 334
+    },
+    {
+      "name": "design_manifest_10_0108.txt",
+      "size": 149854,
+      "lines": 364
+    },
+    {
+      "name": "design_manifest_10_0109.txt",
+      "size": 150045,
+      "lines": 282
+    },
+    {
+      "name": "design_manifest_10_0110.txt",
+      "size": 150017,
+      "lines": 277
+    },
+    {
+      "name": "design_manifest_11_0111.txt",
+      "size": 150255,
+      "lines": 311
+    },
+    {
+      "name": "design_manifest_11_0112.txt",
+      "size": 150404,
+      "lines": 417
+    },
+    {
+      "name": "design_manifest_11_0113.txt",
+      "size": 150578,
+      "lines": 625
+    },
+    {
+      "name": "design_manifest_11_0114.txt",
+      "size": 150506,
+      "lines": 606
+    },
+    {
+      "name": "design_manifest_11_0115.txt",
+      "size": 150824,
+      "lines": 917
+    },
+    {
+      "name": "design_manifest_11_0116.txt",
+      "size": 150643,
+      "lines": 773
+    },
+    {
+      "name": "design_manifest_11_0117.txt",
+      "size": 150107,
+      "lines": 325
+    },
+    {
+      "name": "design_manifest_11_0118.txt",
+      "size": 150237,
+      "lines": 251
+    },
+    {
+      "name": "design_manifest_11_0119.txt",
+      "size": 49347,
+      "lines": 162
     }
   ],
   "source": "design_manifest.github.jsonl"
