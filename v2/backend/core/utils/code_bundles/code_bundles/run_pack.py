@@ -68,6 +68,7 @@ def _load_analysis_emitter(cfg):
             return getattr(mod, "emit_all", None)
     print("[packager] analysis_emitter import failed → emitter unavailable", flush=True)
     return None
+
 from v2.backend.core.utils.code_bundles.code_bundles.python_index import index_python_file
 from v2.backend.core.utils.code_bundles.code_bundles.quality import quality_for_python
 from v2.backend.core.utils.code_bundles.code_bundles.graphs import coalesce_edges
@@ -1093,6 +1094,10 @@ def augment_manifest(
 # Main
 # ──────────────────────────────────────────────────────────────────────────────
 def main() -> int:
+    # Disable legacy per-file sums for the whole run (emitter writes canonical sums)
+    import os
+    os.environ.setdefault("PACKAGER_DISABLE_LEGACY_SUMS", "1")
+
     pack = get_packager()
     repo_root = get_repo_root()
 
@@ -1246,6 +1251,15 @@ def main() -> int:
 
     if do_local and Path(cfg.out_bundle).exists():
         write_sha256sums_for_file(target_file=Path(cfg.out_bundle), out_sums_path=Path(cfg.out_sums))
+
+    # ---- emit analysis sidecars & canonical checksums before publish ----
+    _emit_analysis_sidecars = _load_analysis_emitter(cfg)
+    print(
+        f"[packager] publish_analysis (emitter gate): {getattr(cfg, 'publish_analysis', None)}  emitter={'set' if _emit_analysis_sidecars else 'none'}",
+        flush=True)
+    if getattr(cfg, "publish_analysis", True) and _emit_analysis_sidecars:
+        print("[packager] Emitting analysis sidecars...", flush=True)
+        _emit_analysis_sidecars(repo_root=Path(cfg.source_root).resolve(), cfg=cfg)
 
     # GitHub publish (includes analysis/** when root-level flag is true)
     if do_github:
