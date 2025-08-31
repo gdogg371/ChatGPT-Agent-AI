@@ -1,8 +1,7 @@
 from __future__ import annotations
 
-import json
 from collections import Counter
-from typing import Any, Callable, Dict, Iterable, List, Mapping
+from typing import Callable, Dict, List
 
 # Canonical family names we expect to write sidecars for
 _CANON_FAMILIES = {
@@ -22,24 +21,51 @@ _CANON_FAMILIES = {
     "codeowners",
 }
 
-# Additional aliasing safety net (the loader already handles most)
-_ALIASES = {
+# Expanded aliasing to absorb plugin scanner families into canonical keys
+_ALIASES: Dict[str, str] = {
+    # AST dotted/variants
     "ast.call": "ast_calls",
+    "ast.calls": "ast_calls",
+    "call": "ast_calls",
     "ast.symbol": "ast_symbols",
     "ast.symbols": "ast_symbols",
-    "ast.import": "ast_imports",
-    "ast.import_from": "ast_imports",
-    "edge.import": "ast_imports",
-    "entrypoint": "entrypoints",
     "file": "ast_symbols",
     "class": "ast_symbols",
     "function": "ast_symbols",
-    "call": "ast_calls",
+    "ast.import": "ast_imports",
+    "ast.imports": "ast_imports",
     "import": "ast_imports",
     "import_from": "ast_imports",
+    "ast.import_from": "ast_imports",
     "from": "ast_imports",
+    "edge.import": "ast_imports",
+    "ast.docstring": "docs",
+
+    # Scanner → canonical
+    "js_ts": "js",
+    "owners_index": "codeowners",
+    "assets": "asset",
+    "asset.index": "asset",
+    "git_info": "git",
+    "license_scan": "license",
+    "secrets_scan": "secrets",
+    "env_index": "env",
+    "deps_index": "deps",
+    "html_index": "html",
+    "sql.index": "sql",
+    "sql_index": "sql",
+
+    # Docs/quality variants
+    "docs.coverage": "docs",
+    "doc_coverage": "docs",
+    "quality.complexity": "quality",
+
+    # IO/core
     "artifact": "io_core",
     "manifest": "io_core",
+    "manifest.header": "io_core",
+    "manifest.summary": "io_core",
+    "module_index": "io_core",
 }
 
 
@@ -56,61 +82,53 @@ def _generic_counter(items: List[dict], family: str) -> dict:
     return {
         "family": family,
         "stats": {"count": len(items)},
-        "sample": items[:5],  # tiny peek for debugging
+        "sample": items[:5],  # tiny peek only for debug
     }
 
 
 def _ast_symbols_reducer(items: List[dict]) -> dict:
     kinds = Counter([x.get("payload", {}).get("kind", "unknown") for x in items])
-    return {
-        "family": "ast_symbols",
-        "stats": {"count": len(items), "kinds": dict(kinds)},
-    }
+    return {"family": "ast_symbols", "stats": {"count": len(items), "kinds": dict(kinds)}}
 
 
 def _ast_imports_reducer(items: List[dict]) -> dict:
     modules = Counter([x.get("payload", {}).get("module", "unknown") for x in items])
-    top = modules.most_common(10)
-    return {
-        "family": "ast_imports",
-        "stats": {"count": len(items), "top_modules": top},
-    }
+    return {"family": "ast_imports", "stats": {"count": len(items), "top_modules": modules.most_common(10)}}
 
 
 def _ast_calls_reducer(items: List[dict]) -> dict:
     names = Counter([x.get("payload", {}).get("name", "unknown") for x in items])
-    return {
-        "family": "ast_calls",
-        "stats": {"count": len(items), "top_calls": names.most_common(15)},
-    }
+    return {"family": "ast_calls", "stats": {"count": len(items), "top_calls": names.most_common(15)}}
 
 
 def _deps_reducer(items: List[dict]) -> dict:
     pkgs = Counter([x.get("payload", {}).get("name", "unknown") for x in items])
-    return {
-        "family": "deps",
-        "stats": {"count": len(items), "packages": pkgs.most_common(50)},
-    }
+    return {"family": "deps", "stats": {"count": len(items), "packages": pkgs.most_common(50)}}
 
 
 def _entrypoints_reducer(items: List[dict]) -> dict:
     kinds = Counter([x.get("payload", {}).get("kind", "unknown") for x in items])
-    return {
-        "family": "entrypoints",
-        "stats": {"count": len(items), "kinds": dict(kinds)},
-    }
+    return {"family": "entrypoints", "stats": {"count": len(items), "kinds": dict(kinds)}}
 
 
 def _docs_reducer(items: List[dict]) -> dict:
-    coverage = [x.get("payload", {}).get("coverage", 0.0) for x in items if isinstance(x.get("payload", {}).get("coverage", None), (int, float))]
-    cov = sum(coverage) / max(1, len(coverage)) if coverage else 0.0
-    return {"family": "docs", "stats": {"count": len(items), "avg_coverage": round(cov, 3)}}
+    vals = [
+        x.get("payload", {}).get("coverage", 0.0)
+        for x in items
+        if isinstance(x.get("payload", {}).get("coverage", None), (int, float))
+    ]
+    avg = sum(vals) / max(1, len(vals)) if vals else 0.0
+    return {"family": "docs", "stats": {"count": len(items), "avg_coverage": round(avg, 3)}}
 
 
 def _quality_reducer(items: List[dict]) -> dict:
-    complexity = [x.get("payload", {}).get("complexity", 0) for x in items if isinstance(x.get("payload", {}).get("complexity", None), (int, float))]
-    avg = sum(complexity) / max(1, len(complexity)) if complexity else 0.0
-    return {"family": "quality", "stats": {"count": len(items), "avg_complexity": round(avg, 3)}}
+    vals = [
+        x.get("payload", {}).get("complexity", 0)
+        for x in items
+        if isinstance(x.get("payload", {}).get("complexity", None), (int, float))
+    ]
+    avg = sum(vals) / max(1, len(vals)) if vals else 0.0
+    return {"family": "quality", "stats": {"count": len(vals), "avg_complexity": round(avg, 3)}}
 
 
 def _sql_reducer(items: List[dict]) -> dict:
@@ -128,7 +146,7 @@ _REDUCERS: Dict[str, Callable[[List[dict]], dict]] = {
     "docs": _docs_reducer,
     "quality": _quality_reducer,
     "sql": _sql_reducer,
-    # Fallbacks (generic)
+    # Fallbacks (generic summaries)
     "asset": lambda x: _generic_counter(x, "asset"),
     "env": lambda x: _generic_counter(x, "env"),
     "git": lambda x: _generic_counter(x, "git"),
@@ -149,3 +167,4 @@ def get_reducer(family: str):
 
 def zero_summary_for(family: str) -> dict:
     return {"family": family, "stats": {"count": 0}, "items": []}
+
