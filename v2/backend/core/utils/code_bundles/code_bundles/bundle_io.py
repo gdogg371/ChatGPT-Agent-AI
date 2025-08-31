@@ -13,15 +13,16 @@ write_sha256sums_for_file
 
 from __future__ import annotations
 
+from pathlib import Path
+from typing import Iterable, Dict, Any, List, Tuple, Optional
 import hashlib
 import json
-from pathlib import Path
-from typing import Any, Iterable, List, Optional
+import os
+import re
 
-
-# ──────────────────────────────────────────────────────────────────────────────
+# --------------------------------------------------------------------------------------
 # Manifest appender
-# ──────────────────────────────────────────────────────────────────────────────
+# --------------------------------------------------------------------------------------
 
 class ManifestAppender:
     """
@@ -56,48 +57,61 @@ class ManifestAppender:
         """
         lines = self._read_lines()
 
-        # Find first non-empty, parse if possible
+        # Find the first non-empty line
         first_idx = None
-        first_obj: Optional[dict] = None
         for i, ln in enumerate(lines):
-            if ln.strip() == "":
-                continue
-            first_idx = i
+            if ln.strip():
+                first_idx = i
+                break
+
+        def _is_header(s: str) -> bool:
             try:
-                obj = json.loads(ln)
-                if isinstance(obj, dict):
-                    first_obj = obj
+                obj = json.loads(s)
+                return isinstance(obj, dict) and obj.get("kind") == "manifest.header"
             except Exception:
-                first_obj = None
-            break
+                return False
 
-        if first_obj and first_obj.get("kind") == "manifest.header":
-            # Already has a header
-            return
-
-        # Insert header at top (before any existing content)
-        header_line = json.dumps(header_record, ensure_ascii=False, separators=(",", ":"), sort_keys=True)
+        # If no content, just write the header as first line
         if first_idx is None:
-            # Empty file
-            self._write_lines([header_line])
+            self._write_lines([json.dumps(header_record, ensure_ascii=False, sort_keys=True)])
             return
 
-        new_lines = lines[:]
-        new_lines.insert(0, header_line)
+        # If the first non-empty line is already a header, keep as-is
+        if _is_header(lines[first_idx]):
+            return
+
+        # Otherwise, insert header before the first non-empty line
+        new_lines = []
+        # Keep any leading empty lines to preserve formatting
+        new_lines.extend(lines[:first_idx])
+        new_lines.append(json.dumps(header_record, ensure_ascii=False, sort_keys=True))
+        new_lines.extend(lines[first_idx:])
         self._write_lines(new_lines)
 
     def append_record(self, record: dict) -> None:
         """
-        Append a JSON record as a single JSONL line.
+        Append a single JSON object as one line to the manifest.
         """
-        line = json.dumps(record, ensure_ascii=False, separators=(",", ":"), sort_keys=True)
-        with self.manifest_path.open("a", encoding="utf-8") as f:
-            f.write(line + "\n")
+        line = json.dumps(record, ensure_ascii=False, sort_keys=True) + "\n"
+        with self.manifest_path.open("ab") as f:
+            f.write(line.encode("utf-8"))
+
+    def append_many(self, records: Iterable[Dict[str, Any]]) -> int:
+        """
+        Append many JSON objects; returns count appended.
+        """
+        n = 0
+        with self.manifest_path.open("ab") as f:
+            for rec in records:
+                line = json.dumps(rec, ensure_ascii=False, sort_keys=True) + "\n"
+                f.write(line.encode("utf-8"))
+                n += 1
+        return n
 
 
-# ──────────────────────────────────────────────────────────────────────────────
-# Artifact emitters
-# ──────────────────────────────────────────────────────────────────────────────
+# --------------------------------------------------------------------------------------
+# Artifact writers/helpers used by run_pack.py
+# --------------------------------------------------------------------------------------
 
 def _artifact_record(kind: str, path: Path, extra: Optional[dict] = None) -> dict:
     rec = {
@@ -116,30 +130,41 @@ def emit_standard_artifacts(
     appender: ManifestAppender,
     out_bundle: Path,
     out_sums: Path,
-    out_runspec: Optional[Path],
-    out_guide: Optional[Path],
+    out_runspec: Optional[Path] = None,
+    out_guide: Optional[Path] = None,
 ) -> int:
     """
-    Emit artifact records for the standard pack outputs that exist:
+    Append artifact records for the standard outputs that may have been written earlier:
       - design_manifest.jsonl
       - design_manifest.SHA256SUMS
       - superbundle.run.json (optional)
       - assistant_handoff.v1.json (optional)
-    Returns the number of records emitted.
+
+    Returns:
+        int: number of artifact records appended.
     """
     count = 0
-    if Path(out_bundle).exists():
-        appender.append_record(_artifact_record("manifest.jsonl", out_bundle))
+
+    if out_bundle and Path(out_bundle).exists():
+        appender.append_record(_artifact_record("manifest.bundle", Path(out_bundle)))
         count += 1
-    if Path(out_sums).exists():
-        appender.append_record(_artifact_record("manifest.sha256sums", out_sums))
+
+    if out_sums and Path(out_sums).exists():
+        appender.append_record(_artifact_record("manifest.sums", Path(out_sums)))
         count += 1
-    if out_runspec and Path(out_runspec).exists():
-        appender.append_record(_artifact_record("superbundle.run.json", out_runspec))
-        count += 1
-    if out_guide and Path(out_guide).exists():
-        appender.append_record(_artifact_record("assistant_handoff.v1.json", out_guide))
-        count += 1
+
+    if out_runspec:
+        p = Path(out_runspec)
+        if p.exists():
+            appender.append_record(_artifact_record("run.spec", p))
+            count += 1
+
+    if out_guide:
+        p = Path(out_guide)
+        if p.exists():
+            appender.append_record(_artifact_record("guide.handoff", p))
+            count += 1
+
     return count
 
 
@@ -160,9 +185,10 @@ def emit_transport_parts(
     if not parts_dir.exists():
         return 0
 
-    # Parts (e.g., design_manifest_XX.txt)
-    for p in sorted(parts_dir.glob(f"{part_stem}*{part_ext}")):
-        if p.is_file():
+    # Parts (e.g., design_manifest_XX_YYYY.txt)
+    part_pat = re.compile(rf"^{re.escape(part_stem)}_\d+_\d+{re.escape(part_ext)}$")
+    for p in sorted(parts_dir.iterdir()):
+        if p.is_file() and part_pat.match(p.name):
             appender.append_record(_artifact_record("manifest.part", p))
             count += 1
 
@@ -174,10 +200,6 @@ def emit_transport_parts(
 
     return count
 
-
-# ──────────────────────────────────────────────────────────────────────────────
-# Path-rewrite & checksums
-# ──────────────────────────────────────────────────────────────────────────────
 
 def rewrite_manifest_paths(
     *,
@@ -194,65 +216,63 @@ def rewrite_manifest_paths(
     """
     emitted_prefix = (emitted_prefix or "").strip("/")
 
-    def to_local(p: str) -> str:
-        p = (p or "").lstrip("/")
-        if emitted_prefix and not p.startswith(emitted_prefix + "/"):
-            return f"{emitted_prefix}/{p}"
-        return p
+    def _map(rel: str) -> str:
+        rel = rel.strip().lstrip("/")
+        if to_mode == "github":
+            # GitHub mode wants repo-relative paths (no emitted_prefix)
+            return rel
+        # Local mode: prefix with emitted_prefix
+        return f"{emitted_prefix}/{rel}" if emitted_prefix else rel
 
-    def to_github(p: str) -> str:
-        p = (p or "").lstrip("/")
-        if emitted_prefix and p.startswith(emitted_prefix + "/"):
-            return p[len(emitted_prefix) + 1:]
-        return p
+    manifest_in = Path(manifest_in)
+    manifest_out = Path(manifest_out)
+    manifest_out.parent.mkdir(parents=True, exist_ok=True)
 
-    mapper = to_github if to_mode == "github" else to_local
+    with manifest_in.open("r", encoding="utf-8", errors="replace") as fin, \
+         manifest_out.open("w", encoding="utf-8") as fout:
+        for line in fin:
+            s = line.strip()
+            if not s:
+                fout.write("\n")
+                continue
+            try:
+                obj = json.loads(s)
+            except Exception:
+                fout.write(line)
+                continue
 
-    src_path = Path(manifest_in)
-    dst_path = Path(manifest_out)
-    dst_path.parent.mkdir(parents=True, exist_ok=True)
-
-    out_lines: List[str] = []
-    text = src_path.read_text(encoding="utf-8", errors="replace") if src_path.exists() else ""
-    for raw in text.splitlines():
-        line = raw.rstrip("\n")
-        try:
-            obj = json.loads(line)
-        except Exception:
-            out_lines.append(line)
-            continue
-
-        kind = obj.get("kind")
-        if "path" in obj and isinstance(obj["path"], str):
-            obj["path"] = mapper(obj["path"])
-            line = json.dumps(obj, ensure_ascii=False, separators=(",", ":"), sort_keys=True)
-        if kind == "graph.edge" and isinstance(obj.get("src_path"), str):
-            obj["src_path"] = mapper(obj["src_path"])
-            line = json.dumps(obj, ensure_ascii=False, separators=(",", ":"), sort_keys=True)
-        out_lines.append(line)
-
-    dst_path.write_text("\n".join(out_lines) + "\n", encoding="utf-8")
+            if isinstance(obj, dict):
+                # Common path fields
+                if "path" in obj and isinstance(obj["path"], str):
+                    obj["path"] = _map(obj["path"])
+                if "src_path" in obj and isinstance(obj["src_path"], str):
+                    obj["src_path"] = _map(obj["src_path"])
+                fout.write(json.dumps(obj, ensure_ascii=False, sort_keys=True) + "\n")
+            else:
+                fout.write(line)
 
 
-def write_sha256sums_for_file(*, target_file: Path, out_sums_path: Path) -> None:
+# --------------------------------------------------------------------------------------
+# Legacy single-file checksum (kept for backwards-compat)
+# --------------------------------------------------------------------------------------
+
+def write_sha256sums_for_file(target_file: Path, out_sums_path: Path) -> None:
     """
-    Compute sha256 of target_file and write a single-line SHA256SUMS file:
-       <hex>  <basename>
+    Compute sha256 of `target_file` (raw bytes) and write a single-line SHA256SUMS file:
+
+        <sha256(hex)>␠␠<target_file.name>
+
+    Behavior:
+        - When environment variable PACKAGER_DISABLE_LEGACY_SUMS == "1",
+          this function is a NO-OP (the unified emitter produces the canonical sums).
     """
-    target_file = Path(target_file)
-    out_sums_path = Path(out_sums_path)
-    if not target_file.exists():
-        # Ensure sums file is absent if the target is missing.
-        if out_sums_path.exists():
-            out_sums_path.unlink(missing_ok=True)  # type: ignore[arg-type]
+    if os.getenv("PACKAGER_DISABLE_LEGACY_SUMS") == "1":
         return
 
-    h = hashlib.sha256()
-    with target_file.open("rb") as f:
-        for chunk in iter(lambda: f.read(1024 * 1024), b""):
-            h.update(chunk)
-    digest = h.hexdigest()
-    line = f"{digest}  {target_file.name}\n"
+    data = Path(target_file).read_bytes()
+    digest = hashlib.sha256(data).hexdigest()
+    line = f"{digest}  {Path(target_file).name}\n"
+    out_sums_path = Path(out_sums_path)
     out_sums_path.parent.mkdir(parents=True, exist_ok=True)
     out_sums_path.write_text(line, encoding="utf-8")
 
@@ -264,5 +284,6 @@ __all__ = [
     "rewrite_manifest_paths",
     "write_sha256sums_for_file",
 ]
+
 
 
