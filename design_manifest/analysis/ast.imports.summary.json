@@ -1,11 +1,67 @@
 {
   "family": "ast_imports",
   "stats": {
-    "count": 4996,
+    "count": 8106,
     "top_modules": [
       [
         "unknown",
-        4996
+        3126
+      ],
+      [
+        "v2.backend.core.utils.code_bundles.code_bundles.run_pack",
+        114
+      ],
+      [
+        "v2.backend.core.utils.standalone.ChatGPT_Bot_STAGED.code_bundles.run_pack",
+        106
+      ],
+      [
+        "v2.backend.core.utils.code_bundles.code_bundles.orchestrate",
+        90
+      ],
+      [
+        "v2.backend.core.utils.code_bundles.code_bundles_OLD.orchestrate",
+        90
+      ],
+      [
+        "v2.backend.core.utils.standalone.ChatGPT_Bot_STAGED.code_bundles.orchestrate",
+        90
+      ],
+      [
+        "v2.backend.core.utils.standalone.ChatGPT_Bot_STAGED.code_bundles_OLD.orchestrate",
+        90
+      ],
+      [
+        "v2.backend.core.utils.code_bundles.code_bundles_OLD.src.packager.core.orchestrator",
+        70
+      ],
+      [
+        "v2.backend.core.utils.standalone.ChatGPT_Bot_STAGED.code_bundles_OLD.src.packager.core.orchestrator",
+        70
+      ],
+      [
+        "v2.backend.core.utils.standalone.ChatGPT_Bot_STAGED.code_bundles.src.packager.core.orchestrator",
+        62
+      ],
+      [
+        "v2.backend.core.patch_engine.providers",
+        52
+      ],
+      [
+        "v2.backend.core.patch_engine.ops_compile",
+        44
+      ],
+      [
+        "v2.backend.core.spine.bootstrap",
+        44
+      ],
+      [
+        "v2.models.agent_insights",
+        44
+      ],
+      [
+        "v2.models.introspection_index",
+        40
       ]
     ]
   }
