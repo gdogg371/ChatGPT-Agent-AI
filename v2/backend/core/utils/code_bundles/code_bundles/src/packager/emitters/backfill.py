@@ -80,4 +80,3 @@ def emit_analysis_sidecars(
             index["families"][fam] = {"count": fam_count, "mode": mode, "path": None}
 
     return index
-
