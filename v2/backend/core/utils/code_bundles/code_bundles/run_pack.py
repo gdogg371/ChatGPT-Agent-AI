@@ -28,18 +28,6 @@ SRC_DIR = ROOT / "src"
 if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
 
-# ---- analysis emitter wiring ----
-_emit_analysis_sidecars = None
-try:
-    from src.packager.analysis_emitter import emit_all as _emit_analysis_sidecars
-except Exception as e:
-    try:
-        # Fallback absolute import if sys.path differs
-        from v2.backend.core.utils.code_bundles.code_bundles.src.packager.analysis_emitter import emit_all as _emit_analysis_sidecars
-    except Exception as e2:
-        print(f"[packager] analysis_emitter import failed: {e!r} / {e2!r}", flush=True)
-        _emit_analysis_sidecars = None
-
 # Embedded packager
 from packager.core.orchestrator import Packager
 import packager.core.orchestrator as orch_mod  # provenance
@@ -53,6 +41,33 @@ from v2.backend.core.utils.code_bundles.code_bundles.bundle_io import (
     rewrite_manifest_paths,
     write_sha256sums_for_file,
 )
+
+# ---- analysis emitter wiring (robust loader) ----
+import importlib.util
+from importlib.machinery import SourceFileLoader
+
+def _load_analysis_emitter(cfg):
+    try:
+        from src.packager.analysis_emitter import emit_all as _emit
+        return _emit
+    except Exception:
+        pass
+    here = Path(__file__).parent
+    cand = here / "src" / "packager" / "analysis_emitter.py"
+    if cand.exists():
+        spec = importlib.util.spec_from_loader("analysis_emitter", SourceFileLoader("analysis_emitter", str(cand)))
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)  # type: ignore
+        return getattr(mod, "emit_all", None)
+    if hasattr(cfg, "source_root"):
+        cand2 = Path(cfg.source_root) / "v2" / "backend" / "core" / "utils" / "code_bundles" / "code_bundles" / "src" / "packager" / "analysis_emitter.py"
+        if cand2.exists():
+            spec = importlib.util.spec_from_loader("analysis_emitter", SourceFileLoader("analysis_emitter", str(cand2)))
+            mod = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(mod)  # type: ignore
+            return getattr(mod, "emit_all", None)
+    print("[packager] analysis_emitter import failed → emitter unavailable", flush=True)
+    return None
 from v2.backend.core.utils.code_bundles.code_bundles.python_index import index_python_file
 from v2.backend.core.utils.code_bundles.code_bundles.quality import quality_for_python
 from v2.backend.core.utils.code_bundles.code_bundles.graphs import coalesce_edges
@@ -248,14 +263,17 @@ def _gh_walk_files(owner: str, repo: str, path: str, branch: str, token: str):
 
 def github_clean_remote_repo(*, owner: str, repo: str, branch: str, base_path: str, token: str) -> None:
     root = (base_path or "").strip("/")
+
     print(
         f"[packager] Publish(GitHub): cleaning remote repo "
         f"(owner={owner} repo={repo} branch={branch} base='{root or '/'}')"
     )
+
     files = list(_gh_walk_files(owner, repo, root, branch, token))
     if not files:
         print("[packager] Publish(GitHub): remote clean - nothing to delete")
         return
+
     deleted = 0
     for i, f in enumerate(sorted(files, key=lambda x: x["path"])):
         try:
@@ -266,6 +284,7 @@ def github_clean_remote_repo(*, owner: str, repo: str, branch: str, base_path: s
         except Exception as e:
             print(f"[packager] Publish(GitHub): failed delete '{f['path']}': {type(e).__name__}: {e}")
     print(f"[packager] Publish(GitHub): removed {deleted}/{len(files)} remote files")
+
 
 
 def _print_full_raw_links(owner: str, repo: str, branch: str, token: str) -> None:
@@ -556,9 +575,10 @@ def _maybe_chunk_manifest_and_update(
 
     size = int(manifest_path.stat().st_size)
     if not _should_chunk(mode, size, split_bytes):
-        write_sha256sums_for_file(target_file=manifest_path, out_sums_path=Path(cfg.out_sums))
-        report["decision"] = "no-chunk"
-        return report
+        if Path(manifest_path).exists():
+            write_sha256sums_for_file(target_file=manifest_path, out_sums_path=Path(cfg.out_sums))
+            report["decision"] = "no-chunk"
+            return report
 
     parts, index = _write_parts_from_jsonl(
         src_manifest=manifest_path,
@@ -587,9 +607,11 @@ def _maybe_chunk_manifest_and_update(
         except TypeError:
             if manifest_path.exists():
                 manifest_path.unlink()
-        write_sha256sums_for_file(target_file=manifest_path, out_sums_path=Path(cfg.out_sums))
+        if Path(manifest_path).exists():
+            write_sha256sums_for_file(target_file=manifest_path, out_sums_path=Path(cfg.out_sums))
     else:
-        write_sha256sums_for_file(target_file=manifest_path, out_sums_path=Path(cfg.out_sums))
+        if Path(manifest_path).exists():
+            write_sha256sums_for_file(target_file=manifest_path, out_sums_path=Path(cfg.out_sums))
 
     report.update({"decision": "chunked", "parts": len(parts)})
     return report
