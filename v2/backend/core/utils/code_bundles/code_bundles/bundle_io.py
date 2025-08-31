@@ -1,15 +1,4 @@
-# File: v2/backend/core/utils/code_bundles/code_bundles/bundle_io.py
-"""
-Utilities for reading/writing the design manifest and related artifacts.
-
-Exports
--------
-ManifestAppender
-emit_standard_artifacts
-emit_transport_parts
-rewrite_manifest_paths
-write_sha256sums_for_file
-"""
+# v2/backend/core/utils/code_bundles/code_bundles/bundle_io.py
 
 from __future__ import annotations
 
@@ -265,13 +254,18 @@ def write_sha256sums_for_file(target_file: Path, out_sums_path: Path) -> None:
     Behavior:
         - When environment variable PACKAGER_DISABLE_LEGACY_SUMS == "1",
           this function is a NO-OP (the unified emitter produces the canonical sums).
+        - If the target file does not exist (e.g., preserve_monolith=false), NO-OP.
     """
     if os.getenv("PACKAGER_DISABLE_LEGACY_SUMS") == "1":
         return
 
-    data = Path(target_file).read_bytes()
+    p = Path(target_file)
+    if not p.exists():
+        return  # target missing is a valid scenario with chunk-only transport
+
+    data = p.read_bytes()
     digest = hashlib.sha256(data).hexdigest()
-    line = f"{digest}  {Path(target_file).name}\n"
+    line = f"{digest}  {p.name}\n"
     out_sums_path = Path(out_sums_path)
     out_sums_path.parent.mkdir(parents=True, exist_ok=True)
     out_sums_path.write_text(line, encoding="utf-8")
@@ -284,6 +278,7 @@ __all__ = [
     "rewrite_manifest_paths",
     "write_sha256sums_for_file",
 ]
+
 
 
 
