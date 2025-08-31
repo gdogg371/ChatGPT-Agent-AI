@@ -1,42 +1,57 @@
 {
   "record_type": "parts_index",
-  "total_parts": 7,
+  "total_parts": 10,
   "split_bytes": 150000,
   "parts": [
     {
       "name": "design_manifest_00_0001.txt",
-      "size": 150548,
-      "lines": 552
+      "size": 150269,
+      "lines": 444
     },
     {
       "name": "design_manifest_00_0002.txt",
-      "size": 150158,
-      "lines": 590
+      "size": 150345,
+      "lines": 392
     },
     {
       "name": "design_manifest_00_0003.txt",
-      "size": 149999,
-      "lines": 263
+      "size": 150629,
+      "lines": 799
     },
     {
       "name": "design_manifest_00_0004.txt",
-      "size": 150318,
-      "lines": 391
+      "size": 149658,
+      "lines": 454
     },
     {
       "name": "design_manifest_00_0005.txt",
-      "size": 150550,
-      "lines": 592
+      "size": 150146,
+      "lines": 300
     },
     {
       "name": "design_manifest_00_0006.txt",
-      "size": 150141,
-      "lines": 264
+      "size": 147243,
+      "lines": 216
     },
     {
       "name": "design_manifest_00_0007.txt",
-      "size": 50007,
-      "lines": 163
+      "size": 150472,
+      "lines": 600
+    },
+    {
+      "name": "design_manifest_00_0008.txt",
+      "size": 150628,
+      "lines": 820
+    },
+    {
+      "name": "design_manifest_00_0009.txt",
+      "size": 149981,
+      "lines": 283
+    },
+    {
+      "name": "design_manifest_00_0010.txt",
+      "size": 106826,
+      "lines": 284
     }
   ],
   "source": "design_manifest.github.jsonl"
