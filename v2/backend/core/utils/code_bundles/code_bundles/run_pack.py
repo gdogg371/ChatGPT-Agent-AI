@@ -1045,9 +1045,12 @@ def augment_manifest(
         "[packager] Augment manifest: "
         f"modules={module_count}, metrics={quality_count}, edges={len(edges_dedup)}, "
         f"artifacts={art_count}, path_mode={path_mode}, "
-        + ("ast={symbols:%d, xrefs:%d, calls:%d, docstrings:%d, symmetrics:%d}, "
-           % (ast_symbols, ast_xrefs, ast_calls, ast_docstrings, ast_symmetrics)
-           if bool(getattr(cfg, 'emit_ast', False)) else "")
+        + (
+            "ast={symbols:%d, xrefs:%d, calls:%d, docstrings:%d, symmetrics:%d}, "
+            % (ast_symbols, ast_xrefs, ast_calls, ast_docstrings, ast_symmetrics)
+            if bool(getattr(cfg, 'emit_ast', False))
+            else ""
+        )
         + "wired={" + ", ".join(f"{k}:{v}" for k, v in wired_counts.items()) + "}"
     )
 
