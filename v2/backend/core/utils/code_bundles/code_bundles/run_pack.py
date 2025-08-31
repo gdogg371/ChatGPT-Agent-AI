@@ -33,13 +33,21 @@ from packager.core.orchestrator import Packager
 import packager.core.orchestrator as orch_mod  # provenance
 from packager.io.publisher import GitHubPublisher, GitHubTarget
 
+# --- run_pack.py (imports section) ---
+import os, sys
+from pathlib import Path
+try:
+    from src.packager.analysis_emitter import emit_all as _emit_analysis_sidecars
+except Exception:
+    _emit_analysis_sidecars = None
+
 # Manifest helpers + enrichment
 from v2.backend.core.utils.code_bundles.code_bundles.bundle_io import (
     ManifestAppender,
     emit_standard_artifacts,
     emit_transport_parts,
     rewrite_manifest_paths,
-    write_sha256sums_for_file,
+    #write_sha256sums_for_file,
 )
 from v2.backend.core.utils.code_bundles.code_bundles.python_index import index_python_file
 from v2.backend.core.utils.code_bundles.code_bundles.quality import quality_for_python
@@ -543,10 +551,10 @@ def _maybe_chunk_manifest_and_update(
         return report
 
     size = int(manifest_path.stat().st_size)
-    if not _should_chunk(mode, size, split_bytes):
-        write_sha256sums_for_file(target_file=manifest_path, out_sums_path=Path(cfg.out_sums))
-        report["decision"] = "no-chunk"
-        return report
+    #if not _should_chunk(mode, size, split_bytes):
+        #write_sha256sums_for_file(target_file=manifest_path, out_sums_path=Path(cfg.out_sums))
+        #report["decision"] = "no-chunk"
+        #return report
 
     parts, index = _write_parts_from_jsonl(
         src_manifest=manifest_path,
@@ -575,9 +583,9 @@ def _maybe_chunk_manifest_and_update(
         except TypeError:
             if manifest_path.exists():
                 manifest_path.unlink()
-        write_sha256sums_for_file(target_file=manifest_path, out_sums_path=Path(cfg.out_sums))
-    else:
-        write_sha256sums_for_file(target_file=manifest_path, out_sums_path=Path(cfg.out_sums))
+        #write_sha256sums_for_file(target_file=manifest_path, out_sums_path=Path(cfg.out_sums))
+    #else:
+        #write_sha256sums_for_file(target_file=manifest_path, out_sums_path=Path(cfg.out_sums))
 
     report.update({"decision": "chunked", "parts": len(parts)})
     return report
@@ -1210,8 +1218,18 @@ def main() -> int:
         finally:
             cfg.out_bundle, cfg.out_sums = local_bundle, local_sums
 
-    if do_local and Path(cfg.out_bundle).exists():
-        write_sha256sums_for_file(target_file=Path(cfg.out_bundle), out_sums_path=Path(cfg.out_sums))
+    #if do_local and Path(cfg.out_bundle).exists():
+        #write_sha256sums_for_file(target_file=Path(cfg.out_bundle), out_sums_path=Path(cfg.out_sums))
+
+    # --- run_pack.py (AFTER parts/manifest are written, BEFORE any GitHub/local publish) ---
+
+    # Optional: prevent legacy helpers from writing their own SHA256SUMS
+    os.environ.setdefault("PACKAGER_DISABLE_LEGACY_SUMS", "1")
+
+    # Emit canonical analysis sidecars + headers + (if enabled) design_manifest.SHA256SUMS
+    if getattr(cfg, "publish_analysis", True) and _emit_analysis_sidecars:
+        print("[packager] Emitting analysis sidecars…", flush=True)
+        _emit_analysis_sidecars(repo_root=Path(cfg.source_root).resolve(), cfg=cfg)
 
     # GitHub publish (includes analysis/** when root-level flag is true)
     if do_github:
