@@ -17,6 +17,7 @@ _FALLBACK_ALIASES: Dict[str, str] = {
     "function": "ast_symbols",
     "ast.import": "ast_imports",
     "ast.imports": "ast_imports",
+    "ast.xref": "ast_imports",   # <-- add xref as imports
     "import": "ast_imports",
     "import_from": "ast_imports",
     "ast.import_from": "ast_imports",
