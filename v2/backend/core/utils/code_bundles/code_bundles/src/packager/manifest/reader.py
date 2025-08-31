@@ -17,7 +17,7 @@ _FALLBACK_ALIASES: Dict[str, str] = {
     "function": "ast_symbols",
     "ast.import": "ast_imports",
     "ast.imports": "ast_imports",
-    "ast.xref": "ast_imports",   # <-- add xref as imports
+    "ast.xref": "ast_imports",
     "import": "ast_imports",
     "import_from": "ast_imports",
     "ast.import_from": "ast_imports",
@@ -30,11 +30,16 @@ _FALLBACK_ALIASES: Dict[str, str] = {
     "owners_index": "codeowners",
     "assets": "asset",
     "asset.index": "asset",
+    "asset.file": "asset",
+    "asset.summary": "asset",
     "git_info": "git",
     "license_scan": "license",
     "secrets_scan": "secrets",
     "env_index": "env",
     "deps_index": "deps",
+    "deps.index": "deps",
+    "deps.index.summary": "deps",     # <-- summary rows → deps
+    "deps_index_summary": "deps",     # <-- underscored variant → deps
     "html_index": "html",
     "sql.index": "sql",
     "sql_index": "sql",
@@ -56,9 +61,7 @@ _FALLBACK_ALIASES: Dict[str, str] = {
 class ManifestReader:
     """
     Streams rows from the chunked design manifest.
-
-    It prefers the alias map supplied by loader (from config/packager.yml: family_aliases),
-    then falls back to the internal _FALLBACK_ALIASES.
+    Prefers the alias map from config (family_aliases), then falls back to _FALLBACK_ALIASES.
     """
 
     def __init__(
@@ -77,8 +80,7 @@ class ManifestReader:
         # Normalize keys in the supplied alias map so both dotted and underscored work
         self.alias_map: Dict[str, str] = {}
         for k, v in (family_aliases or {}).items():
-            k = str(k)
-            v = str(v)
+            k = str(k); v = str(v)
             self.alias_map[k] = v
             self.alias_map[k.replace(".", "_")] = v
 
@@ -92,43 +94,33 @@ class ManifestReader:
                     idx = json.load(f)
                 parts: List[Path] = []
                 if isinstance(idx, dict):
-                    # Common shapes:
-                    # {"parts":[{"path":"design_manifest_0001.txt"}, ...]}
                     if "parts" in idx and isinstance(idx["parts"], list):
                         for p in idx["parts"]:
                             if isinstance(p, str):
                                 parts.append(self.manifest_dir / p)
                             elif isinstance(p, dict):
-                                # accept "path" or "name"
                                 name = p.get("path") or p.get("name")
                                 if name:
                                     parts.append(self.manifest_dir / str(name))
-                    # {"files":[...]} fallback
                     elif "files" in idx and isinstance(idx["files"], list):
                         for p in idx["files"]:
                             parts.append(self.manifest_dir / str(p))
                 if parts:
                     return parts
             except Exception:
-                # fall through to globbing
                 pass
-
-        # Fallback: glob by stem/ext under manifest_dir
         return sorted(self.manifest_dir.glob(f"{self.part_stem}*{self.part_ext}"))
 
     def _canon(self, fam: str) -> str:
-        # try config-provided aliases
         if fam in self.alias_map:
             return self.alias_map[fam]
         u = fam.replace(".", "_")
         if u in self.alias_map:
             return self.alias_map[u]
-        # fallback aliases
         if fam in _FALLBACK_ALIASES:
             return _FALLBACK_ALIASES[fam]
         if u in _FALLBACK_ALIASES:
             return _FALLBACK_ALIASES[u]
-        # last-resort normalize to underscored
         return u
 
     def iter_rows(self) -> Iterator[Dict[str, Any]]:
@@ -145,10 +137,9 @@ class ManifestReader:
                         obj = json.loads(line)
                     except Exception:
                         continue
-                    # Prefer explicit 'family'; fall back to common keys used across scanners
                     fam = (
                         obj.get("family")
-                        or obj.get("record_type")   # e.g., {"record_type":"ast.call"}
+                        or obj.get("record_type")
                         or obj.get("kind")
                         or obj.get("type")
                         or ""
@@ -157,3 +148,5 @@ class ManifestReader:
                         continue
                     obj["family"] = self._canon(str(fam))
                     yield obj
+
+
