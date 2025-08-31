@@ -135,7 +135,7 @@ metadata_emission:
   sbom:         both         # CycloneDX if produced by deps scanner
 
   # IO/Core (manifest-only by default)
-  io_core:      manifest     # artifact/manifest.header rows only
+  io_core:      both     # artifact/manifest.header rows only
 
   # Additional family
   codeowners:   both
