@@ -3,6 +3,7 @@
 
 # Prefix under which emitted files are published (prefix only, no leading repo path).
 emitted_prefix: "output/patch_code_bundles"
+emit_ast: true
 
 # What to include/exclude from the emitted set (globs; loader normalizes separators).
 include_globs:
