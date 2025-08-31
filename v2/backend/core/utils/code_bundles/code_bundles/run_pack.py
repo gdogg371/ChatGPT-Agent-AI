@@ -28,6 +28,18 @@ SRC_DIR = ROOT / "src"
 if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
 
+# ---- analysis emitter wiring ----
+_emit_analysis_sidecars = None
+try:
+    from src.packager.analysis_emitter import emit_all as _emit_analysis_sidecars
+except Exception as e:
+    try:
+        # Fallback absolute import if sys.path differs
+        from v2.backend.core.utils.code_bundles.code_bundles.src.packager.analysis_emitter import emit_all as _emit_analysis_sidecars
+    except Exception as e2:
+        print(f"[packager] analysis_emitter import failed: {e!r} / {e2!r}", flush=True)
+        _emit_analysis_sidecars = None
+
 # Embedded packager
 from packager.core.orchestrator import Packager
 import packager.core.orchestrator as orch_mod  # provenance
