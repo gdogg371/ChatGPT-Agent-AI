@@ -88,6 +88,11 @@ publish:
     # Base path within the repo to publish into (the segment after refs/heads/<branch>/)
     base_path: ""
 
+  # Analysis emission policy (prevents 'emitter=set' with an empty gate)
+  analysis:
+    enabled: true
+    emitters: all      # valid: all | {set: [ast_calls, ast_symbols, ...]}
+
 # Transport settings for chunked design manifest output.
 transport:
   kind: "chunked"           # chunk the JSONL into .txt parts
@@ -215,4 +220,5 @@ handoff:
 limits:
   max_files: 0           # 0 = no limit
   max_bytes: 0
-  timeout_seconds: 0
+  # Prevent silent stalls during emitter backfill while staying generous for big repos
+  timeout_seconds: 600
