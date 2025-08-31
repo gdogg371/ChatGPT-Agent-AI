@@ -53,7 +53,7 @@ segment_excludes:
   - "databases"
   - "logs"
   - "software"
-  - "terrafom"
+  - "terraform"
   - "tests"
   - "tests_adhoc"
   - "tests_adhoc2"
@@ -194,6 +194,7 @@ controls:
   synthesize_empty_summaries: true   # write zero-structured summaries when no findings
   strict_validation: true            # fail run on inconsistent config
   forbid_raw_secrets: true           # enforce summary-only behavior for secrets
+  analysis_strategy: backfill        # backfill | enforce | passthrough
 
 # Optional handoff guidance consumed by guide_writer
 handoff:
@@ -215,4 +216,3 @@ limits:
   max_files: 0           # 0 = no limit
   max_bytes: 0
   timeout_seconds: 0
-
