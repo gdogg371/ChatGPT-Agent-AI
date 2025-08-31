@@ -32,11 +32,16 @@ _ALIASES: Dict[str, str] = {
     "owners_index": "codeowners",
     "assets": "asset",
     "asset.index": "asset",
+    "asset.file": "asset",
+    "asset.summary": "asset",
     "git_info": "git",
     "license_scan": "license",
     "secrets_scan": "secrets",
     "env_index": "env",
     "deps_index": "deps",
+    "deps.index": "deps",
+    "deps.index.summary": "deps",   # summary rows → deps
+    "deps_index_summary": "deps",   # underscored variant
     "html_index": "html",
     "sql.index": "sql",
     "sql_index": "sql",
@@ -101,18 +106,14 @@ def _str_or_unknown(x: Any) -> str:
 # ──────────────────────────────────────────────────────────────────────────────
 
 def _ast_symbols_reducer(items: List[dict]) -> dict:
-    # Prefer payload.kind, then top-level kind/type
     kinds = Counter(
-        _str_or_unknown(
-            _vget(it, ("payload", "kind"), ("kind",), ("type",))
-        )
+        _str_or_unknown(_vget(it, ("payload", "kind"), ("kind",), ("type",)))
         for it in items
     )
     return {"family": "ast_symbols", "stats": {"count": len(items), "kinds": dict(kinds)}}
 
 
 def _ast_imports_reducer(items: List[dict]) -> dict:
-    # Try module/target/import/from_module across payload and top-level
     def _mod(it: dict) -> str:
         return _str_or_unknown(
             _vget(
@@ -132,7 +133,6 @@ def _ast_imports_reducer(items: List[dict]) -> dict:
 
 
 def _ast_calls_reducer(items: List[dict]) -> dict:
-    # Prefer explicit callee/name/attr across payload and top-level
     def _call_name(it: dict) -> str:
         return _str_or_unknown(
             _vget(
@@ -150,27 +150,128 @@ def _ast_calls_reducer(items: List[dict]) -> dict:
 
 
 def _deps_reducer(items: List[dict]) -> dict:
+    """
+    Supports both per-package rows and summary rows:
+      - per-package: name/package/pkg (+ optional version/spec)
+      - summary: packages_unique, top_packages, ecosystems, manifests (top-level or under payload)
+    """
+    # detect presence of summary-shaped rows
+    has_summary = any(
+        _vget(it, ("packages_unique",), ("payload", "packages_unique")) is not None
+        or _vget(it, ("top_packages",), ("payload", "top_packages")) is not None
+        for it in items
+    )
+
+    if has_summary:
+        # merge summaries
+        pkgs_unique_vals: List[int] = []
+        top_pairs: Counter = Counter()
+        ecosystems: Counter = Counter()
+        manifests: Counter = Counter()
+
+        def _as_pairs(v) -> List[Tuple[str, int]]:
+            # Accept [["name",count], {"name": "...", "count": n}, {"pkg": "...","n":n}], or {name:count}
+            out: List[Tuple[str, int]] = []
+            if isinstance(v, list):
+                for el in v:
+                    if isinstance(el, (list, tuple)) and len(el) == 2:
+                        name, cnt = el[0], el[1]
+                    elif isinstance(el, dict):
+                        name = el.get("name") or el.get("pkg") or el.get("package") or el.get("id")
+                        cnt = el.get("count") or el.get("n") or el.get("num") or 1
+                    else:
+                        continue
+                    try:
+                        cnt = int(cnt)
+                    except Exception:
+                        cnt = 1
+                    name = _str_or_unknown(name)
+                    if name and name != "unknown":
+                        out.append((name, cnt))
+            elif isinstance(v, dict):
+                for k, cnt in v.items():
+                    try:
+                        top = int(cnt)
+                    except Exception:
+                        top = 1
+                    out.append((_str_or_unknown(k), top))
+            return out
+
+        for it in items:
+            pu = _vget(it, ("packages_unique",), ("payload", "packages_unique"))
+            if isinstance(pu, (int, float)):
+                pkgs_unique_vals.append(int(pu))
+
+            tp = _vget(it, ("top_packages",), ("payload", "top_packages"))
+            for name, cnt in _as_pairs(tp):
+                top_pairs[name] += int(cnt)
+
+            ecs = _vget(it, ("ecosystems",), ("payload", "ecosystems"))
+            if isinstance(ecs, dict):
+                for k, v in ecs.items():
+                    try:
+                        ecosystems[_str_or_unknown(k)] += int(v)
+                    except Exception:
+                        ecosystems[_str_or_unknown(k)] += 1
+            elif isinstance(ecs, list):
+                for el in ecs:
+                    ecosystems[_str_or_unknown(el)] += 1
+
+            man = _vget(it, ("manifests",), ("payload", "manifests"))
+            if isinstance(man, dict):
+                for k, v in man.items():
+                    try:
+                        manifests[_str_or_unknown(k)] += int(v)
+                    except Exception:
+                        manifests[_str_or_unknown(k)] += 1
+            elif isinstance(man, list):
+                for el in man:
+                    manifests[_str_or_unknown(el)] += 1
+
+        return {
+            "family": "deps",
+            "stats": {
+                "rows": len(items),
+                "packages_unique": max(pkgs_unique_vals) if pkgs_unique_vals else 0,
+                "top_packages": top_pairs.most_common(50),
+                "ecosystems": ecosystems.most_common(20),
+                "manifests": manifests.most_common(20),
+            },
+        }
+
+    # Fallback: per-package counting
     pkgs = Counter(
         _str_or_unknown(
-            _vget(it, ("payload", "name"), ("name",), ("package",))
+            _vget(it, ("payload", "name"), ("name",), ("package",), ("pkg",), ("id",))
         )
         for it in items
     )
-    return {"family": "deps", "stats": {"count": len(items), "packages": pkgs.most_common(50)}}
+    vers = Counter(
+        _str_or_unknown(
+            _vget(it, ("payload", "version"), ("version",), ("spec",), ("ver",))
+        )
+        for it in items
+        if _vget(it, ("payload", "version"), ("version",), ("spec",), ("ver",)) is not None
+    )
+    return {
+        "family": "deps",
+        "stats": {
+            "rows": len(items),
+            "packages": pkgs.most_common(100),
+            "versions_top": vers.most_common(50),
+        },
+    }
 
 
 def _entrypoints_reducer(items: List[dict]) -> dict:
     kinds = Counter(
-        _str_or_unknown(
-            _vget(it, ("payload", "kind"), ("kind",), ("type",))
-        )
+        _str_or_unknown(_vget(it, ("payload", "kind"), ("kind",), ("type",)))
         for it in items
     )
     return {"family": "entrypoints", "stats": {"count": len(items), "kinds": dict(kinds)}}
 
 
 def _docs_reducer(items: List[dict]) -> dict:
-    # Accept coverage at payload.coverage, coverage, or docstring_coverage
     vals: List[float] = []
     for it in items:
         v = _vget(it, ("payload", "coverage"), ("coverage",), ("docstring_coverage",))
@@ -184,7 +285,6 @@ def _docs_reducer(items: List[dict]) -> dict:
 
 
 def _quality_reducer(items: List[dict]) -> dict:
-    # Accept complexity at payload.complexity, complexity, or radon_cc
     vals: List[float] = []
     for it in items:
         v = _vget(it, ("payload", "complexity"), ("complexity",), ("radon_cc",))
@@ -194,17 +294,31 @@ def _quality_reducer(items: List[dict]) -> dict:
         except Exception:
             pass
     avg = sum(vals) / max(1, len(vals)) if vals else 0.0
-    return {"family": "quality", "stats": {"count": len(items), "avg_complexity": round(avg, 3)}}
+    return {"family": "quality", "stats": {"count": len(vals), "avg_complexity": round(avg, 3)}}
 
 
 def _sql_reducer(items: List[dict]) -> dict:
     kinds = Counter(
-        _str_or_unknown(
-            _vget(it, ("payload", "kind"), ("kind",), ("type",))
-        )
+        _str_or_unknown(_vget(it, ("payload", "kind"), ("kind",), ("type",)))
         for it in items
     )
     return {"family": "sql", "stats": {"count": len(items), "kinds": dict(kinds)}}
+
+
+def _asset_reducer(items: List[dict]) -> dict:
+    # Show top file extensions, MIME types and categories if present
+    exts = Counter(_str_or_unknown(_vget(it, ("payload", "ext"), ("ext",))) for it in items)
+    mimes = Counter(_str_or_unknown(_vget(it, ("payload", "mime"), ("mime",))) for it in items)
+    cats = Counter(_str_or_unknown(_vget(it, ("payload", "category"), ("category",))) for it in items)
+    return {
+        "family": "asset",
+        "stats": {
+            "count": len(items),
+            "top_ext": exts.most_common(15),
+            "top_mime": mimes.most_common(15),
+            "top_category": cats.most_common(15),
+        },
+    }
 
 
 def _generic_counter(items: List[dict], family: str) -> dict:
@@ -222,8 +336,8 @@ _REDUCERS: Dict[str, Callable[[List[dict]], dict]] = {
     "docs": _docs_reducer,
     "quality": _quality_reducer,
     "sql": _sql_reducer,
+    "asset": _asset_reducer,
     # Fallbacks (generic summaries)
-    "asset": lambda x: _generic_counter(x, "asset"),
     "env": lambda x: _generic_counter(x, "env"),
     "git": lambda x: _generic_counter(x, "git"),
     "license": lambda x: _generic_counter(x, "license"),
@@ -243,5 +357,8 @@ def get_reducer(family: str):
 
 def zero_summary_for(family: str) -> dict:
     return {"family": family, "stats": {"count": 0}, "items": []}
+
+
+
 
 
