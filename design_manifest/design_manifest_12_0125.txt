@@ -1,3 +1,36 @@
+{"callee": "_extract_openai_key", "caller_name": "v2.patches.executor.run_patch_loop_local._load_openai_api_key_from_yaml", "end_lineno": 134, "lineno": 134, "module": "v2.patches.executor.run_patch_loop_local", "path": "v2/patches/executor/run_patch_loop_local.py", "record_type": "ast.call"}
+{"callee": "yaml_path.open", "caller_name": "v2.patches.executor.run_patch_loop_local._load_openai_api_key_from_yaml", "end_lineno": 141, "lineno": 141, "module": "v2.patches.executor.run_patch_loop_local", "path": "v2/patches/executor/run_patch_loop_local.py", "record_type": "ast.call"}
+{"callee": "raw.strip", "caller_name": "v2.patches.executor.run_patch_loop_local._load_openai_api_key_from_yaml", "end_lineno": 143, "lineno": 143, "module": "v2.patches.executor.run_patch_loop_local", "path": "v2/patches/executor/run_patch_loop_local.py", "record_type": "ast.call"}
+{"callee": "line.startswith", "caller_name": "v2.patches.executor.run_patch_loop_local._load_openai_api_key_from_yaml", "end_lineno": 144, "lineno": 144, "module": "v2.patches.executor.run_patch_loop_local", "path": "v2/patches/executor/run_patch_loop_local.py", "record_type": "ast.call"}
+{"callee": "re.match", "caller_name": "v2.patches.executor.run_patch_loop_local._load_openai_api_key_from_yaml", "end_lineno": 146, "lineno": 146, "module": "v2.patches.executor.run_patch_loop_local", "path": "v2/patches/executor/run_patch_loop_local.py", "record_type": "ast.call"}
+{"callee": "re.match", "caller_name": "v2.patches.executor.run_patch_loop_local._load_openai_api_key_from_yaml", "end_lineno": 150, "lineno": 150, "module": "v2.patches.executor.run_patch_loop_local", "path": "v2/patches/executor/run_patch_loop_local.py", "record_type": "ast.call"}
+{"callee": "m.group.strip.strip.strip", "caller_name": "v2.patches.executor.run_patch_loop_local._load_openai_api_key_from_yaml", "end_lineno": 152, "lineno": 152, "module": "v2.patches.executor.run_patch_loop_local", "path": "v2/patches/executor/run_patch_loop_local.py", "record_type": "ast.call"}
+{"callee": "m.group.strip.strip", "caller_name": "v2.patches.executor.run_patch_loop_local._load_openai_api_key_from_yaml", "end_lineno": 152, "lineno": 152, "module": "v2.patches.executor.run_patch_loop_local", "path": "v2/patches/executor/run_patch_loop_local.py", "record_type": "ast.call"}
+{"callee": "m.group.strip", "caller_name": "v2.patches.executor.run_patch_loop_local._load_openai_api_key_from_yaml", "end_lineno": 152, "lineno": 152, "module": "v2.patches.executor.run_patch_loop_local", "path": "v2/patches/executor/run_patch_loop_local.py", "record_type": "ast.call"}
+{"callee": "m.group", "caller_name": "v2.patches.executor.run_patch_loop_local._load_openai_api_key_from_yaml", "end_lineno": 152, "lineno": 152, "module": "v2.patches.executor.run_patch_loop_local", "path": "v2/patches/executor/run_patch_loop_local.py", "record_type": "ast.call"}
+{"callee": "re.match", "caller_name": "v2.patches.executor.run_patch_loop_local._load_openai_api_key_from_yaml", "end_lineno": 157, "lineno": 157, "module": "v2.patches.executor.run_patch_loop_local", "path": "v2/patches/executor/run_patch_loop_local.py", "record_type": "ast.call"}
+{"callee": "m2.group.strip.strip.strip", "caller_name": "v2.patches.executor.run_patch_loop_local._load_openai_api_key_from_yaml", "end_lineno": 159, "lineno": 159, "module": "v2.patches.executor.run_patch_loop_local", "path": "v2/patches/executor/run_patch_loop_local.py", "record_type": "ast.call"}
+{"callee": "m2.group.strip.strip", "caller_name": "v2.patches.executor.run_patch_loop_local._load_openai_api_key_from_yaml", "end_lineno": 159, "lineno": 159, "module": "v2.patches.executor.run_patch_loop_local", "path": "v2/patches/executor/run_patch_loop_local.py", "record_type": "ast.call"}
+{"callee": "m2.group.strip", "caller_name": "v2.patches.executor.run_patch_loop_local._load_openai_api_key_from_yaml", "end_lineno": 159, "lineno": 159, "module": "v2.patches.executor.run_patch_loop_local", "path": "v2/patches/executor/run_patch_loop_local.py", "record_type": "ast.call"}
+{"callee": "m2.group", "caller_name": "v2.patches.executor.run_patch_loop_local._load_openai_api_key_from_yaml", "end_lineno": 159, "lineno": 159, "module": "v2.patches.executor.run_patch_loop_local", "path": "v2/patches/executor/run_patch_loop_local.py", "record_type": "ast.call"}
+{"callee": "cli_key.strip", "caller_name": "v2.patches.executor.run_patch_loop_local._resolve_openai_api_key", "end_lineno": 170, "lineno": 170, "module": "v2.patches.executor.run_patch_loop_local", "path": "v2/patches/executor/run_patch_loop_local.py", "record_type": "ast.call"}
+{"callee": "cli_key.strip", "caller_name": "v2.patches.executor.run_patch_loop_local._resolve_openai_api_key", "end_lineno": 171, "lineno": 171, "module": "v2.patches.executor.run_patch_loop_local", "path": "v2/patches/executor/run_patch_loop_local.py", "record_type": "ast.call"}
+{"callee": "os.getenv", "caller_name": "v2.patches.executor.run_patch_loop_local._resolve_openai_api_key", "end_lineno": 172, "lineno": 172, "module": "v2.patches.executor.run_patch_loop_local", "path": "v2/patches/executor/run_patch_loop_local.py", "record_type": "ast.call"}
+{"callee": "env_key.strip", "caller_name": "v2.patches.executor.run_patch_loop_local._resolve_openai_api_key", "end_lineno": 173, "lineno": 173, "module": "v2.patches.executor.run_patch_loop_local", "path": "v2/patches/executor/run_patch_loop_local.py", "record_type": "ast.call"}
+{"callee": "env_key.strip", "caller_name": "v2.patches.executor.run_patch_loop_local._resolve_openai_api_key", "end_lineno": 174, "lineno": 174, "module": "v2.patches.executor.run_patch_loop_local", "path": "v2/patches/executor/run_patch_loop_local.py", "record_type": "ast.call"}
+{"callee": "_load_openai_api_key_from_loader", "caller_name": "v2.patches.executor.run_patch_loop_local._resolve_openai_api_key", "end_lineno": 175, "lineno": 175, "module": "v2.patches.executor.run_patch_loop_local", "path": "v2/patches/executor/run_patch_loop_local.py", "record_type": "ast.call"}
+{"callee": "_load_openai_api_key_from_yaml", "caller_name": "v2.patches.executor.run_patch_loop_local._resolve_openai_api_key", "end_lineno": 178, "lineno": 178, "module": "v2.patches.executor.run_patch_loop_local", "path": "v2/patches/executor/run_patch_loop_local.py", "record_type": "ast.call"}
+{"callee": "BoolOp.strip.lower", "caller_name": "v2.patches.executor.run_patch_loop_local._build_ask_spec", "end_lineno": 191, "lineno": 191, "module": "v2.patches.executor.run_patch_loop_local", "path": "v2/patches/executor/run_patch_loop_local.py", "record_type": "ast.call"}
+{"callee": "BoolOp.strip", "caller_name": "v2.patches.executor.run_patch_loop_local._build_ask_spec", "end_lineno": 191, "lineno": 191, "module": "v2.patches.executor.run_patch_loop_local", "path": "v2/patches/executor/run_patch_loop_local.py", "record_type": "ast.call"}
+{"callee": "AskSpec.for_docstrings", "caller_name": "v2.patches.executor.run_patch_loop_local._build_ask_spec", "end_lineno": 193, "lineno": 193, "module": "v2.patches.executor.run_patch_loop_local", "path": "v2/patches/executor/run_patch_loop_local.py", "record_type": "ast.call"}
+{"callee": "AskSpec.for_qa", "caller_name": "v2.patches.executor.run_patch_loop_local._build_ask_spec", "end_lineno": 195, "lineno": 195, "module": "v2.patches.executor.run_patch_loop_local", "path": "v2/patches/executor/run_patch_loop_local.py", "record_type": "ast.call"}
+{"callee": "AskSpecError", "caller_name": "v2.patches.executor.run_patch_loop_local._build_ask_spec", "end_lineno": 197, "lineno": 197, "module": "v2.patches.executor.run_patch_loop_local", "path": "v2/patches/executor/run_patch_loop_local.py", "record_type": "ast.call"}
+{"callee": "float", "caller_name": "v2.patches.executor.run_patch_loop_local._build_ask_spec", "end_lineno": 201, "lineno": 201, "module": "v2.patches.executor.run_patch_loop_local", "path": "v2/patches/executor/run_patch_loop_local.py", "record_type": "ast.call"}
+{"callee": "int", "caller_name": "v2.patches.executor.run_patch_loop_local._build_ask_spec", "end_lineno": 203, "lineno": 203, "module": "v2.patches.executor.run_patch_loop_local", "path": "v2/patches/executor/run_patch_loop_local.py", "record_type": "ast.call"}
+{"callee": "os.getenv", "caller_name": "v2.patches.executor.run_patch_loop_local._build_ask_spec", "end_lineno": 205, "lineno": 205, "module": "v2.patches.executor.run_patch_loop_local", "path": "v2/patches/executor/run_patch_loop_local.py", "record_type": "ast.call"}
+{"callee": "spec.validate", "caller_name": "v2.patches.executor.run_patch_loop_local._build_ask_spec", "end_lineno": 208, "lineno": 208, "module": "v2.patches.executor.run_patch_loop_local", "path": "v2/patches/executor/run_patch_loop_local.py", "record_type": "ast.call"}
+{"callee": "c.exists", "caller_name": "v2.patches.executor.run_patch_loop_local._detect_seed_dir", "end_lineno": 223, "lineno": 223, "module": "v2.patches.executor.run_patch_loop_local", "path": "v2/patches/executor/run_patch_loop_local.py", "record_type": "ast.call"}
+{"callee": "any", "caller_name": "v2.patches.executor.run_patch_loop_local._detect_seed_dir", "end_lineno": 223, "lineno": 223, "module": "v2.patches.executor.run_patch_loop_local", "path": "v2/patches/executor/run_patch_loop_local.py", "record_type": "ast.call"}
 {"callee": "c.rglob", "caller_name": "v2.patches.executor.run_patch_loop_local._detect_seed_dir", "end_lineno": 223, "lineno": 223, "module": "v2.patches.executor.run_patch_loop_local", "path": "v2/patches/executor/run_patch_loop_local.py", "record_type": "ast.call"}
 {"callee": "c.resolve", "caller_name": "v2.patches.executor.run_patch_loop_local._detect_seed_dir", "end_lineno": 224, "lineno": 224, "module": "v2.patches.executor.run_patch_loop_local", "path": "v2/patches/executor/run_patch_loop_local.py", "record_type": "ast.call"}
 {"callee": "project_root.resolve", "caller_name": "v2.patches.executor.run_patch_loop_local._detect_seed_dir", "end_lineno": 227, "lineno": 227, "module": "v2.patches.executor.run_patch_loop_local", "path": "v2/patches/executor/run_patch_loop_local.py", "record_type": "ast.call"}
@@ -210,7 +243,7 @@
 {"avg_fn_len": 0.0, "cyclomatic": 1, "kind": "quality.metric", "language": "python", "loc": 0, "n_classes": 0, "n_functions": 0, "notes": null, "path": "v2/backend/core/utils/code_bundles/__init__.py", "sloc": 0}
 {"avg_fn_len": 0.0, "cyclomatic": 1, "kind": "quality.metric", "language": "python", "loc": 0, "n_classes": 0, "n_functions": 0, "notes": null, "path": "v2/backend/core/utils/code_bundles/code_bundles/__init__.py", "sloc": 0}
 {"avg_fn_len": 16.38, "cyclomatic": 87, "kind": "quality.metric", "language": "python", "loc": 380, "n_classes": 1, "n_functions": 16, "notes": null, "path": "v2/backend/core/utils/code_bundles/code_bundles/assets_index.py", "sloc": 297}
-{"avg_fn_len": 18.38, "cyclomatic": 47, "kind": "quality.metric", "language": "python", "loc": 284, "n_classes": 1, "n_functions": 13, "notes": null, "path": "v2/backend/core/utils/code_bundles/code_bundles/bundle_io.py", "sloc": 212}
+{"avg_fn_len": 14.54, "cyclomatic": 47, "kind": "quality.metric", "language": "python", "loc": 219, "n_classes": 1, "n_functions": 13, "notes": null, "path": "v2/backend/core/utils/code_bundles/code_bundles/bundle_io.py", "sloc": 175}
 {"avg_fn_len": 7.93, "cyclomatic": 47, "kind": "quality.metric", "language": "python", "loc": 355, "n_classes": 3, "n_functions": 27, "notes": null, "path": "v2/backend/core/utils/code_bundles/code_bundles/complexity.py", "sloc": 265}
 {"avg_fn_len": 15.17, "cyclomatic": 12, "kind": "quality.metric", "language": "python", "loc": 111, "n_classes": 0, "n_functions": 6, "notes": null, "path": "v2/backend/core/utils/code_bundles/code_bundles/contracts.py", "sloc": 94}
 {"avg_fn_len": 29.55, "cyclomatic": 188, "kind": "quality.metric", "language": "python", "loc": 797, "n_classes": 0, "n_functions": 22, "notes": null, "path": "v2/backend/core/utils/code_bundles/code_bundles/deps_index.py", "sloc": 651}
@@ -229,13 +262,13 @@
 {"avg_fn_len": 0.0, "cyclomatic": 1, "kind": "quality.metric", "language": "python", "loc": 0, "n_classes": 0, "n_functions": 0, "notes": null, "path": "v2/backend/core/utils/code_bundles/code_bundles/python_api.py", "sloc": 0}
 {"avg_fn_len": 32.2, "cyclomatic": 46, "kind": "quality.metric", "language": "python", "loc": 352, "n_classes": 2, "n_functions": 15, "notes": null, "path": "v2/backend/core/utils/code_bundles/code_bundles/python_index.py", "sloc": 293}
 {"avg_fn_len": 25.75, "cyclomatic": 24, "kind": "quality.metric", "language": "python", "loc": 150, "n_classes": 0, "n_functions": 4, "notes": null, "path": "v2/backend/core/utils/code_bundles/code_bundles/quality.py", "sloc": 129}
-{"avg_fn_len": 32.57, "cyclomatic": 270, "kind": "quality.metric", "language": "python", "loc": 1285, "n_classes": 1, "n_functions": 35, "notes": null, "path": "v2/backend/core/utils/code_bundles/code_bundles/run_pack.py", "sloc": 1054}
+{"avg_fn_len": 32.44, "cyclomatic": 274, "kind": "quality.metric", "language": "python", "loc": 1307, "n_classes": 1, "n_functions": 36, "notes": null, "path": "v2/backend/core/utils/code_bundles/code_bundles/run_pack.py", "sloc": 1072}
 {"avg_fn_len": 18.1, "cyclomatic": 44, "kind": "quality.metric", "language": "python", "loc": 337, "n_classes": 1, "n_functions": 10, "notes": null, "path": "v2/backend/core/utils/code_bundles/code_bundles/secrets_scan.py", "sloc": 247}
 {"avg_fn_len": 17.33, "cyclomatic": 14, "kind": "quality.metric", "language": "python", "loc": 89, "n_classes": 0, "n_functions": 3, "notes": null, "path": "v2/backend/core/utils/code_bundles/code_bundles/spine_targets.py", "sloc": 74}
 {"avg_fn_len": 35.38, "cyclomatic": 116, "kind": "quality.metric", "language": "python", "loc": 617, "n_classes": 0, "n_functions": 13, "notes": null, "path": "v2/backend/core/utils/code_bundles/code_bundles/sql_index.py", "sloc": 482}
 {"avg_fn_len": 0.0, "cyclomatic": 1, "kind": "quality.metric", "language": "python", "loc": 0, "n_classes": 0, "n_functions": 0, "notes": null, "path": "v2/backend/core/utils/code_bundles/code_bundles/src/__init__.py", "sloc": 0}
 {"avg_fn_len": 0.0, "cyclomatic": 1, "kind": "quality.metric", "language": "python", "loc": 0, "n_classes": 0, "n_functions": 0, "notes": null, "path": "v2/backend/core/utils/code_bundles/code_bundles/src/packager/__init__.py", "sloc": 0}
-{"avg_fn_len": 10.93, "cyclomatic": 126, "kind": "quality.metric", "language": "python", "loc": 354, "n_classes": 4, "n_functions": 28, "notes": null, "path": "v2/backend/core/utils/code_bundles/code_bundles/src/packager/analysis_emitter.py", "sloc": 288}
+{"avg_fn_len": 10.43, "cyclomatic": 126, "kind": "quality.metric", "language": "python", "loc": 337, "n_classes": 4, "n_functions": 28, "notes": null, "path": "v2/backend/core/utils/code_bundles/code_bundles/src/packager/analysis_emitter.py", "sloc": 287}
 {"avg_fn_len": 2.0, "cyclomatic": 1, "kind": "quality.metric", "language": "python", "loc": 179, "n_classes": 8, "n_functions": 5, "notes": null, "path": "v2/backend/core/utils/code_bundles/code_bundles/src/packager/core/config.py", "sloc": 112}
 {"avg_fn_len": 12.5, "cyclomatic": 18, "kind": "quality.metric", "language": "python", "loc": 111, "n_classes": 2, "n_functions": 6, "notes": null, "path": "v2/backend/core/utils/code_bundles/code_bundles/src/packager/core/discovery.py", "sloc": 77}
 {"avg_fn_len": 12.5, "cyclomatic": 6, "kind": "quality.metric", "language": "python", "loc": 73, "n_classes": 8, "n_functions": 2, "notes": null, "path": "v2/backend/core/utils/code_bundles/code_bundles/src/packager/core/errors.py", "sloc": 61}
@@ -655,66 +688,3 @@
 {"dst_module": "__future__", "language": "python", "lineno": 2, "record_type": "edge.import", "src_path": "v2/backend/core/prompt_pipeline/llm/providers.py"}
 {"dst_module": "json", "language": "python", "lineno": 4, "record_type": "edge.import", "src_path": "v2/backend/core/prompt_pipeline/llm/providers.py"}
 {"dst_module": "pathlib", "language": "python", "lineno": 5, "record_type": "edge.import", "src_path": "v2/backend/core/prompt_pipeline/llm/providers.py"}
-{"dst_module": "typing", "language": "python", "lineno": 6, "record_type": "edge.import", "src_path": "v2/backend/core/prompt_pipeline/llm/providers.py"}
-{"dst_module": "openai", "language": "python", "lineno": 47, "record_type": "edge.import", "src_path": "v2/backend/core/prompt_pipeline/llm/providers.py"}
-{"dst_module": "__future__", "language": "python", "lineno": 9, "record_type": "edge.import", "src_path": "v2/backend/core/prompt_pipeline/llm/response_parser.py"}
-{"dst_module": "json", "language": "python", "lineno": 11, "record_type": "edge.import", "src_path": "v2/backend/core/prompt_pipeline/llm/response_parser.py"}
-{"dst_module": "re", "language": "python", "lineno": 12, "record_type": "edge.import", "src_path": "v2/backend/core/prompt_pipeline/llm/response_parser.py"}
-{"dst_module": "typing", "language": "python", "lineno": 13, "record_type": "edge.import", "src_path": "v2/backend/core/prompt_pipeline/llm/response_parser.py"}
-{"dst_module": "schema", "language": "python", "lineno": 15, "record_type": "edge.import", "src_path": "v2/backend/core/prompt_pipeline/llm/response_parser.py"}
-{"dst_module": "__future__", "language": "python", "lineno": 2, "record_type": "edge.import", "src_path": "v2/backend/core/prompt_pipeline/llm/router.py"}
-{"dst_module": "typing", "language": "python", "lineno": 11, "record_type": "edge.import", "src_path": "v2/backend/core/prompt_pipeline/llm/router.py"}
-{"dst_module": "schema", "language": "python", "lineno": 13, "record_type": "edge.import", "src_path": "v2/backend/core/prompt_pipeline/llm/router.py"}
-{"dst_module": "response_parser", "language": "python", "lineno": 14, "record_type": "edge.import", "src_path": "v2/backend/core/prompt_pipeline/llm/router.py"}
-{"dst_module": "__future__", "language": "python", "lineno": 14, "record_type": "edge.import", "src_path": "v2/backend/core/prompt_pipeline/llm/schema.py"}
-{"dst_module": "typing", "language": "python", "lineno": 16, "record_type": "edge.import", "src_path": "v2/backend/core/prompt_pipeline/llm/schema.py"}
-{"dst_module": "__future__", "language": "python", "lineno": 2, "record_type": "edge.import", "src_path": "v2/backend/core/prompt_pipeline/preflight/budget.py"}
-{"dst_module": "typing", "language": "python", "lineno": 14, "record_type": "edge.import", "src_path": "v2/backend/core/prompt_pipeline/preflight/budget.py"}
-{"dst_module": "__future__", "language": "python", "lineno": 2, "record_type": "edge.import", "src_path": "v2/backend/core/run/docstrings.py"}
-{"dst_module": "json", "language": "python", "lineno": 3, "record_type": "edge.import", "src_path": "v2/backend/core/run/docstrings.py"}
-{"dst_module": "sys", "language": "python", "lineno": 3, "record_type": "edge.import", "src_path": "v2/backend/core/run/docstrings.py"}
-{"dst_module": "importlib", "language": "python", "lineno": 4, "record_type": "edge.import", "src_path": "v2/backend/core/run/docstrings.py"}
-{"dst_module": "pathlib", "language": "python", "lineno": 5, "record_type": "edge.import", "src_path": "v2/backend/core/run/docstrings.py"}
-{"dst_module": "typing", "language": "python", "lineno": 6, "record_type": "edge.import", "src_path": "v2/backend/core/run/docstrings.py"}
-{"dst_module": "yaml", "language": "python", "lineno": 7, "record_type": "edge.import", "src_path": "v2/backend/core/run/docstrings.py"}
-{"dst_module": "v2.backend.core.spine.registry", "language": "python", "lineno": 8, "record_type": "edge.import", "src_path": "v2/backend/core/run/docstrings.py"}
-{"dst_module": "datetime", "language": "python", "lineno": 31, "record_type": "edge.import", "src_path": "v2/backend/core/run/docstrings.py"}
-{"dst_module": "__future__", "language": "python", "lineno": 16, "record_type": "edge.import", "src_path": "v2/backend/core/spine/__init__.py"}
-{"dst_module": "registry", "language": "python", "lineno": 19, "record_type": "edge.import", "src_path": "v2/backend/core/spine/__init__.py"}
-{"dst_module": "loader", "language": "python", "lineno": 24, "record_type": "edge.import", "src_path": "v2/backend/core/spine/__init__.py"}
-{"dst_module": "base", "language": "python", "lineno": 3, "record_type": "edge.import", "src_path": "v2/backend/core/spine/adapters/__init__.py"}
-{"dst_module": "__future__", "language": "python", "lineno": 3, "record_type": "edge.import", "src_path": "v2/backend/core/spine/adapters/base.py"}
-{"dst_module": "typing", "language": "python", "lineno": 5, "record_type": "edge.import", "src_path": "v2/backend/core/spine/adapters/base.py"}
-{"dst_module": "contracts", "language": "python", "lineno": 7, "record_type": "edge.import", "src_path": "v2/backend/core/spine/adapters/base.py"}
-{"dst_module": "__future__", "language": "python", "lineno": 22, "record_type": "edge.import", "src_path": "v2/backend/core/spine/bootstrap.py"}
-{"dst_module": "dataclasses", "language": "python", "lineno": 24, "record_type": "edge.import", "src_path": "v2/backend/core/spine/bootstrap.py"}
-{"dst_module": "importlib", "language": "python", "lineno": 25, "record_type": "edge.import", "src_path": "v2/backend/core/spine/bootstrap.py"}
-{"dst_module": "pathlib", "language": "python", "lineno": 26, "record_type": "edge.import", "src_path": "v2/backend/core/spine/bootstrap.py"}
-{"dst_module": "typing", "language": "python", "lineno": 27, "record_type": "edge.import", "src_path": "v2/backend/core/spine/bootstrap.py"}
-{"dst_module": "re", "language": "python", "lineno": 28, "record_type": "edge.import", "src_path": "v2/backend/core/spine/bootstrap.py"}
-{"dst_module": "yaml", "language": "python", "lineno": 29, "record_type": "edge.import", "src_path": "v2/backend/core/spine/bootstrap.py"}
-{"dst_module": "loader", "language": "python", "lineno": 31, "record_type": "edge.import", "src_path": "v2/backend/core/spine/bootstrap.py"}
-{"dst_module": "registry", "language": "python", "lineno": 32, "record_type": "edge.import", "src_path": "v2/backend/core/spine/bootstrap.py"}
-{"dst_module": "contracts", "language": "python", "lineno": 33, "record_type": "edge.import", "src_path": "v2/backend/core/spine/bootstrap.py"}
-{"dst_module": "tempfile", "language": "python", "lineno": 410, "record_type": "edge.import", "src_path": "v2/backend/core/spine/bootstrap.py"}
-{"dst_module": "__future__", "language": "python", "lineno": 2, "record_type": "edge.import", "src_path": "v2/backend/core/spine/contracts.py"}
-{"dst_module": "dataclasses", "language": "python", "lineno": 4, "record_type": "edge.import", "src_path": "v2/backend/core/spine/contracts.py"}
-{"dst_module": "typing", "language": "python", "lineno": 5, "record_type": "edge.import", "src_path": "v2/backend/core/spine/contracts.py"}
-{"dst_module": "time", "language": "python", "lineno": 6, "record_type": "edge.import", "src_path": "v2/backend/core/spine/contracts.py"}
-{"dst_module": "uuid", "language": "python", "lineno": 7, "record_type": "edge.import", "src_path": "v2/backend/core/spine/contracts.py"}
-{"dst_module": "__future__", "language": "python", "lineno": 2, "record_type": "edge.import", "src_path": "v2/backend/core/spine/errors.py"}
-{"dst_module": "__future__", "language": "python", "lineno": 11, "record_type": "edge.import", "src_path": "v2/backend/core/spine/loader.py"}
-{"dst_module": "importlib", "language": "python", "lineno": 13, "record_type": "edge.import", "src_path": "v2/backend/core/spine/loader.py"}
-{"dst_module": "pathlib", "language": "python", "lineno": 14, "record_type": "edge.import", "src_path": "v2/backend/core/spine/loader.py"}
-{"dst_module": "typing", "language": "python", "lineno": 15, "record_type": "edge.import", "src_path": "v2/backend/core/spine/loader.py"}
-{"dst_module": "registry", "language": "python", "lineno": 18, "record_type": "edge.import", "src_path": "v2/backend/core/spine/loader.py"}
-{"dst_module": "yaml", "language": "python", "lineno": 40, "record_type": "edge.import", "src_path": "v2/backend/core/spine/loader.py"}
-{"dst_module": "__future__", "language": "python", "lineno": 2, "record_type": "edge.import", "src_path": "v2/backend/core/spine/middleware.py"}
-{"dst_module": "time", "language": "python", "lineno": 16, "record_type": "edge.import", "src_path": "v2/backend/core/spine/middleware.py"}
-{"dst_module": "typing", "language": "python", "lineno": 17, "record_type": "edge.import", "src_path": "v2/backend/core/spine/middleware.py"}
-{"dst_module": "contracts", "language": "python", "lineno": 19, "record_type": "edge.import", "src_path": "v2/backend/core/spine/middleware.py"}
-{"dst_module": "__future__", "language": "python", "lineno": 3, "record_type": "edge.import", "src_path": "v2/backend/core/spine/providers/__init__.py"}
-{"dst_module": "__future__", "language": "python", "lineno": 2, "record_type": "edge.import", "src_path": "v2/backend/core/spine/providers/packager_bundle_inject_prompt.py"}
-{"dst_module": "json", "language": "python", "lineno": 4, "record_type": "edge.import", "src_path": "v2/backend/core/spine/providers/packager_bundle_inject_prompt.py"}
-{"dst_module": "pathlib", "language": "python", "lineno": 5, "record_type": "edge.import", "src_path": "v2/backend/core/spine/providers/packager_bundle_inject_prompt.py"}
-{"dst_module": "typing", "language": "python", "lineno": 6, "record_type": "edge.import", "src_path": "v2/backend/core/spine/providers/packager_bundle_inject_prompt.py"}
