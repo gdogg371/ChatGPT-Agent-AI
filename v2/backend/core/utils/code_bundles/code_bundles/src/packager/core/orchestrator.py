@@ -15,7 +15,7 @@ try:
     from packager.core.paths import PathOps
     from packager.core.discovery import DiscoveryEngine, DiscoveryConfig
     from packager.core.integrity import Integrity
-    from packager.io.manifest_writer import BundleWriter
+    #from packager.io.manifest_writer import BundleWriter
     from packager.io.runspec_writer import RunSpecWriter
     from packager.io.guide_writer import GuideWriter
     from packager.languages.base import discover_language_plugins, LoadedPlugin
@@ -23,7 +23,7 @@ except ImportError:  # fallback if sys.path differs
     from .paths import PathOps  # type: ignore
     from .discovery import DiscoveryEngine, DiscoveryConfig  # type: ignore
     from .integrity import Integrity  # type: ignore
-    from ..io.manifest_writer import BundleWriter  # type: ignore
+    #from ..io.manifest_writer import BundleWriter  # type: ignore
     from ..io.runspec_writer import RunSpecWriter  # type: ignore
     from ..io.guide_writer import GuideWriter  # type: ignore
     from ..languages.base import discover_language_plugins, LoadedPlugin  # type: ignore
@@ -233,11 +233,11 @@ class Packager:
         records = self._maybe_normalize(records)
 
         # 9) Write manifest JSONL
-        writer = BundleWriter(Path(cfg.out_bundle))
-        writer.write(records)
+        #writer = BundleWriter(Path(cfg.out_bundle))
+        #writer.write(records)
 
         # 10) Write SHA256SUMS
-        writer.write_sums(Path(cfg.out_sums), sums_in)
+        #writer.write_sums(Path(cfg.out_sums), sums_in)
 
         # 11) Write run-spec and guide (assistant handoff)
         rsw = RunSpecWriter(Path(cfg.out_runspec))
