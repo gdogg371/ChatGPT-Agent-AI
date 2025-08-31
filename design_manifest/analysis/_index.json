@@ -1,0 +1,100 @@
+{
+  "families": {
+    "asset": {
+      "count": 0,
+      "mode": "both",
+      "path": "asset.summary.json"
+    },
+    "ast_calls": {
+      "count": 0,
+      "mode": "both",
+      "path": "ast.calls.summary.json"
+    },
+    "ast_imports": {
+      "count": 4996,
+      "mode": "both",
+      "path": "ast.imports.summary.json"
+    },
+    "ast_symbols": {
+      "count": 4196,
+      "mode": "both",
+      "path": "ast.symbols.summary.json"
+    },
+    "codeowners": {
+      "count": 0,
+      "mode": "both",
+      "path": "codeowners.summary.json"
+    },
+    "cs": {
+      "count": 0,
+      "mode": "both",
+      "path": "cs.summary.json"
+    },
+    "deps": {
+      "count": 0,
+      "mode": "both",
+      "path": "deps.index.summary.json"
+    },
+    "docs": {
+      "count": 0,
+      "mode": "both",
+      "path": "docs.coverage.summary.json"
+    },
+    "entrypoints": {
+      "count": 0,
+      "mode": "both",
+      "path": "entrypoints.summary.json"
+    },
+    "env": {
+      "count": 0,
+      "mode": "both",
+      "path": "env.summary.json"
+    },
+    "git": {
+      "count": 0,
+      "mode": "both",
+      "path": "git.info.summary.json"
+    },
+    "html": {
+      "count": 0,
+      "mode": "both",
+      "path": "html.summary.json"
+    },
+    "io_core": {
+      "count": 6,
+      "mode": "manifest",
+      "path": null
+    },
+    "js": {
+      "count": 0,
+      "mode": "both",
+      "path": "js.index.summary.json"
+    },
+    "license": {
+      "count": 0,
+      "mode": "both",
+      "path": "license.summary.json"
+    },
+    "quality": {
+      "count": 0,
+      "mode": "both",
+      "path": "quality.complexity.summary.json"
+    },
+    "sbom": {
+      "count": 0,
+      "mode": "both",
+      "path": "sbom.cyclonedx.json"
+    },
+    "secrets": {
+      "count": 0,
+      "mode": "both",
+      "path": "secrets.summary.json"
+    },
+    "sql": {
+      "count": 0,
+      "mode": "both",
+      "path": "sql.index.summary.json"
+    }
+  },
+  "strategy": "backfill"
+}
