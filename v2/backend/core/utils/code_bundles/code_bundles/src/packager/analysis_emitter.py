@@ -1,5 +1,4 @@
-# v2/backend/core/utils/code_bundles/code_bundles/src/packager/analysis_emitter.py
-
+# File: v2/backend/core/utils/code_bundles/code_bundles/src/packager/analysis_emitter.py
 from __future__ import annotations
 
 import json, os, re, sys, hashlib
@@ -120,6 +119,7 @@ class AnalysisEmitter:
 
         self.emitted_prefix = (self.repo_root / str(self.cfg.get("emitted_prefix","output/patch_code_bundles"))).resolve()
         self.analysis_dir = self.emitted_prefix / "analysis"
+        # Orchestrator’s output (existing analysis from this run)
         self.alt_analysis_dir = (self.repo_root / "output" / "design_manifest" / "analysis")
 
         self.part_stem = self.cfg.get("transport.part_stem","design_manifest")
@@ -143,11 +143,12 @@ class AnalysisEmitter:
             self._log("[analysis] publish_analysis=false → skip"); return
 
         raw_idx = RawManifestIndex.discover(self.emitted_prefix, self.part_stem, self.part_ext)
-        existing = self._discover_existing_analysis()
+        existing = self._discover_existing_analysis()  # scans canonical + alt
 
+        # Group raw manifest records by family (if present)
         raw_groups = self._group_raw_by_family(raw_idx)
 
-        # Robust target fallback: config -> filenames -> raw -> static defaults
+        # Determine target families (robust fallback)
         target_families = {fam for fam,mode in self.meta_emit.items() if str(mode).lower()=="both"}
         if not target_families:
             target_families = set(self.analysis_filenames.keys())
@@ -170,22 +171,50 @@ class AnalysisEmitter:
             return {"kind": f"design_manifest.analysis/{fam}", "version": "1.0",
                     "generated_at_utc": _utcnow(), "source": header, "stats": {"count": len(items)}, "items": items}
 
-        if self.strategy in ("backfill","enforce","passthrough"):
-            for fam in sorted(target_families):
-                canon = self._canonical_path_for_family(fam, create=True)
-                if self.strategy == "enforce":
-                    data_items = self._pick_items_for_family(fam, existing, raw_groups)
-                else:
-                    items = raw_groups.get(fam, [])
-                    data_items = items if items else ([] if self.synthesize_empty else None)
-                if data_items is None:
-                    continue
-                doc = envelope(fam, data_items)
-                sha = _write_json(canon, doc)
-                written[fam] = (canon, sha, len(data_items))
-                if fam == "entrypoints":
-                    _write_json(self.analysis_dir / "entrypoints.json", doc)
+        def items_from_obj(obj: Any) -> List[Any]:
+            if _is_enveloped(obj): return list(obj.get("items") or [])
+            if isinstance(obj, list): return obj
+            return [obj]
 
+        # Backfill / Enforce
+        for fam in sorted(target_families):
+            canon = self._canonical_path_for_family(fam, create=True)
+
+            # Never overwrite an existing canonical file
+            if canon.exists():
+                continue
+
+            data_items: Optional[List[Any]] = None
+
+            # 1) Prefer orchestrator-written analysis (alt dir) when present
+            if fam in existing and existing[fam]:
+                try:
+                    data_items = items_from_obj(existing[fam][0][1])
+                except Exception:
+                    data_items = None
+
+            # 2) Fall back to raw manifest group (if present)
+            if data_items is None:
+                if fam in raw_groups and raw_groups[fam]:
+                    data_items = raw_groups[fam]
+
+            # 3) Synthesize empty if allowed
+            if data_items is None and self.synthesize_empty:
+                data_items = []
+
+            # Nothing to write
+            if data_items is None:
+                continue
+
+            doc = envelope(fam, data_items)
+            sha = _write_json(canon, doc)
+            written[fam] = (canon, sha, len(data_items))
+
+            # compatibility alias (some tooling expects this)
+            if fam == "entrypoints":
+                _write_json(self.analysis_dir / "entrypoints.json", doc)
+
+        # Build index including existing (both locations) + newly written
         index = self._build_index(existing, written)
         _write_json(self.analysis_dir / "_index.json", index)
 
@@ -195,6 +224,8 @@ class AnalysisEmitter:
         self._log(f"[analysis] strategy={self.strategy} wrote {len(written)} families "
                   f"({', '.join(f'{k}:{v[2]}' for k,v in sorted(written.items()))}); index + headers"
                   f"{' + checksums' if self.emit_checksums else ''}")
+
+    # ---- discovery / grouping ----
 
     def _discover_existing_analysis(self) -> Dict[str, List[Tuple[Path, Any]]]:
         out: Dict[str, List[Tuple[Path, Any]]] = {}
@@ -256,20 +287,7 @@ class AnalysisEmitter:
         if create: p.parent.mkdir(parents=True, exist_ok=True)
         return p
 
-    def _pick_items_for_family(self, fam: str,
-                               existing: Dict[str, List[Tuple[Path, Any]]],
-                               raw_groups: Dict[str, List[Dict[str, Any]]]) -> List[Any]:
-        canon = self._canonical_path_for_family(fam)
-        if canon.exists():
-            try: obj = _read_json(canon)
-            except Exception: obj = None
-            if obj is not None:
-                return obj["items"] if _is_enveloped(obj) else (obj if isinstance(obj, list) else [obj])
-        if fam in existing and existing[fam]:
-            obj = existing[fam][0][1]
-            return obj["items"] if _is_enveloped(obj) else (obj if isinstance(obj, list) else [obj])
-        if fam in raw_groups: return raw_groups[fam]
-        return [] if self.synthesize_empty else None  # type: ignore
+    # ---- headers / checksums / index ----
 
     def _emit_artifact_headers(self) -> None:
         part_pat = re.compile(rf"{re.escape(self.part_stem)}_\d+_\d+{re.escape(self.part_ext)}$")
@@ -304,6 +322,7 @@ class AnalysisEmitter:
         families: Dict[str, Dict[str, Any]] = {}
         for fam,(path,sha,count) in newly_written.items():
             families[fam] = {"path": _rel(path, self.emitted_prefix), "sha256": sha, "count": count}
+        # Canonical dir
         if self.analysis_dir.exists():
             for p in self.analysis_dir.glob("*.json"):
                 if p.name == "_index.json": continue
@@ -315,6 +334,7 @@ class AnalysisEmitter:
                     cnt = 0
                 families.setdefault(self._infer_family_from_filename(p.name) or p.stem.split(".")[0],
                                     {"path": _rel(p, self.emitted_prefix), "sha256": _sha256_file(p), "count": cnt})
+        # Alt dir (orchestrator) — list anything not already represented
         if self.alt_analysis_dir.exists():
             for p in self.alt_analysis_dir.glob("*.json"):
                 alias = self._infer_family_from_filename(p.name) or p.stem.split(".")[0]
@@ -332,6 +352,3 @@ class AnalysisEmitter:
 
 def emit_all(repo_root: Path, cfg: Any) -> None:
     AnalysisEmitter(repo_root=repo_root, cfg=cfg).run()
-
-
-
