@@ -53,11 +53,13 @@ def emit_analysis_sidecars(
         fam_items = buckets.get(fam, [])
         fam_count = counts.get(fam, 0)
 
+        # Decide summary
         if fam_count == 0:
             if strategy == "enforce":
                 raise RuntimeError(f"Emitter(enforce): family '{fam}' has zero rows in manifest")
             if not synth_empty or not should_write:
                 index["families"][fam] = {"count": 0, "mode": mode, "path": None}
+                print(f"[analysis] emit[{fam}]: rows=0 mode={mode} (no file)")
                 continue
             summary = zero_summary_for(fam)
         else:
@@ -72,11 +74,15 @@ def emit_analysis_sidecars(
             else:
                 summary = reducer(fam_items)
 
+        # Write file if required
         if should_write and fam_file:
             target = out_dir / fam_file
             write_json_atomic(target, summary)
             index["families"][fam] = {"count": fam_count, "mode": mode, "path": target.name}
+            print(f"[analysis] emit[{fam}]: rows={fam_count} -> {target}")
         else:
             index["families"][fam] = {"count": fam_count, "mode": mode, "path": None}
+            print(f"[analysis] emit[{fam}]: rows={fam_count} mode={mode} (manifest-only/no filename)")
 
     return index
+
