@@ -1,8 +1,11 @@
-#config/packager.yml
+# config/packager.yml
 # Packager configuration (consumed by loader.py). No in-code defaults remain.
 
 # Prefix under which emitted files are published (prefix only, no leading repo path).
+# (Design-manifest artifacts will be created under this prefix.)
 emitted_prefix: "output/patch_code_bundles"
+
+# Emit AST-derived data (scanners still respect per-family controls below).
 emit_ast: true
 
 # What to include/exclude from the emitted set (globs; loader normalizes separators).
@@ -55,6 +58,7 @@ segment_excludes:
   - "tests_adhoc"
   - "tests_adhoc2"
 
+# Write analysis sidecars when enabled in metadata_emission (see below).
 publish_analysis: true
 
 # Publish coordinates. Paths may be relative to the repo root; loader resolves them.
@@ -62,12 +66,18 @@ publish:
   mode: "both"             # "local" | "github" | "both"
   staging_root: "output/staging"
   output_root: "output/patch_code_bundles"
-  ingest_root: "."          # external source tree to ingest into staging_root/codebase
+  ingest_root: "."         # external source tree to ingest into staging_root/codebase
   local_publish_root: "output/patch_code_bundles/published"
   clean_before_publish: false
   clean:
     clean_repo_root: false   # when true, wipe entire repo before publish
     clean_artifacts: false
+
+  # Control emission of companion control files
+  handoff: true             # emit assistant_handoff.v1.json
+  runspec: true             # emit superbundle.run.json
+  transport_index: true     # emit design_manifest_parts_index.json
+  checksums: true           # emit design_manifest.SHA256SUMS
 
   github:
     # Populated from your provided raw.githubusercontent.com links:
@@ -77,3 +87,132 @@ publish:
     branch: "main"
     # Base path within the repo to publish into (the segment after refs/heads/<branch>/)
     base_path: ""
+
+# Transport settings for chunked design manifest output.
+transport:
+  kind: "chunked"           # chunk the JSONL into .txt parts
+  part_stem: "design_manifest"
+  part_ext: ".txt"
+  parts_per_dir: 10
+  split_bytes: 150000
+  preserve_monolith: false  # do not keep a monolithic .jsonl; consume via parts index
+
+# Per-family emission controls:
+#   none     → do not emit
+#   manifest → write into the chunked manifest only
+#   both     → write into the manifest AND emit a sidecar analysis file under <emitted_prefix>/analysis/**
+metadata_emission:
+  # Priority families
+  asset:        both
+  deps:         both
+  entrypoints:  both
+  env:          both
+  git:          both
+  license:      both
+  secrets:      both         # scanner emits summary-only for findings; still produce sidecar summary
+  sql:          both
+
+  # AST families (first-class)
+  ast_symbols:  both         # classes/functions/etc.
+  ast_imports:  both         # import/import_from/edge.import
+  ast_calls:    both         # ast.call
+
+  # Docs / Quality
+  docs:         both         # docs.coverage + summary
+  quality:      both         # complexity + summary
+
+  # Polyglot surface
+  html:         both
+  js:           both         # covers js/cjs/esm
+  cs:           both
+
+  # Supply chain add-on
+  sbom:         both         # CycloneDX if produced by deps scanner
+
+  # IO/Core (manifest-only by default)
+  io_core:      manifest     # artifact/manifest.header rows only
+
+  # Additional family
+  codeowners:   both
+
+  # Internal/disabled
+  syntaxerror:  none
+
+# Canonical filenames for analysis sidecars (used when emission == both)
+analysis_filenames:
+  # Priority
+  asset:        "asset.summary.json"
+  deps:         "deps.index.summary.json"
+  entrypoints:  "entrypoints.summary.json"
+  env:          "env.summary.json"
+  git:          "git.info.summary.json"
+  license:      "license.summary.json"
+  secrets:      "secrets.summary.json"
+  sql:          "sql.index.summary.json"
+
+  # AST
+  ast_symbols:  "ast.symbols.summary.json"
+  ast_imports:  "ast.imports.summary.json"
+  ast_calls:    "ast.calls.summary.json"
+
+  # Docs / Quality
+  docs:         "docs.coverage.summary.json"
+  quality:      "quality.complexity.summary.json"
+
+  # Polyglot
+  html:         "html.summary.json"
+  js:           "js.index.summary.json"
+  cs:           "cs.summary.json"
+
+  # Supply chain
+  sbom:         "sbom.cyclonedx.json"
+
+  # IO/Core synth (only used if you ever switch io_core: both)
+  io_core:      "manifest.summary.json"
+
+  # Additional family
+  codeowners:   "codeowners.summary.json"
+
+# Family aliases → canonical key (keeps config stable while scanners evolve)
+family_aliases:
+  entrypoint:   entrypoints
+  cjs:          js
+  esm:          js
+  file:         ast_symbols
+  class:        ast_symbols
+  function:     ast_symbols
+  import:       ast_imports
+  import_from:  ast_imports
+  from:         ast_imports
+  edge.import:  ast_imports
+  call:         ast_calls
+  artifact:     io_core
+  manifest:     io_core
+
+# Global controls for synthesis/validation.
+controls:
+  synthesize_empty_summaries: true   # write zero-structured summaries when no findings
+  strict_validation: true            # fail run on inconsistent config
+  forbid_raw_secrets: true           # enforce summary-only behavior for secrets
+
+# Optional handoff guidance consumed by guide_writer
+handoff:
+  prefer_parts_index: true
+  reading_order:
+    - path: "analysis/entrypoints.summary.json"
+      why:  "Where & how to run the code"
+    - path: "analysis/docs.coverage.summary.json"
+      why:  "Documentation health"
+    - path: "analysis/quality.complexity.summary.json"
+      why:  "Complexity & hotspots"
+    - path: "analysis/sql.index.summary.json"
+      why:  "DB schema & SQL surface"
+    - path: "analysis/git.info.summary.json"
+      why:  "Repo provenance"
+
+# Execution limits (optional)
+limits:
+  max_files: 0           # 0 = no limit
+  max_bytes: 0
+  timeout_seconds: 0
+
