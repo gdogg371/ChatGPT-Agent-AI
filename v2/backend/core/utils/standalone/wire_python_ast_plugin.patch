@@ -1,226 +1,248 @@
-diff --git a/v2/backend/core/utils/code_bundles/code_bundles/src/packager/languages/__init__.py b/v2/backend/core/utils/code_bundles/code_bundles/src/packager/languages/__init__.py
-new file mode 100644
-index 0000000..1111111
---- /dev/null
-+++ b/v2/backend/core/utils/code_bundles/code_bundles/src/packager/languages/__init__.py
-@@ -0,0 +0 @@
-
-diff --git a/v2/backend/core/utils/code_bundles/code_bundles/src/packager/languages/python/__init__.py b/v2/backend/core/utils/code_bundles/code_bundles/src/packager/languages/python/__init__.py
-new file mode 100644
-index 0000000..1111111
---- /dev/null
-+++ b/v2/backend/core/utils/code_bundles/code_bundles/src/packager/languages/python/__init__.py
-@@ -0,0 +0 @@
-
-diff --git a/v2/backend/core/utils/code_bundles/code_bundles/src/packager/languages/python/plugin.py b/v2/backend/core/utils/code_bundles/code_bundles/src/packager/languages/python/plugin.py
-new file mode 100644
-index 0000000..1111111
---- /dev/null
-+++ b/v2/backend/core/utils/code_bundles/code_bundles/src/packager/languages/python/plugin.py
-@@ -0,0 +199 @@
-# v2/backend/core/utils/code_bundles/code_bundles/src/packager/languages/python/plugin.py
-from __future__ import annotations
-import ast
-from dataclasses import dataclass, asdict
-from typing import Dict, List, Tuple
-
-# ---- Required discovery hooks ----
-EXTENSIONS = (".py", ".pyi")
-
-class _Plugin:
-    name = "python"
-    extensions = EXTENSIONS
-
-    def analyze(self, files: List[Tuple[str, bytes]]) -> Dict[str, object]:
-        py = [(p, b) for p, b in files if isinstance(p, str) and p.endswith(self.extensions)]
-        ldt, docs, quality = _analyze_ast(py)
-        return {
-            "analysis/python/ldt.json": ldt,
-            "analysis/python/docs/coverage.json": docs,
-            "analysis/python/quality.json": quality,
-        }
-
-PLUGIN = _Plugin()
-
-# ---- AST in-memory analysis ----
-@dataclass
-class PyModuleRec:
-    kind: str
-    path: str
-    module: str
-    symbols: Dict[str, List[str]]
-    imports: List[str]
-
-def _module_name_from_rel(rel: str) -> str:
-    if rel.endswith("__init__.py"):
-        pkg = rel.rsplit("/", 1)[0] if "/" in rel else ""
-        return pkg.replace("/", ".").strip(".")
-    if rel.endswith(".py"):
-        return rel[:-3].replace("/", ".").strip(".")
-    return rel.replace("/", ".").strip(".")
-
-def _safe_decode(b: bytes) -> str:
-    try:
-        return b.decode("utf-8")
-    except Exception:
-        return b.decode("utf-8", errors="replace")
-
-def _collect_defs_imports(tree: ast.AST):
-    classes: List[str] = []
-    functions: List[str] = []
-    imports: List[str] = []
-    for node in ast.walk(tree):
-        if isinstance(node, ast.ClassDef):
-            classes.append(node.name)
-        elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
-            functions.append(node.name)
-        elif isinstance(node, ast.Import):
-            for alias in node.names:
-                if alias.name:
-                    imports.append(alias.name)
-        elif isinstance(node, ast.ImportFrom):
-            mod = node.module or ""
-            for alias in node.names:
-                name = alias.name or ""
-                dotted = f"{mod}.{name}" if mod and name else (mod or name)
-                if dotted:
-                    imports.append(dotted)
-    return {"classes": classes, "functions": functions}, imports
-
-def _has_doc(node: ast.AST) -> bool:
-    doc = ast.get_docstring(node, clean=False)
-    return bool(doc and str(doc).strip())
-
-def _doc_coverage_for_module(tree: ast.AST):
-    module_has = _has_doc(tree)
-    classes_total = classes_with = 0
-    methods_total = methods_with = 0
-    functions_total = functions_with = 0
-    for node in getattr(tree, "body", []):
-        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
-            functions_total += 1
-            if _has_doc(node):
-                functions_with += 1
-        elif isinstance(node, ast.ClassDef):
-            classes_total += 1
-            if _has_doc(node):
-                classes_with += 1
-            for cnode in getattr(node, "body", []):
-                if isinstance(cnode, (ast.FunctionDef, ast.AsyncFunctionDef)):
-                    methods_total += 1
-                    if _has_doc(cnode):
-                        methods_with += 1
-    doc_total = 1 + classes_total + methods_total + functions_total
-    doc_with = (1 if module_has else 0) + classes_with + methods_with + functions_with
-    def cov(n: int, d: int):
-        return (n / float(d)) if d > 0 else None
-    return {
-        "module_doc": bool(module_has),
-        "classes": {"total": classes_total, "with_doc": classes_with, "coverage": cov(classes_with, classes_total)},
-        "methods": {"total": methods_total, "with_doc": methods_with, "coverage": cov(methods_with, methods_total)},
-        "functions": {"total": functions_total, "with_doc": functions_with, "coverage": cov(functions_with, functions_total)},
-        "overall": {"documentables": doc_total, "with_doc": doc_with, "coverage": cov(doc_with, doc_total)},
-    }
-
-_COMPLEXITY_NODES = (
-    ast.If, ast.For, ast.AsyncFor, ast.While, ast.With, ast.AsyncWith,
-    ast.Try, ast.ExceptHandler, ast.BoolOp, ast.IfExp, ast.comprehension
-)
-
-def _text_loc_sloc(text: str):
-    loc = 0
-    sloc = 0
-    for line in text.splitlines():
-        loc += 1
-        s = line.strip()
-        if not s:
-            continue
-        if s.startswith("#"):
-            continue
-        sloc += 1
-    return loc, sloc
-
-def _cyclomatic(tree: ast.AST) -> int:
-    score = 1
-    for n in ast.walk(tree):
-        if isinstance(n, _COMPLEXITY_NODES):
-            score += 1
-    return score
-
-def _analyze_ast(files: List[Tuple[str, bytes]]):
-    modules = []; edges = []; docs = []; quality = []
-    for rel, data in files:
-        rel_posix = rel.replace("\\\\", "/")
-        if not rel_posix.endswith(".py"):
-            continue
-        text = _safe_decode(data)
-        try:
-            tree = ast.parse(text, filename=rel_posix)
-        except Exception:
-            mod_name = _module_name_from_rel(rel_posix)
-            modules.append(asdict(PyModuleRec(kind="python.module", path=rel_posix, module=mod_name,
-                                              symbols={"classes": [], "functions": []}, imports=[])))
-            docs.append({"kind": "docs.coverage", "path": rel_posix, "module_doc": False,
-                        "classes": {"total": 0, "with_doc": 0, "coverage": None},
-                        "methods": {"total": 0, "with_doc": 0, "coverage": None},
-                        "functions": {"total": 0, "with_doc": 0, "coverage": None},
-                        "overall": {"documentables": 0, "with_doc": 0, "coverage": None}})
-            quality.append({"kind": "quality.metric", "path": rel_posix, "language": "python",
-                            "sloc": 0, "loc": 0, "cyclomatic": 0, "n_functions": 0, "n_classes": 0,
-                            "avg_fn_len": 0.0, "notes": ["parse_error"]})
-            continue
-
-        symbols, imports = _collect_defs_imports(tree)
-        mod_name = _module_name_from_rel(rel_posix)
-        modules.append(asdict(PyModuleRec(kind="python.module", path=rel_posix, module=mod_name,
-                                          symbols=symbols, imports=imports)))
-        for imp in imports:
-            edges.append({"kind": "graph.edge", "edge_type": "import", "src_path": rel_posix, "dst": imp})
-
-        d = _doc_coverage_for_module(tree)
-        docs.append({"kind": "docs.coverage", "path": rel_posix, **d})
-
-        loc, sloc = _text_loc_sloc(text)
-        n_funcs = sum(1 for n in ast.walk(tree) if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef)))
-        n_classes = sum(1 for n in ast.walk(tree) if isinstance(n, ast.ClassDef))
-        spans = []
-        for n in ast.walk(tree):
-            if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef)):
-                st = int(getattr(n, "lineno", 0) or 0)
-                en = int(getattr(n, "end_lineno", 0) or 0)
-                if st and en and en >= st:
-                    spans.append(en - st + 1)
-        avg_fn_len = (sum(spans) / len(spans)) if spans else 0.0
-        quality.append({"kind": "quality.metric", "path": rel_posix, "language": "python",
-                        "sloc": sloc, "loc": loc, "cyclomatic": _cyclomatic(tree),
-                        "n_functions": n_funcs, "n_classes": n_classes,
-                        "avg_fn_len": round(avg_fn_len, 2)})
-
-    modules_total = len(docs)
-    modules_with = sum(1 for r in docs if r.get("module_doc"))
-    classes_total = sum(int(r["classes"]["total"]) for r in docs if "classes" in r)
-    classes_with = sum(int(r["classes"]["with_doc"]) for r in docs if "classes" in r)
-    methods_total = sum(int(r["methods"]["total"]) for r in docs if "methods" in r)
-    methods_with = sum(int(r["methods"]["with_doc"]) for r in docs if "methods" in r)
-    functions_total = sum(int(r["functions"]["total"]) for r in docs if "functions" in r)
-    functions_with = sum(int(r["functions"]["with_doc"]) for r in docs if "functions" in r)
-    overall_doc_total = sum(int(r["overall"]["documentables"]) for r in docs if "overall" in r)
-    overall_doc_with = sum(int(r["overall"]["with_doc"]) for r in docs if "overall" in r)
-    def cov(n, d): return (n / float(d)) if d > 0 else None
-
-    ldt = {"kind": "python.ldt", "modules": modules, "edges": edges}
-    docs.append({"kind": "docs.coverage.summary", "files": modules_total, "totals": {
-        "modules": {"total": modules_total, "with_doc": modules_with, "coverage": cov(modules_with, modules_total)},
-        "classes": {"total": classes_total, "with_doc": classes_with, "coverage": cov(classes_with, classes_total)},
-        "methods": {"total": methods_total, "with_doc": methods_with, "coverage": cov(methods_with, methods_total)},
-        "functions": {"total": functions_total, "with_doc": functions_with, "coverage": cov(functions_with, functions_total)},
-        "overall": {"documentables": overall_doc_total, "with_doc": overall_doc_with, "coverage": cov(overall_doc_with, overall_doc_total)},
-    }})
-    return ldt, docs, quality
-diff --git a/config/packager.yml b/config/packager.yml
-index abcdef0..1234567 100644
---- a/config/packager.yml
-+++ b/config/packager.yml
-@@ -1,1 +1,2 @@
- publish:
-+publish_analysis: true
+--- code_bundles/code_bundles/run_pack.py
++++ code_bundles/code_bundles/run_pack.py
+@@ -999999,0 +999999,120 @@
++# --- injected: build_cfg wrapper to read packager.yml -------------------------
++# Appends minimal configuration fields to cfg returned by build_cfg(), without
++# touching existing code paths. Safe if packager.yml is absent.
++try:
++    from pathlib import Path as _P
++    try:
++        import yaml as _pm_yaml  # optional
++    except Exception:  # pragma: no cover
++        _pm_yaml = None  # type: ignore
++
++    # Resolve repo root in a way consistent with this module, if available.
++    def _pm__detect_repo_root(cfg=None):
++        try:
++            # If run_pack defines ConfigPaths, use it
++            CP = globals().get("ConfigPaths")
++            if CP is not None:
++                return CP.detect().repo_root
++        except Exception:
++            pass
++        try:
++            if cfg is not None and hasattr(cfg, "repo_root"):
++                return _P(str(cfg.repo_root))
++        except Exception:
++            pass
++        # Fallback to module dir’s parent (project root expectation)
++        return _P(__file__).resolve().parents[4]
++
++    def _pm__read_packager_dict(repo_root: _P) -> dict:
++        if _pm_yaml is None:
++            return {}
++        p = (repo_root / "config" / "packager.yml")
++        if not p.exists():
++            return {}
++        try:
++            return _pm_yaml.safe_load(p.read_text(encoding="utf-8")) or {}
++        except Exception:
++            return {}
++
++    _PM_ORIG_BUILD_CFG = globals().get("build_cfg")
++
++    def _pm__wrapped_build_cfg(*a, **kw):
++        # Call original builder first
++        cfg = _PM_ORIG_BUILD_CFG(*a, **kw) if callable(_PM_ORIG_BUILD_CFG) else None
++        if cfg is None:
++            return cfg
++        try:
++            repo_root = _pm__detect_repo_root(cfg)
++            data = _pm__read_packager_dict(repo_root)
++            for _k in ("metadata_emission", "analysis_filenames", "family_aliases", "controls"):
++                _v = data.get(_k)
++                setattr(cfg, _k, _v if isinstance(_v, dict) else {})
++        except Exception:
++            # Keep cfg unchanged on any error
++            pass
++        return cfg
++
++    # Install wrapper once
++    if callable(_PM_ORIG_BUILD_CFG) and not getattr(_PM_ORIG_BUILD_CFG, "_pm_wrapped", False):
++        globals()["build_cfg"] = _pm__wrapped_build_cfg
++        try:
++            setattr(globals()["build_cfg"], "_pm_wrapped", True)
++        except Exception:
++            pass
++except Exception:
++    # Non-fatal: leave original behavior
++    pass
++# --- end injected -------------------------------------------------------------
+--- code_bundles/code_bundles/orchestrate.py
++++ code_bundles/code_bundles/orchestrate.py
+@@ -999999,0 +999999,200 @@
++# --- injected: analysis sidecar synthesis from packager.yml -------------------
++# After the normal run completes, append empty-but-valid analysis summaries for
++# families whose emission mode is "both". We write them as 'file' records into
++# the JSONL manifest so downstream checksum/publisher behavior is unchanged.
++try:
++    import json as _json, base64 as _b64, hashlib as _hashlib
++    from pathlib import Path as _P
++    try:
++        import yaml as _yaml  # optional
++    except Exception:  # pragma: no cover
++        _yaml = None  # type: ignore
++
++    def _pm__resolve_class():
++        for _name in ("Packager", "Orchestrator"):
++            _cls = globals().get(_name)
++            if _cls is not None and hasattr(_cls, "run"):
++                return _cls
++        return None
++
++    def _pm__read_packager_dict(repo_root: _P) -> dict:
++        if _yaml is None:
++            return {}
++        p = (repo_root / "config" / "packager.yml")
++        if not p.exists():
++            return {}
++        try:
++            return _yaml.safe_load(p.read_text(encoding="utf-8")) or {}
++        except Exception:
++            return {}
++
++    def _pm__plan_from_cfg(cfg) -> tuple[list[str], dict[str, str], bool]:
++        # Returns (families_to_emit, filename_map, synthesize_flag)
++        try:
++            repo_root = _P(str(getattr(cfg, "repo_root", ".")))
++        except Exception:
++            repo_root = _P(".").resolve()
++        data = _pm__read_packager_dict(repo_root)
++        emission = dict((data.get("metadata_emission") or {}))
++        filenames = dict((data.get("analysis_filenames") or {}))
++        controls = dict((data.get("controls") or {}))
++        synth = bool(controls.get("synthesize_empty_summaries", True))
++
++        defaults = {
++            "asset": "asset.summary.json",
++            "deps": "deps.index.summary.json",
++            "sbom": "sbom.cyclonedx.json",
++            "entrypoints": "entrypoints.summary.json",
++            "env": "env.summary.json",
++            "git": "git.info.summary.json",
++            "io_core": "manifest.summary.json",
++            "license": "license.summary.json",
++            "secrets": "secrets.summary.json",
++            "sql": "sql.index.summary.json",
++            "ast_symbols": "ast.symbols.summary.json",
++            "ast_imports": "ast.imports.summary.json",
++            "ast_calls": "ast.calls.summary.json",
++            "docs": "docs.coverage.summary.json",
++            "quality": "quality.complexity.summary.json",
++            "html": "html.summary.json",
++            "js": "js.index.summary.json",
++            "cs": "cs.summary.json",
++            "codeowners": "codeowners.summary.json",
++        }
++        for k, v in defaults.items():
++            filenames.setdefault(k, v)
++
++        fams = [k for k, v in emission.items() if str(v).lower() == "both"]
++        return fams, filenames, synth
++
++    def _pm__derive_files_scanned(manifest_path: _P) -> int:
++        try:
++            for ln in manifest_path.read_text(encoding="utf-8", errors="replace").splitlines():
++                if '"path": "analysis/contents_index.json"' in ln:
++                    rec = _json.loads(ln)
++                    raw = _b64.b64decode(rec.get("content_b64") or "")
++                    arr = _json.loads(raw.decode("utf-8"))
++                    return int(len(arr))
++        except Exception:
++            pass
++        return 0
++
++    def _pm__append_sidecars(manifest_path: _P, sidecars: dict[str, dict]) -> int:
++        # Append JSONL lines to manifest_path (each 'file' record)
++        if not manifest_path.exists():
++            return 0
++        # Avoid duplicating sidecars if re-run
++        existing = set()
++        try:
++            for ln in manifest_path.read_text(encoding="utf-8", errors="replace").splitlines():
++                if '"type": "file"' in ln and '"path": "analysis/' in ln:
++                    try:
++                        rec = _json.loads(ln)
++                        p = rec.get("path")
++                        if isinstance(p, str):
++                            existing.add(p)
++                    except Exception:
++                        pass
++        except Exception:
++            pass
++
++        added = 0
++        with manifest_path.open("a", encoding="utf-8") as f:
++            for rel_path, obj in sidecars.items():
++                if rel_path in existing:
++                    continue
++                payload = _json.dumps(obj, ensure_ascii=False, sort_keys=True, indent=2).encode("utf-8")
++                rec = {
++                    "type": "file",
++                    "path": rel_path,
++                    "content_b64": _b64.b64encode(payload).decode("ascii"),
++                    "sha256": _hashlib.sha256(payload).hexdigest(),
++                }
++                f.write(_json.dumps(rec, ensure_ascii=False) + "\n")
++                added += 1
++        return added
++
++    _PM_TARGET_CLS = _pm__resolve_class()
++    if _PM_TARGET_CLS is not None:
++        _PM_ORIG_RUN = getattr(_PM_TARGET_CLS, "run", None)
++
++        def _pm__patched_run(self, external_source=None):
++            # Execute original behavior
++            result = _PM_ORIG_RUN(self, external_source)
++            try:
++                fams, filenames, synth = _pm__plan_from_cfg(self.cfg)
++                if not synth or not fams:
++                    return result
++                files_scanned = _pm__derive_files_scanned(self.cfg.out_bundle)
++                sidecars: dict[str, dict] = {}
++                for fam in fams:
++                    name = filenames.get(fam) or f"{fam}.summary.json"
++                    rel = f"analysis/{name}"
++                    sidecars[rel] = {
++                        "kind": str(fam),
++                        "files_scanned": int(files_scanned),
++                        "generated_by": "packager:pm_synth",
++                        "timestamp": None,
++                        "records": [],
++                    }
++                added = _pm__append_sidecars(self.cfg.out_bundle, sidecars)
++                if added:
++                    try:
++                        _log(f"Analysis: synthesized {added} empty summary file(s) per packager.yml")
++                    except Exception:
++                        pass
++            except Exception as e:
++                try:
++                    _log(f"Analysis: synthesize skipped: {type(e).__name__}: {e}")
++                except Exception:
++                    pass
++            return result
++
++        # Install wrapper once
++        if callable(_PM_ORIG_RUN) and not getattr(_PM_ORIG_RUN, "_pm_wrapped", False):
++            setattr(_PM_TARGET_CLS, "run", _pm__patched_run)
++            try:
++                setattr(getattr(_PM_TARGET_CLS, "run"), "_pm_wrapped", True)
++            except Exception:
++                pass
++        else:
++            try:
++                _log("Init: analysis sidecar synthesis already installed or run() not callable")
++            except Exception:
++                pass
++    else:
++        try:
++            _log("Init: Packager/Orchestrator class not found; sidecar synthesis not installed")
++        except Exception:
++            pass
++except Exception as _pm_ex:
++    try:
++        _log(f"Init: analysis sidecar synthesis failed: {type(_pm_ex).__name__}: {_pm_ex}")
++    except Exception:
++        pass
++# --- end injected -------------------------------------------------------------
