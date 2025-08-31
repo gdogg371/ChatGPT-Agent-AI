@@ -1,11 +1,11 @@
 """
 Packager runner (direct-source). Single source of truth:
-- Config:   config/packager.yml  -> publish.*
+- Config:   config/packager.yml  (root-level 'publish_analysis' + publish.* + emit_ast)
 - Token:    secret_management/secrets.yml -> github.api_key
 - No reads of publish.local.json.
 
 Code publish respects publish.github.base_path.
-Artifacts publish to repo-root/design_manifest/.
+Artifacts publish to repo-root/design_manifest/ (including analysis/** when enabled).
 """
 
 from __future__ import annotations
@@ -19,21 +19,21 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 from types import SimpleNamespace as NS
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Iterable
 from urllib import error, parse, request
 
-# Ensure we import the LOCAL packager from ./src (force it ahead of site-packages)
+# Ensure the embedded packager is importable first
 ROOT = Path(__file__).parent
 SRC_DIR = ROOT / "src"
 if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
 
-# Local packager (always prefer embedded implementation)
+# Embedded packager
 from packager.core.orchestrator import Packager
-import packager.core.orchestrator as orch_mod  # provenance printing
-from packager.io.publisher import GitHubPublisher, GitHubTarget  # GitHub publishing
+import packager.core.orchestrator as orch_mod  # provenance
+from packager.io.publisher import GitHubPublisher, GitHubTarget
 
-# Manifest enrichment + helpers
+# Manifest helpers + enrichment
 from v2.backend.core.utils.code_bundles.code_bundles.bundle_io import (
     ManifestAppender,
     emit_standard_artifacts,
@@ -48,6 +48,7 @@ from v2.backend.core.utils.code_bundles.code_bundles.contracts import (
     build_manifest_header,
     build_bundle_summary,
 )
+
 # Wired scanners
 from v2.backend.core.utils.code_bundles.code_bundles.doc_coverage import scan as scan_doc_coverage
 from v2.backend.core.utils.code_bundles.code_bundles.complexity import scan as scan_complexity
@@ -71,7 +72,7 @@ from v2.backend.core.configuration.loader import (
     ConfigPaths,
 )
 
-# For reading code_bundle params from vars.yml
+# YAML reader to fetch root-level flags from packager.yml
 import yaml
 
 
@@ -94,11 +95,7 @@ def _match_any(rel_posix: str, globs: List[str], case_insensitive: bool = False)
     return False
 
 
-def _seg_excluded(
-    parts: Tuple[str, ...],
-    segment_excludes: List[str],
-    case_insensitive: bool = False,
-) -> bool:
+def _seg_excluded(parts: Tuple[str, ...], segment_excludes: List[str], case_insensitive: bool = False) -> bool:
     if not segment_excludes:
         return False
     segs = set((s.casefold() if case_insensitive else s) for s in segment_excludes)
@@ -178,7 +175,7 @@ def copy_snapshot(items: List[Tuple[Path, str]], dest_root: Path) -> int:
 
 
 # ──────────────────────────────────────────────────────────────────────────────
-# GitHub helpers (token only from secrets.yml via loader)
+# GitHub helpers
 # ──────────────────────────────────────────────────────────────────────────────
 def _gh_headers(token: str) -> dict:
     return {
@@ -260,7 +257,6 @@ def github_clean_remote_repo(*, owner: str, repo: str, branch: str, base_path: s
 
 
 def _print_full_raw_links(owner: str, repo: str, branch: str, token: str) -> None:
-    """Print full list of raw.githubusercontent.com links (directory recursion)."""
     print("\n=== Raw GitHub Links (full repo) ===")
     all_files = list(_gh_walk_files(owner, repo, "", branch, token))
     for it in sorted(all_files, key=lambda d: d["path"]):
@@ -270,8 +266,42 @@ def _print_full_raw_links(owner: str, repo: str, branch: str, token: str) -> Non
 
 
 # ──────────────────────────────────────────────────────────────────────────────
-# Config builder
+# Config readers (+ root-level flags)
 # ──────────────────────────────────────────────────────────────────────────────
+def _read_root_publish_analysis() -> bool:
+    """
+    Read config/packager.yml directly to respect ROOT-LEVEL 'publish_analysis'.
+    Do NOT infer from publish.*. Only return the root-level boolean.
+    """
+    try:
+        paths = ConfigPaths.detect()
+        cfg_path = paths.repo_root / "config" / "packager.yml"
+        if not cfg_path.exists():
+            return False
+        data = yaml.safe_load(cfg_path.read_text(encoding="utf-8")) or {}
+        return bool(data.get("publish_analysis", False))
+    except Exception as e:
+        print(f"[packager] WARN: publish_analysis read failed: {type(e).__name__}: {e}")
+        return False
+
+
+def _read_root_emit_ast() -> bool:
+    """
+    Read config/packager.yml directly to respect ROOT-LEVEL 'emit_ast'.
+    This only controls whether we append AST records if produced by the indexer.
+    """
+    try:
+        paths = ConfigPaths.detect()
+        cfg_path = paths.repo_root / "config" / "packager.yml"
+        if not cfg_path.exists():
+            return False
+        data = yaml.safe_load(cfg_path.read_text(encoding="utf-8")) or {}
+        return bool(data.get("emit_ast", False))
+    except Exception as e:
+        print(f"[packager] WARN: emit_ast read failed: {type(e).__name__}: {e}")
+        return False
+
+
 def build_cfg(
     *,
     src: Path,
@@ -283,11 +313,12 @@ def build_cfg(
     gh_base: str = "",
     gh_token: Optional[str] = None,
     publish_codebase: bool = True,
-    publish_analysis: bool = False,
+    publish_analysis: bool = False,   # <- root-level flag passed in
     publish_handoff: bool = True,
     publish_transport: bool = True,
     local_publish_root: Optional[Path] = None,
     clean_before_publish: bool = False,
+    emit_ast: bool = False,           # <- root-level flag passed in
 ) -> NS:
     pack = get_packager()
     repo_root = get_repo_root()
@@ -327,11 +358,11 @@ def build_cfg(
     publish = NS(
         mode=mode,
         publish_codebase=bool(publish_codebase),
-        publish_analysis=bool(publish_analysis),
+        publish_analysis=bool(publish_analysis),  # <- strictly the root-level flag we read
         publish_handoff=bool(publish_handoff),
         publish_transport=bool(publish_transport),
         github=gh,
-        github_token=(gh_token or ""),  # from secrets.yml only
+        github_token=(gh_token or ""),
         local_publish_root=(local_publish_root.resolve() if local_publish_root else None),
         clean_before_publish=bool(clean_before_publish),
     )
@@ -352,6 +383,7 @@ def build_cfg(
         publish=publish,
         prompts=None,
         prompt_mode="none",
+        emit_ast=bool(emit_ast),
     )
 
     artifact_out.mkdir(parents=True, exist_ok=True)
@@ -552,7 +584,7 @@ def _maybe_chunk_manifest_and_update(
 
 
 # ──────────────────────────────────────────────────────────────────────────────
-# GitHub publishing
+# GitHub publishing (now includes analysis/**)
 # ──────────────────────────────────────────────────────────────────────────────
 def _publish_to_github(
     cfg: NS,
@@ -569,7 +601,7 @@ def _publish_to_github(
     if not token:
         raise ConfigError("GitHub mode requires a token from secret_management/secrets.yml -> github.api_key")
 
-    # Apply base_path to destination repo paths for CODE
+    # Apply base_path for CODE
     base_prefix = (base_path or "").strip().strip("/")
     if base_prefix:
         code_payload = []
@@ -579,10 +611,10 @@ def _publish_to_github(
     else:
         code_payload = code_items_repo_rel
 
-    target = GitHubTarget(owner=gh.owner, repo=gh.repo, branch=gh.branch, base_path="")  # base_path handled above
+    target = GitHubTarget(owner=gh.owner, repo=gh.repo, branch=gh.branch, base_path="")
     pub = GitHubPublisher(target=target, token=token)
 
-    # Optional artifacts clean (artifacts only)
+    # Optional artifacts clean (design_manifest subtree only)
     if bool(getattr(cfg.publish, "clean_before_publish", False)):
         try:
             github_clean_remote_repo(
@@ -595,7 +627,7 @@ def _publish_to_github(
     print(f"[packager] Publish(GitHub): code files: {len(code_payload)} to base_path='{base_prefix or '/'}'")
     pub.publish_many_files(code_payload, message="publish: code snapshot", throttle_every=50, sleep_secs=0.5)
 
-    # Artifacts (always at repo-root/design_manifest)
+    # Artifacts (always under repo-root/design_manifest)
     art_dir = Path(cfg.out_bundle).parent
     candidates: List[Tuple[Path, str]] = []
 
@@ -603,15 +635,14 @@ def _publish_to_github(
     sums_path = Path(sums_override) if sums_override else Path(cfg.out_sums)
 
     for name in ("assistant_handoff.v1.json", "superbundle.run.json", "design_manifest.SHA256SUMS"):
-        p = art_dir / name
-        if name == "design_manifest.SHA256SUMS":
-            p = sums_path
+        p = art_dir / name if name != "design_manifest.SHA256SUMS" else sums_path
         if p.exists() and p.is_file():
             candidates.append((p, f"design_manifest/{p.name}"))
 
     if manifest_path.exists():
         candidates.append((manifest_path, f"design_manifest/{manifest_path.name}"))
 
+    # Parts + parts index
     idx = art_dir / str(getattr(cfg.transport, "parts_index_name", "design_manifest_parts_index.json"))
     if idx.exists():
         candidates.append((idx, f"design_manifest/{idx.name}"))
@@ -620,6 +651,17 @@ def _publish_to_github(
     for p in sorted(art_dir.glob(f"{part_stem}*{part_ext}")):
         if p.is_file():
             candidates.append((p, f"design_manifest/{p.name}"))
+
+    # NEW: include analysis/** if enabled and present
+    if bool(getattr(cfg.publish, "publish_analysis", False)):
+        analysis_dir = art_dir / "analysis"
+        if analysis_dir.exists():
+            for p in analysis_dir.rglob("*"):
+                if p.is_file():
+                    rel = p.relative_to(art_dir).as_posix()  # analysis/...
+                    candidates.append((p, f"design_manifest/{rel}"))
+        else:
+            print("[packager] Publish(GitHub): analysis/ not present (skipping)")
 
     if not candidates:
         print("[packager] Publish(GitHub): nothing to publish in artifacts")
@@ -676,10 +718,11 @@ def _prune_remote_code_delta(
     to_delete = []
     for it in remote_files:
         path = it["path"]
+        # Never touch design_manifest subtree here
         if path.startswith("design_manifest/"):
-            continue  # artifacts handled separately
-        if not _is_managed_path(path[len(base_prefix) + 1 :] if base_prefix and path.startswith(base_prefix + "/") else path,
-                                include_globs, exclude_globs, seg_excludes, casei):
+            continue
+        rel_for_rules = path[len(base_prefix) + 1 :] if base_prefix and path.startswith(base_prefix + "/") else path
+        if not _is_managed_path(rel_for_rules, include_globs, exclude_globs, seg_excludes, casei):
             continue
         if path not in local_set:
             to_delete.append(it)
@@ -710,15 +753,19 @@ def _prune_remote_artifacts_delta(
     token: str,
 ) -> int:
     art_dir = Path(cfg.out_bundle).parent
-    local_names = set()
-    for p in art_dir.glob("*"):
-        if p.is_file():
-            local_names.add(p.name)
+    # Build local set including nested analysis/**
+    local_rel = set()
+    if art_dir.exists():
+        for p in art_dir.rglob("*"):
+            if p.is_file():
+                local_rel.add(p.relative_to(art_dir).as_posix())  # e.g., "analysis/foo.json"
+    # Remote files under design_manifest/**
     remote = list(_gh_walk_files(gh_owner, gh_repo, "design_manifest", gh_branch, token))
     to_delete = []
     for it in remote:
-        name = Path(it["path"]).name
-        if name not in local_names:
+        # it["path"] is like "design_manifest/..." — compare the tail
+        tail = "/".join(Path(it["path"]).parts[1:])
+        if tail not in local_rel:
             to_delete.append(it)
 
     if not to_delete:
@@ -744,23 +791,34 @@ def _prune_remote_artifacts_delta(
 def _tool_versions() -> Dict[str, Any]:
     try:
         orch_path = Path(inspect.getsourcefile(orch_mod) or "")
-        return {
-            "packager.orchestrator": orch_path.as_posix() if orch_path else "?",
-            "run_pack": Path(__file__).as_posix(),
-        }
+        return {"packager.orchestrator": orch_path.as_posix() if orch_path else "?", "run_pack": Path(__file__).as_posix()}
     except Exception:
         return {"run_pack": Path(__file__).as_posix()}
 
 
 def _map_record_paths_inplace(rec: Dict[str, Any], map_path_fn) -> None:
-    for key in ("path", "src_path", "dst_path"):
+    # Standard path keys
+    for key in ("path", "src_path", "dst_path", "caller_path", "callee_path"):
         if key in rec and isinstance(rec[key], str):
             rec[key] = map_path_fn(rec[key])
+    # Examples array-of-paths
     examples = rec.get("examples")
     if isinstance(examples, dict):
         for k, v in list(examples.items()):
             if isinstance(v, list):
                 examples[k] = [map_path_fn(x) if isinstance(x, str) else x for x in v]
+
+
+def _append_records(app: ManifestAppender, records: Optional[Iterable[Dict[str, Any]]], map_path_fn) -> int:
+    n = 0
+    if not records:
+        return 0
+    for rec in records:
+        if isinstance(rec, dict):
+            _map_record_paths_inplace(rec, map_path_fn)
+            app.append_record(rec)
+            n += 1
+    return n
 
 
 def augment_manifest(
@@ -795,35 +853,106 @@ def augment_manifest(
             return rel
         return f"{emitted_prefix}/{rel}" if emitted_prefix else rel
 
-    t0 = time.perf_counter()
+    t0 = t1 = t2 = t3 = time.perf_counter()
     module_count = 0
     quality_count = 0
     edges_accum: List[Dict[str, Any]] = []
 
+    ast_symbols = 0
+    ast_xrefs = 0
+    ast_calls = 0
+    ast_docstrings = 0
+    ast_symmetrics = 0
+
+    # Python indexing: modules + edges (+ optional AST if provided by indexer)
     for local, rel in discovered_repo:
         if not rel.endswith(".py"):
             continue
-        mod_rec, edges = index_python_file(
-            repo_root=Path(cfg.source_root),
-            local_path=local,
-            repo_rel_posix=rel,
-        )
+
+        # Optional emit_ast support (backwards compatible with existing signature)
+        use_emit_ast = bool(getattr(cfg, "emit_ast", False))
+        res = None
+        try:
+            sig = inspect.signature(index_python_file)
+            if "emit_ast" in sig.parameters:
+                res = index_python_file(
+                    repo_root=Path(cfg.source_root),
+                    local_path=local,
+                    repo_rel_posix=rel,
+                    emit_ast=use_emit_ast,
+                )
+            else:
+                res = index_python_file(
+                    repo_root=Path(cfg.source_root),
+                    local_path=local,
+                    repo_rel_posix=rel,
+                )
+        except Exception as e:
+            # Fallback to legacy call if signature probing failed oddly
+            try:
+                res = index_python_file(
+                    repo_root=Path(cfg.source_root),
+                    local_path=local,
+                    repo_rel_posix=rel,
+                )
+            except Exception as e2:
+                print(f"[packager] WARN: python_index failed for {rel}: {type(e2).__name__}: {e2}")
+                continue
+
+        mod_rec = None
+        edges: List[Dict[str, Any]] = []
+        extras: Optional[Any] = None
+
+        if isinstance(res, (list, tuple)):
+            if len(res) >= 1:
+                mod_rec = res[0]
+            if len(res) >= 2:
+                edges = list(res[1] or [])
+            if len(res) >= 3:
+                extras = res[2]
+        elif isinstance(res, dict):
+            # If indexer returns a dict-like
+            mod_rec = res.get("module")
+            edges = list(res.get("edges") or [])
+            extras = res.get("ast")
+
+        # module
         if mod_rec:
             mod_rec["path"] = map_path(rel)
             app.append_record(mod_rec)
             module_count += 1
+
+        # edges
         if edges:
             for e in edges:
-                if "src_path" in e and isinstance(e["src_path"], str):
-                    e["src_path"] = map_path(e["src_path"])
-                else:
-                    e["src_path"] = map_path(rel)
+                e["src_path"] = map_path(e.get("src_path") or rel)
                 if "dst_path" in e and isinstance(e["dst_path"], str):
                     e["dst_path"] = map_path(e["dst_path"])
             edges_accum.extend(edges)
 
+        # optional AST extras (only when cfg.emit_ast is True and indexer returned them)
+        if extras and bool(getattr(cfg, "emit_ast", False)):
+            # Accept either dict/NS with named lists or flat list of records
+            def _take_list(name: str) -> List[Dict[str, Any]]:
+                if isinstance(extras, dict):
+                    v = extras.get(name)
+                else:
+                    v = getattr(extras, name, None)
+                return list(v or [])
+
+            # If extras is a flat list of records, treat them generically
+            if isinstance(extras, (list, tuple)) and all(isinstance(x, dict) for x in extras):
+                ast_symbols += _append_records(app, extras, map_path)
+            else:
+                ast_symbols += _append_records(app, _take_list("symbols"), map_path)
+                ast_xrefs += _append_records(app, _take_list("xrefs"), map_path)
+                ast_calls += _append_records(app, _take_list("calls"), map_path)
+                ast_docstrings += _append_records(app, _take_list("docstrings"), map_path)
+                ast_symmetrics += _append_records(app, _take_list("symbol_metrics"), map_path)
+
     t1 = time.perf_counter()
 
+    # Per-file quality metrics
     for local, rel in discovered_repo:
         if not rel.endswith(".py"):
             continue
@@ -834,25 +963,21 @@ def augment_manifest(
 
     t2 = time.perf_counter()
 
+    # Coalesce import edges
     edges_dedup = coalesce_edges(edges_accum)
     for e in edges_dedup:
         app.append_record(e)
 
     t3 = time.perf_counter()
 
+    # Run wired scanners
     def run_scanner(name: str, fn, *args, **kwargs):
         try:
             records = fn(*args, **kwargs) or []
         except Exception as e:
             print(f"[packager] WARN: scanner '{name}' failed: {type(e).__name__}: {e}")
             return 0
-        n = 0
-        for rec in records:
-            if isinstance(rec, dict):
-                _map_record_paths_inplace(rec, map_path)
-                app.append_record(rec)
-                n += 1
-        return n
+        return _append_records(app, records, map_path)
 
     wired_counts: Dict[str, int] = {}
     wired_counts["doc_coverage"] = run_scanner("doc_coverage", scan_doc_coverage, Path(cfg.source_root), discovered_repo)
@@ -869,6 +994,7 @@ def augment_manifest(
     wired_counts["secrets"] = run_scanner("secrets_scan", scan_secrets, Path(cfg.source_root), discovered_repo)
     wired_counts["assets"] = run_scanner("assets_index", scan_assets, Path(cfg.source_root), discovered_repo)
 
+    # Standard artifacts + transport parts emission records
     art_count = 0
     art_count += emit_standard_artifacts(
         appender=app,
@@ -885,15 +1011,28 @@ def augment_manifest(
         parts_index_name=str(cfg.transport.parts_index_name),
     )
 
+    # Build summary with AST counts if any
+    counts_base = {
+        "files": len(discovered_repo),
+        "modules": module_count,
+        "edges": len(edges_dedup),
+        "metrics": quality_count,
+        "artifacts": art_count,
+        **{f"wired.{k}": v for k, v in wired_counts.items()},
+    }
+    if bool(getattr(cfg, "emit_ast", False)):
+        counts_base.update(
+            {
+                "ast.symbols": ast_symbols,
+                "ast.xrefs": ast_xrefs,
+                "ast.calls": ast_calls,
+                "ast.docstrings": ast_docstrings,
+                "ast.symbol_metrics": ast_symmetrics,
+            }
+        )
+
     summary = build_bundle_summary(
-        counts={
-            "files": len(discovered_repo),
-            "modules": module_count,
-            "edges": len(edges_dedup),
-            "metrics": quality_count,
-            "artifacts": art_count,
-            **{f"wired.{k}": v for k, v in wired_counts.items()},
-        },
+        counts=counts_base,
         durations_ms={
             "index_ms": int((t1 - t0) * 1000),
             "quality_ms": int((t2 - t1) * 1000),
@@ -906,7 +1045,10 @@ def augment_manifest(
         "[packager] Augment manifest: "
         f"modules={module_count}, metrics={quality_count}, edges={len(edges_dedup)}, "
         f"artifacts={art_count}, path_mode={path_mode}, "
-        "wired={" + ", ".join(f"{k}:{v}" for k, v in wired_counts.items()) + "}"
+        + ("ast={symbols:%d, xrefs:%d, calls:%d, docstrings:%d, symmetrics:%d}, "
+           % (ast_symbols, ast_xrefs, ast_calls, ast_docstrings, ast_symmetrics)
+           if bool(getattr(cfg, 'emit_ast', False)) else "")
+        + "wired={" + ", ".join(f"{k}:{v}" for k, v in wired_counts.items()) + "}"
     )
 
 
@@ -925,30 +1067,29 @@ def main() -> int:
     do_github = mode in {"github", "both"}
     print(f"[packager] mode: {mode} (local={do_local}, github={do_github})")
 
-    # Clean flags — all from packager.yml
+    # honor ROOT-LEVEL flags only
+    root_publish_analysis = _read_root_publish_analysis()
+    root_emit_ast = _read_root_emit_ast()
+    print(f"[packager] publish_analysis (root-level): {root_publish_analysis}")
+    print(f"[packager] emit_ast (root-level): {root_emit_ast}")
+
     clean_repo_root = bool(pub.get("clean_repo_root", False))
     clean_artifacts = bool(pub.get("clean_artifacts", pub.get("clean_before_publish", False)))
 
-    # Paths
     artifact_root = (repo_root / "output" / "design_manifest").resolve()
     code_output_root = (repo_root / "output" / "patch_code_bundles").resolve()
-
-    # Source scan root
     source_root = repo_root
 
-    # GitHub coords (from packager.yml)
     github = dict(pub.get("github") or {})
     gh_owner = str(github.get("owner") or "").strip()
     gh_repo = str(github.get("repo") or "").strip()
     gh_branch = str(github.get("branch") or "main").strip()
     gh_base = str(github.get("base_path") or "").strip()
 
-    # Token ONLY from secrets.yml via loader
     secrets = get_secrets(ConfigPaths.detect())
     gh_token = str(secrets.github_token or "").strip()
 
     if do_github:
-        # Fail fast on missing token or coords
         if not gh_token:
             raise ConfigError("GitHub token not found. Set secret_management/secrets.yml -> github.api_key")
         missing = [k for k, v in (("owner", gh_owner), ("repo", gh_repo), ("branch", gh_branch)) if not v]
@@ -957,7 +1098,6 @@ def main() -> int:
                 f"Missing GitHub {'/'.join(missing)}. Set these in config/packager.yml under publish.github.{{owner,repo,branch}}."
             )
 
-    # Build cfg for orchestrator
     cfg = build_cfg(
         src=source_root,
         artifact_out=artifact_root,
@@ -968,11 +1108,12 @@ def main() -> int:
         gh_base=gh_base,
         gh_token=gh_token if do_github else None,
         publish_codebase=bool(pub.get("publish_codebase", True)),
-        publish_analysis=bool(pub.get("publish_analysis", False)),
+        publish_analysis=root_publish_analysis,  # <- root-level only
         publish_handoff=bool(pub.get("publish_handoff", True)),
         publish_transport=bool(pub.get("publish_transport", True)),
         local_publish_root=None,
         clean_before_publish=bool(clean_artifacts) if (do_github and not clean_repo_root) else False,
+        emit_ast=root_emit_ast,  # <- root-level only
     )
 
     print(f"[packager] using orchestrator from: {inspect.getsourcefile(orch_mod) or '?'}")
@@ -982,7 +1123,6 @@ def main() -> int:
     print(f"[packager] exclude_globs: {list(cfg.exclude_globs)}")
     print(f"[packager] segment_excludes: {list(cfg.segment_excludes)}")
     print(f"[packager] follow_symlinks: {cfg.follow_symlinks} case_insensitive: {cfg.case_insensitive}")
-
     print("[packager] Packager: start]")
 
     if do_local:
@@ -1070,13 +1210,11 @@ def main() -> int:
     if do_local and Path(cfg.out_bundle).exists():
         write_sha256sums_for_file(target_file=Path(cfg.out_bundle), out_sums_path=Path(cfg.out_sums))
 
-    # GitHub publish
+    # GitHub publish (includes analysis/** when root-level flag is true)
     if do_github:
         if clean_repo_root:
             try:
-                github_clean_remote_repo(
-                    owner=gh_owner, repo=gh_repo, branch=gh_branch, base_path="", token=str(gh_token)
-                )
+                github_clean_remote_repo(owner=gh_owner, repo=gh_repo, branch=gh_branch, base_path="", token=str(gh_token))
             except Exception as e:
                 print(f"[packager] WARN: full repo clean failed: {type(e).__name__}: {e}")
 
@@ -1088,7 +1226,6 @@ def main() -> int:
                 sums_override=gh_sums_override if (gh_sums_override and gh_sums_override.exists()) else None,
             )
             _print_full_raw_links(gh_owner, gh_repo, gh_branch, str(gh_token))
-
         else:
             _publish_to_github(
                 cfg=cfg,
@@ -1131,4 +1268,3 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         print("[packager] interrupted.")
         raise SystemExit(130)
-
