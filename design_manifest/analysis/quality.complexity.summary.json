@@ -2,18 +2,18 @@
   "family": "quality",
   "heavy_files_top": [
     {
-      "avg_complexity": 7.75,
-      "functions": 72,
+      "avg_complexity": 8.027,
+      "functions": 74,
       "max_function_complexity": 45,
       "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/code_bundles/run_pack.py",
-      "total_complexity": 558
+      "total_complexity": 594
     },
     {
-      "avg_complexity": 7.75,
-      "functions": 72,
+      "avg_complexity": 8.027,
+      "functions": 74,
       "max_function_complexity": 45,
       "path": "v2/backend/core/utils/code_bundles/code_bundles/run_pack.py",
-      "total_complexity": 558
+      "total_complexity": 594
     },
     {
       "avg_complexity": 7.643,
@@ -354,11 +354,11 @@
   ],
   "metric": "cyclomatic_complexity_approx",
   "stats": {
-    "avg_complexity": 4.991,
+    "avg_complexity": 4.999,
     "files": 582,
-    "functions_measured": 6900,
+    "functions_measured": 6904,
     "max_function_complexity": 76,
     "p95_function_complexity": 14.0,
-    "total_complexity": 34438
+    "total_complexity": 34516
   }
 }
