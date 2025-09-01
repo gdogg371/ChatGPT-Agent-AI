@@ -6,12 +6,12 @@
       "path": "asset.summary.json"
     },
     "ast_calls": {
-      "count": 31700,
+      "count": 31704,
       "mode": "both",
       "path": "ast.calls.summary.json"
     },
     "ast_imports": {
-      "count": 3132,
+      "count": 3134,
       "mode": "both",
       "path": "ast.imports.summary.json"
     },
