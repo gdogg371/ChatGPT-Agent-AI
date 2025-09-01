@@ -1,53 +1,29 @@
 {
   "record_type": "assistant_handoff.v1",
   "version": "2",
-  "generated_at": "2025-09-01T14:29:48.112440Z",
-  "artifact_root": "C:/Users/cg371/PycharmProjects/ChatGPT Bot/output/design_manifest",
-  "publish": {
-    "mode": "both",
-    "github": {
-      "owner": "gdogg371",
-      "repo": "ChatGPT-Agent-AI",
-      "branch": "main",
-      "raw_base": "https://raw.githubusercontent.com/gdogg371/ChatGPT-Agent-AI/main/"
-    }
-  },
+  "generated_at": "2025-09-01T14:37:27.411603Z",
+  "artifact_root": "output/design_manifest/",
   "transport": {
-    "chunked": true,
     "part_stem": "design_manifest",
     "part_ext": ".txt",
     "parts_per_dir": 10,
     "split_bytes": 300000,
     "preserve_monolith": false,
-    "parts_index": "C:/Users/cg371/PycharmProjects/ChatGPT Bot/output/design_manifest/design_manifest_parts_index.json",
-    "parts_dir": "C:/Users/cg371/PycharmProjects/ChatGPT Bot/output/design_manifest",
-    "parts_count": 0,
-    "monolith_path": "C:/Users/cg371/PycharmProjects/ChatGPT Bot/output/design_manifest/design_manifest.jsonl",
-    "monolith_available": false,
-    "how_to_consume": [
-      "Read parts_index to get ordered part file refs.",
-      "Stream and concatenate part files in the listed order to reconstruct the manifest stream.",
-      "Do NOT lexically sort filenames; always follow the index order."
-    ]
+    "parts_index": "output/design_manifest/design_manifest_parts_index.json",
+    "monolith": "output/design_manifest/design_manifest.jsonl"
   },
   "paths": {
-    "analysis_dir": "C:/Users/cg371/PycharmProjects/ChatGPT Bot/output/design_manifest/analysis",
-    "run_spec": "C:/Users/cg371/PycharmProjects/ChatGPT Bot/output/design_manifest/superbundle.run.json",
-    "handoff": "C:/Users/cg371/PycharmProjects/ChatGPT Bot/output/design_manifest/assistant_handoff.v1.json",
-    "checksums": {
-      "monolith_sha256": "C:/Users/cg371/PycharmProjects/ChatGPT Bot/output/design_manifest/design_manifest.SHA256SUMS",
-      "parts_sha256": "C:/Users/cg371/PycharmProjects/ChatGPT Bot/output/design_manifest/parts.SHA256SUMS",
-      "algo": "sha256"
-    }
+    "analysis_dir": "output/design_manifest/analysis/",
+    "run_spec": "output/design_manifest/superbundle.run.json",
+    "handoff": "output/design_manifest/assistant_handoff.v1.json"
   },
   "analysis_files": {},
   "quickstart": {
     "start_here": [],
-    "raw_manifest": [
+    "raw_sources": [
       {
-        "title": "Chunked manifest (parts index)",
-        "path": "C:/Users/cg371/PycharmProjects/ChatGPT Bot/output/design_manifest/design_manifest_parts_index.json",
-        "how": "Follow the listed order to stream parts."
+        "title": "Open parts index (chunked manifest)",
+        "path": "output/design_manifest/design_manifest_parts_index.json"
       }
     ]
   },
@@ -55,7 +31,7 @@
     "stats": {
       "files_total": null,
       "python_modules": null,
-      "graph_edges": null
+      "edges": null
     },
     "top": {
       "complexity_modules": [],
@@ -67,16 +43,12 @@
       "license_flags": 0
     }
   },
-  "limits": {
-    "max_files": null,
-    "max_bytes": null,
-    "timeout_seconds": null
-  },
   "constraints": {
     "offline_only": true
   },
+  "limits": {},
   "notes": [
-    "Paths are relative to artifact_root unless absolute.",
-    "If preserve_monolith=false, the monolithic manifest may be empty or removed."
+    "All analysis paths are relative to artifact_root.",
+    "If preserve_monolith=false, the monolithic manifest may be empty or removed after chunking."
   ]
 }
