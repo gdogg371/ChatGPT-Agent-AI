@@ -6,7 +6,7 @@ Responsibilities
 ----------------
 - Read normalized manifest items via ManifestReader.
 - Reduce items per family and write stable, deterministic summaries into
-  design_manifest/analysis/.
+  <manifest_dir>/analysis/.
 - Maintain an analysis/_index.json describing emitted families, counts,
   and target filenames.
 - Avoid misleading outputs (family-specific reducers handle `no_data`
@@ -25,7 +25,7 @@ This module is stdlib-only and makes no network calls.
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Tuple
 
 from packager.core.loader import load_packager_config  # uses config/packager.yml
 from packager.manifest.reader import ManifestReader
@@ -42,17 +42,6 @@ __all__ = ["emit_from_config", "emit_analysis", "emit_all"]
 
 def _pfx(msg: str) -> str:
     return f"[analysis] {msg}"
-
-
-def _analysis_dir_from_cfg(cfg) -> Path:
-    """
-    Resolve the target analysis directory for summaries.
-
-    Convention:
-      <source_root>/design_manifest/analysis/
-    """
-    src_root = Path(getattr(cfg, "source_root", "."))
-    return (src_root / "design_manifest" / "analysis").resolve()
 
 
 def _candidate_manifest_dirs(cfg) -> List[Path]:
@@ -108,7 +97,7 @@ def _resolve_manifest_dir(cfg) -> Tuple[Path, Dict[str, Any]]:
         if has_parts or has_jsonl:
             diagnostics["selected"] = str(cand)
             return cand, diagnostics
-    # Fallback to first
+    # Fallback to first candidate
     first = _candidate_manifest_dirs(cfg)[0]
     diagnostics["selected"] = str(first)
     return first, diagnostics
@@ -195,20 +184,22 @@ def _gate_from_cfg(cfg) -> List[str]:
 
 def emit_analysis(*, cfg=None) -> Dict[str, Any]:
     """
-    Emit analysis summaries into <source_root>/design_manifest/analysis
-    based on the current design_manifest parts.
+    Emit analysis summaries into <manifest_dir>/analysis based on the
+    current design_manifest parts.
     """
     if cfg is None:
         cfg = load_packager_config()
 
-    # Choose the actual manifest dir for this run
+    # Choose the actual manifest dir for this run (repo-root or output/)
     manifest_dir, diag = _resolve_manifest_dir(cfg)
-    out_dir = _analysis_dir_from_cfg(cfg)
+
+    # IMPORTANT: tie the analysis output directory to the selected manifest_dir
+    out_dir = (manifest_dir / "analysis").resolve()
     out_dir.mkdir(parents=True, exist_ok=True)
 
     print(_pfx(f"source manifest dir: {manifest_dir}"))
     print(_pfx(f"target analysis dir: {out_dir}"))
-    # Useful diagnosis if counts unexpectedly zero
+    # Helpful probe if counts unexpectedly zero
     try:
         print(_pfx(f"probe: {diag}"))
     except Exception:
@@ -259,16 +250,15 @@ def emit_all(*, repo_root: Path | str, cfg) -> Dict[str, Any]:
     and invokes it like:
         _emit_analysis_sidecars(repo_root=Path(cfg.source_root).resolve(), cfg=cfg)
 
-    We ignore `repo_root` (paths are resolved from cfg.source_root) but validate it
-    for sanity, then delegate to emit_analysis.
+    We ignore `repo_root` (paths are resolved via cfg + autodetect), but we
+    validate for sanity, then delegate to emit_analysis.
     """
     try:
         rr = Path(repo_root).resolve()
         sr = Path(getattr(cfg, "source_root", ".")).resolve()
         if rr != sr:
-            print(_pfx(f"NOTE: repo_root {rr} differs from cfg.source_root {sr}; using cfg.source_root."))
+            print(_pfx(f"NOTE: repo_root {rr} differs from cfg.source_root {sr}; using autodetected manifest dir."))
     except Exception:
-        # Non-fatal; proceed with cfg
         pass
     return emit_analysis(cfg=cfg)
 
@@ -286,3 +276,4 @@ if __name__ == "__main__":
         print(_pfx(f"ERROR: {e}"), file=sys.stderr)
         traceback.print_exc()
         raise
+
