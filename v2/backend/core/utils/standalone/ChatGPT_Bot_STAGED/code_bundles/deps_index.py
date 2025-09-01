@@ -1,4 +1,4 @@
-# File: v2/backend/core/utils/code_bundles/code_bundles/deps_index.py
+# File: v2/backend/core/utils/code_bundles/code_bundles/deps_index_OLD.py
 """
 Dependency manifest indexer (stdlib-only).
 
