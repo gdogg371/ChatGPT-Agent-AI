@@ -1,10 +1,10 @@
 {
   "family": "ast_symbols",
   "stats": {
-    "count": 4206,
+    "count": 4210,
     "kinds": {
       "class": 752,
-      "function": 3454
+      "function": 3458
     }
   }
 }
