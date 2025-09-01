@@ -641,6 +641,27 @@ def _maybe_chunk_manifest_and_update(
         parts_per_dir=int(getattr(cfg.transport, "parts_per_dir", 10)),
     )
     (parts_dir / index_name).write_text(json.dumps(index, ensure_ascii=False, indent=2), encoding="utf-8")
+    # --- CHECKSUMS: monolith + parts (added) ---
+    try:
+        # write monolith sums if the monolith exists (or keep file absent if not present)
+        write_sha256sums_for_file(
+            target_file=Path(cfg.out_bundle).parent / f"{part_stem}.jsonl",
+            out_sums_path=Path(cfg.out_bundle).parent / "design_manifest.SHA256SUMS",
+        )
+    except Exception as e:
+        print("[packager] WARN: monolith checksums:", type(e).__name__, e)
+
+    try:
+        _write_sha256sums_for_parts(
+            parts_dir=Path(cfg.out_bundle).parent,
+            parts_index_name=str(cfg.transport.parts_index_name),
+            part_stem=part_stem,
+            part_ext=part_ext,
+            out_sums_path=Path(cfg.out_bundle).parent / "parts.SHA256SUMS",
+        )
+    except Exception as e:
+        print("[packager] WARN: parts checksums:", type(e).__name__, e)
+    # --- END CHECKSUMS ---
 
     added = _append_parts_artifacts_into_manifest(
         manifest_path=manifest_path,
