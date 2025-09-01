@@ -1,54 +1,82 @@
 {
-  "record_type": "assistant_handoff.v1",
-  "version": "2",
-  "generated_at": "2025-09-01T14:37:27.411603Z",
-  "artifact_root": "output/design_manifest/",
-  "transport": {
-    "part_stem": "design_manifest",
-    "part_ext": ".txt",
-    "parts_per_dir": 10,
-    "split_bytes": 300000,
-    "preserve_monolith": false,
-    "parts_index": "output/design_manifest/design_manifest_parts_index.json",
-    "monolith": "output/design_manifest/design_manifest.jsonl"
-  },
-  "paths": {
-    "analysis_dir": "output/design_manifest/analysis/",
-    "run_spec": "output/design_manifest/superbundle.run.json",
-    "handoff": "output/design_manifest/assistant_handoff.v1.json"
-  },
   "analysis_files": {},
-  "quickstart": {
-    "start_here": [],
-    "raw_sources": [
-      {
-        "title": "Open parts index (chunked manifest)",
-        "path": "output/design_manifest/design_manifest_parts_index.json"
-      }
-    ]
-  },
-  "highlights": {
-    "stats": {
-      "files_total": null,
-      "python_modules": null,
-      "edges": null
-    },
-    "top": {
-      "complexity_modules": [],
-      "import_modules": [],
-      "entrypoints": []
-    },
-    "risks": {
-      "secrets_findings": 0,
-      "license_flags": 0
-    }
-  },
+  "artifact_root": "output/design_manifest/",
   "constraints": {
     "offline_only": true
   },
-  "limits": {},
+  "generated_at": "2025-09-01T19:51:28.347940Z",
+  "highlights": {
+    "risks": {
+      "license_flags": 0,
+      "secrets_findings": 0
+    },
+    "stats": {
+      "files_total": null,
+      "graph_edges": null,
+      "python_modules": null
+    },
+    "top": {
+      "complexity_modules": [],
+      "entrypoints": [],
+      "import_modules": []
+    }
+  },
+  "limits": {
+    "max_bytes": 0,
+    "max_files": 0,
+    "timeout_seconds": 0
+  },
   "notes": [
-    "All analysis paths are relative to artifact_root.",
-    "If preserve_monolith=false, the monolithic manifest may be empty or removed after chunking."
-  ]
+    "Paths are relative to artifact_root unless absolute.",
+    "If preserve_monolith=false, the monolithic manifest may be empty or removed."
+  ],
+  "paths": {
+    "analysis_dir": "output/design_manifest/analysis/",
+    "checksums": {
+      "algo": "sha256",
+      "monolith_sha256": "output/design_manifest/design_manifest.SHA256SUMS",
+      "parts_sha256": "output/design_manifest/parts.SHA256SUMS"
+    },
+    "handoff": "output/design_manifest/assistant_handoff.v1.json",
+    "run_spec": "output/design_manifest/superbundle.run.json"
+  },
+  "publish": {
+    "github": {
+      "branch": "main",
+      "owner": "gdogg371",
+      "raw_base": "https://raw.githubusercontent.com/gdogg371/ChatGPT-Agent-AI/main/",
+      "repo": "ChatGPT-Agent-AI"
+    },
+    "mode": "both"
+  },
+  "quickstart": {
+    "raw_manifest": [
+      {
+        "how": "Follow the listed order to stream parts.",
+        "path": "output/design_manifest/design_manifest_parts_index.json",
+        "title": "Chunked manifest (parts index)"
+      }
+    ],
+    "start_here": []
+  },
+  "record_type": "assistant_handoff.v1",
+  "transport": {
+    "chunked": false,
+    "how_to_consume": [
+      "Read parts_index to get ordered part file refs.",
+      "Stream and concatenate part files in the listed order to reconstruct the manifest stream.",
+      "Do NOT lexically sort filenames; always follow the index order."
+    ],
+    "monolith_available": true,
+    "monolith_path": "output/design_manifest/design_manifest.jsonl",
+    "part_ext": ".txt",
+    "part_stem": "design_manifest",
+    "parts_count": 0,
+    "parts_dir": "output/design_manifest/",
+    "parts_index": "output/design_manifest/design_manifest_parts_index.json",
+    "parts_per_dir": 10,
+    "preserve_monolith": false,
+    "split_bytes": 300000
+  },
+  "version": "2"
 }
