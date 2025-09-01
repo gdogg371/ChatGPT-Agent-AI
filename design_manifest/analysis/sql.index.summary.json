@@ -1,9 +1,0 @@
-{
-  "family": "sql",
-  "stats": {
-    "count": 176,
-    "kinds": {
-      "sql.index": 176
-    }
-  }
-}
