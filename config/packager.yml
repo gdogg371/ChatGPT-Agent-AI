@@ -222,3 +222,34 @@ limits:
   max_bytes: 0
   # Prevent silent stalls during emitter backfill while staying generous for big repos
   timeout_seconds: 600
+
+# -----------------------------------------------------------------------------
+# Analysis & scanner settings (Phase 1: Python dependency scanning)
+# -----------------------------------------------------------------------------
+analysis:
+  # Gate (optional): if provided, restricts families emitted by the analysis emitter.
+  # Leave empty to emit all known families.
+  gate: []
+
+  deps:
+    enabled: true
+    ecosystems:
+      - pypi            # Phase 1 enables Python only
+    python:
+      enabled: true
+      # Which sources to read (all stdlib parsers)
+      sources:
+        poetry_lock: true        # poetry.lock
+        pyproject: true          # pyproject.toml (PEP 621 + tool.poetry.*)
+        requirements: true       # requirements*.txt
+        setup_cfg: true          # setup.cfg (install_requires/extras_require)
+      # Preference order when multiple sources specify a version for the same package
+      prefer_version_source:
+        - poetry_lock
+        - requirements
+        - pyproject
+        - setup_cfg
+      # Parsing safeguards to avoid runaway inputs
+      parse_limits:
+        max_requirements_lines: 10000
+        max_packages: 10000
