@@ -1,15 +1,15 @@
 {
   "family": "ast_calls",
   "stats": {
-    "count": 31532,
+    "count": 31676,
     "top_calls": [
       [
         "len",
-        1244
+        1248
       ],
       [
         "isinstance",
-        1180
+        1202
       ],
       [
         "str",
@@ -29,7 +29,7 @@
       ],
       [
         "int",
-        622
+        640
       ],
       [
         "_log",
@@ -65,7 +65,7 @@
       ],
       [
         "out.append",
-        228
+        232
       ],
       [
         "Constant.join",
@@ -73,7 +73,7 @@
       ],
       [
         "dict",
-        218
+        224
       ],
       [
         "json.dumps",
