@@ -1,12 +1,12 @@
 {
   "families": {
     "asset": {
-      "count": 0,
+      "count": 214,
       "mode": "both",
       "path": "asset.summary.json"
     },
     "ast_calls": {
-      "count": 31532,
+      "count": 31676,
       "mode": "both",
       "path": "ast.calls.summary.json"
     },
@@ -16,7 +16,7 @@
       "path": "ast.imports.summary.json"
     },
     "ast_symbols": {
-      "count": 4206,
+      "count": 4210,
       "mode": "both",
       "path": "ast.symbols.summary.json"
     },
@@ -31,7 +31,7 @@
       "path": "cs.summary.json"
     },
     "deps": {
-      "count": 0,
+      "count": 2,
       "mode": "both",
       "path": "deps.index.summary.json"
     },
@@ -62,8 +62,8 @@
     },
     "io_core": {
       "count": 588,
-      "mode": "manifest",
-      "path": null
+      "mode": "both",
+      "path": "manifest.summary.json"
     },
     "js": {
       "count": 0,
