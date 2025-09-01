@@ -8,10 +8,15 @@ from typing import Any, Dict, Optional
 
 
 def _iso_now() -> str:
+    # ISO-8601 UTC with Z suffix
     return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
 
 
 def _posix_rel(base: Path, target: Path, *, trailing_slash: bool = False) -> str:
+    """
+    POSIX path for `target` relative to `base` where possible; otherwise absolute.
+    Optionally ensure a trailing slash.
+    """
     base = base.resolve()
     target = target.resolve()
     try:
@@ -32,7 +37,7 @@ def _read_json(path: Path) -> Optional[dict]:
 
 class GuideWriter:
     """
-    Build a rich assistant_handoff.v1.json that matches the target schema.
+    Emit assistant_handoff.v1.json matching the target schema (no checksum writing).
     """
 
     def __init__(self, out_path: Path) -> None:
@@ -41,36 +46,34 @@ class GuideWriter:
     def write(self, *, cfg: Any) -> None:
         data = self.build(cfg=cfg)
         self.out_path.parent.mkdir(parents=True, exist_ok=True)
-        payload = json.dumps(data, ensure_ascii=False, sort_keys=True, indent=2) + "\n"
+        # pretty output; keep key order as constructed (no sort_keys)
+        payload = json.dumps(data, ensure_ascii=False, indent=2) + "\n"
         self.out_path.write_text(payload, encoding="utf-8")
 
     def build(self, *, cfg: Any) -> Dict[str, Any]:
-        # anchors
+        # Anchors
         source_root = Path(getattr(cfg, "source_root"))
-        out_bundle = Path(getattr(cfg, "out_bundle"))            # e.g. .../design_manifest/design_manifest_00001.txt
-        artifact_root = out_bundle.parent                         # .../design_manifest/
+        out_bundle = Path(getattr(cfg, "out_bundle"))   # .../design_manifest/design_manifest_0001.txt or .jsonl
+        artifact_root = out_bundle.parent               # .../design_manifest/
         out_runspec = Path(getattr(cfg, "out_runspec"))
         out_guide = Path(getattr(cfg, "out_guide"))
         analysis_dir = artifact_root / "analysis"
 
-        # transport config
+        # Transport config (reflect runtime; default split to 150_000 if unset)
         t = getattr(cfg, "transport")
         part_stem = str(getattr(t, "part_stem", "design_manifest"))
         part_ext = str(getattr(t, "part_ext", ".txt"))
         parts_per_dir = int(getattr(t, "parts_per_dir", 10))
         split_bytes = int(getattr(t, "split_bytes", 150_000))
         preserve_monolith = bool(getattr(t, "preserve_monolith", False))
-        parts_index_name = f"{part_stem}_parts_index.json"
-
-        parts_index_path = artifact_root / parts_index_name
+        parts_index_path = artifact_root / f"{part_stem}_parts_index.json"
         parts_index = _read_json(parts_index_path) or {}
         parts_count = int(parts_index.get("total_parts") or 0)
         chunked = parts_count > 0
-
         monolith_path = artifact_root / f"{part_stem}.jsonl"
         monolith_available = monolith_path.exists()
 
-        # relative paths (repo-root based)
+        # Relative (repo-root) POSIX paths
         rel_artifact_root = _posix_rel(source_root, artifact_root, trailing_slash=True)
         rel_analysis_dir = _posix_rel(source_root, analysis_dir, trailing_slash=True)
         rel_runspec = _posix_rel(source_root, out_runspec)
@@ -78,7 +81,7 @@ class GuideWriter:
         rel_parts_index = _posix_rel(source_root, parts_index_path)
         rel_monolith = _posix_rel(source_root, monolith_path)
 
-        # publish (if configured)
+        # Publish block
         pub = getattr(cfg, "publish", None)
         mode = (getattr(pub, "mode", None) or "local").lower() if pub else "local"
         gh = getattr(pub, "github", None)
@@ -93,32 +96,60 @@ class GuideWriter:
             raw_base = f"https://raw.githubusercontent.com/{owner}/{repo}/{branch}/{base_path}"
             github_block = {"owner": owner, "repo": repo, "branch": branch, "raw_base": raw_base}
 
-        # analysis files -> derive from analysis/_index.json (families.<key>.path)
+        # Canonical analysis_files (include only files that exist)
+        expected = {
+            "asset": "asset.summary.json",
+            "deps": "deps.scan.summary.json",
+            "entrypoints": "entrypoints.summary.json",
+            "env": "env.summary.json",
+            "git": "git.info.summary.json",
+            "license": "license.summary.json",
+            "secrets": "secrets.summary.json",
+            "sql": "sql.index.summary.json",
+            "ast_symbols": "ast.symbols.summary.json",
+            "ast_imports": "ast.imports.summary.json",
+            "ast_calls": "ast.calls.summary.json",
+            "docs": "docs.coverage.summary.json",
+            "quality": "quality.complexity.summary.json",
+            "html": "html.summary.json",
+            "js": "js.index.summary.json",
+            "cs": "cs.summary.json",
+            "sbom": "sbom.cyclonedx.json",
+            "manifest": "manifest.summary.json",
+            "codeowners": "codeowners.summary.json",
+        }
         analysis_files: Dict[str, str] = {}
-        idx = _read_json(analysis_dir / "_index.json") or {}
-        for key, meta in (idx.get("families") or {}).items():
-            p = meta.get("path")
-            if p and (analysis_dir / p).exists():
-                analysis_files[key] = rel_analysis_dir + p
+        for k, fname in expected.items():
+            fp = analysis_dir / fname
+            if fp.exists():
+                analysis_files[k] = rel_analysis_dir + fname
 
-        # quickstart cards (only include if available)
-        def card(title: str, key: str, why: str):
+        # Quickstart (include cards only if files exist)
+        def _card(title: str, key: str, why: str):
             p = analysis_files.get(key)
             return {"title": title, "path": p, "why": why} if p else None
-
         quickstart = {
             "start_here": list(filter(None, [
-                card("Run & CLI", "entrypoints", "How to invoke binaries/scripts and service entrypoints."),
-                card("Docs coverage", "docs", "Docstring coverage by module; identify gaps."),
-                card("Complexity hotspots", "quality", "Prioritize risky modules/functions."),
-                card("SQL surface", "sql", "DB schemas and queries in one place."),
-                card("Repo provenance", "git", "Branch, commit, authorship if available."),
+                _card("Run & CLI", "entrypoints", "How to invoke binaries/scripts and service entrypoints."),
+                _card("Docs coverage", "docs", "Docstring coverage by module; identify gaps."),
+                _card("Complexity hotspots", "quality", "Prioritize risky modules/functions."),
+                _card("SQL surface", "sql", "DB schemas and queries in one place."),
+                _card("Repo provenance", "git", "Branch, commit, authorship if available."),
             ])),
             "raw_manifest": [
-                {"title": "Chunked manifest (parts index)", "path": rel_parts_index,
-                 "how": "Follow the listed order to stream parts."}
+                {
+                    "title": "Chunked manifest (parts index)",
+                    "path": rel_parts_index,
+                    "how": "Follow the listed order to stream parts.",
+                }
             ],
         }
+
+        # Optional highlights from analysis/_index.json (best-effort)
+        idx = _read_json(analysis_dir / "_index.json") or {}
+        families = idx.get("families") or {}
+        files_total = (families.get("asset") or {}).get("count")
+        python_modules = (families.get("ast_symbols") or {}).get("count")
 
         data: Dict[str, Any] = {
             "record_type": "assistant_handoff.v1",
@@ -130,7 +161,7 @@ class GuideWriter:
             "publish": {"mode": mode, **({"github": github_block} if github_block else {})},
 
             "transport": {
-                "chunked": chunked,
+                "chunked": bool(chunked),
                 "part_stem": part_stem,
                 "part_ext": part_ext,
                 "parts_per_dir": parts_per_dir,
@@ -142,7 +173,7 @@ class GuideWriter:
                 "parts_count": parts_count,
 
                 "monolith_path": rel_monolith,
-                "monolith_available": monolith_available,
+                "monolith_available": bool(monolith_available),
 
                 "how_to_consume": [
                     "Read parts_index to get ordered part file refs.",
@@ -168,22 +199,31 @@ class GuideWriter:
 
             "highlights": {
                 "stats": {
-                    "files_total": (idx.get("families") or {}).get("asset", {}).get("count"),
-                    "python_modules": (idx.get("families") or {}).get("ast_symbols", {}).get("count"),
+                    "files_total": files_total,
+                    "python_modules": python_modules,
                     "graph_edges": None,
                 },
-                "top": {"complexity_modules": [], "import_modules": [], "entrypoints": []},
-                "risks": {"secrets_findings": 0, "license_flags": 0},
+                "top": {
+                    "complexity_modules": [],
+                    "import_modules": [],
+                    "entrypoints": [],
+                },
+                "risks": {
+                    "secrets_findings": 0,
+                    "license_flags": 0,
+                },
             },
 
-            "limits": {"max_files": 0, "max_bytes": 0, "timeout_seconds": 0},
+            "limits": {"max_files": 0, "max_bytes": 0, "timeout_seconds": 600},
             "constraints": {"offline_only": True},
             "notes": [
                 "Paths are relative to artifact_root unless absolute.",
                 "If preserve_monolith=false, the monolithic manifest may be empty or removed.",
             ],
         }
+
         return data
+
 
 
 
