@@ -9,7 +9,8 @@ Artifacts publish to repo-root/design_manifest/ (including analysis/** when enab
 """
 
 from __future__ import annotations
-
+from hashlib import sha256
+import json, re
 import fnmatch
 import inspect
 import json
@@ -104,7 +105,6 @@ from v2.backend.core.configuration.loader import (
 
 # YAML reader to fetch root-level flags from packager.yml
 import yaml
-
 
 class Transport(NS):
     pass
@@ -203,6 +203,53 @@ def copy_snapshot(items: List[Tuple[Path, str]], dest_root: Path) -> int:
             print(f"[packager] WARN: copy failed {rel}: {type(e).__name__}: {e}")
     return count
 
+
+def _write_sha256sums_for_parts(*, parts_dir: Path, parts_index_name: str, part_stem: str, part_ext: str, out_sums_path: Path) -> int:
+    """
+    Write SHA256SUMS for chunked manifest parts and the parts index.
+    Returns number of files hashed.
+    """
+    parts_dir = Path(parts_dir)
+    out_sums_path = Path(out_sums_path)
+    out_sums_path.parent.mkdir(parents=True, exist_ok=True)
+
+    # Prefer the explicit parts index if present
+    index_path = parts_dir / parts_index_name
+    part_files: list[Path] = []
+    if index_path.exists():
+        try:
+            data = json.loads(index_path.read_text(encoding="utf-8"))
+            seq = data.get("parts") or data.get("files") or []
+            for p in seq:
+                if isinstance(p, str):
+                    part_files.append(parts_dir / p)
+                elif isinstance(p, dict):
+                    name = p.get("path") or p.get("name")
+                    if name:
+                        part_files.append(parts_dir / str(name))
+        except Exception:
+            part_files = []
+
+    # Fallback: discover by pattern
+    if not part_files:
+        pat = re.compile(rf"^{re.escape(part_stem)}_\d+_\d+{re.escape(part_ext)}$")
+        part_files = [p for p in sorted(parts_dir.iterdir()) if p.is_file() and pat.match(p.name)]
+
+    # Include the index file itself if present
+    files_to_hash = [p for p in part_files if p.exists()]
+    if index_path.exists():
+        files_to_hash.insert(0, index_path)
+
+    if not files_to_hash:
+        return 0
+
+    lines = []
+    for fp in files_to_hash:
+        digest = sha256(fp.read_bytes()).hexdigest()
+        lines.append(f"{digest}  {fp.name}\n")
+
+    out_sums_path.write_text("".join(lines), encoding="utf-8")
+    return len(files_to_hash)
 
 # ──────────────────────────────────────────────────────────────────────────────
 # GitHub helpers
@@ -1054,7 +1101,19 @@ def augment_manifest(
         parts_index_name=str(cfg.transport.parts_index_name),
     )
 
-    # Build summary with AST counts if any
+    # Write SHA256SUMS for chunked manifest (when monolith is not used)
+    try:
+        _write_sha256sums_for_parts(
+            parts_dir=Path(cfg.out_bundle).parent,
+            parts_index_name=str(cfg.transport.parts_index_name),
+            part_stem=str(cfg.transport.part_stem),
+            part_ext=str(cfg.transport.part_ext),
+            out_sums_path=Path(cfg.out_sums),
+        )
+    except Exception as e:
+        print(f"[packager] WARN: failed to write SHA256")
+
+        # Build summary with AST counts if any
     counts_base = {
         "files": len(discovered_repo),
         "modules": module_count,
