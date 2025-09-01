@@ -426,29 +426,44 @@ def _reduce_deps(items: List[dict]) -> dict:
 
 def _reduce_ast_imports(items: List[dict]) -> dict:
     """
-    Summarize import edges. Your pipeline emits edges as 'edge.import', which the
-    reader aliases to 'ast_imports'. We accept several shapes:
+    Summarize import edges.
 
-    Common keys we look for:
-      - path/file (source file)
-      - from/module/source
-      - to/imported/target/name
+    Accepts multiple item shapes. In your pipeline, import edges are typically:
+      {"record_type":"edge.import", "src_path":"<file>", "dst_module":"<module>", ...}
+
+    We also tolerate alternative keys seen in other runs:
+      - file path:  path | file | src_file | source | src_path
+      - module:     dst_module | import_module | to | imported | target | module | name
     """
+    from collections import Counter
+
     count = 0
     top_modules = Counter()
     top_files = Counter()
 
     for it in items:
         count += 1
+
         # File/source path
-        path = it.get("path") or it.get("file") or it.get("src_file")
+        path = (
+            it.get("src_path")
+            or it.get("path")
+            or it.get("file")
+            or it.get("src_file")
+            or it.get("source")
+        )
         if path:
             top_files[str(path)] += 1
 
         # Module/import target
         mod = (
-            it.get("to") or it.get("imported") or it.get("target") or
-            it.get("module") or it.get("name")
+            it.get("dst_module")
+            or it.get("import_module")
+            or it.get("to")
+            or it.get("imported")
+            or it.get("target")
+            or it.get("module")
+            or it.get("name")
         )
         if mod:
             top_modules[str(mod)] += 1
