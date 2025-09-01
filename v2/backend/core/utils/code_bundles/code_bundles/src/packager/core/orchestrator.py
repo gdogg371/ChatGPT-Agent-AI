@@ -7,7 +7,8 @@ from pathlib import Path
 from types import SimpleNamespace as NS
 from typing import Any, Dict, Optional
 
-from packager.core.writer import write_json_atomic, ensure_dir
+from v2.backend.core.utils.code_bundles.code_bundles.src.packager.core.writer import write_json_atomic, ensure_dir
+from v2.backend.core.utils.code_bundles.code_bundles.src.packager.io.guide_writer import GuideWriter
 
 
 def _iso_now() -> str:
@@ -69,13 +70,19 @@ class Packager:
         }
         write_json_atomic(runspec_path, run_spec)
 
-        # 3) Write a minimal handoff guide (run_pack may augment artifacts later)
-        handoff: Dict[str, Any] = {
-            "record_type": "assistant_handoff.v1",
-            "generated_at": _iso_now(),
-            "prefer_parts_index": True,
-        }
-        write_json_atomic(guide_path, handoff)
+        # 3) Write a richer assistant handoff using the GuideWriter (single write path)
+        try:
+
+            GuideWriter(guide_path).write(cfg=self.cfg)
+        except Exception:
+            # Fallback: minimal handoff if GuideWriter is unavailable or fails
+            handoff: Dict[str, Any] = {
+                "record_type": "assistant_handoff.v1",
+                "generated_at": _iso_now(),
+                "prefer_parts_index": True,
+            }
+            write_json_atomic(guide_path, handoff)
 
         return _Result(out_bundle=bundle_path, out_runspec=runspec_path, out_guide=guide_path)
+
 
