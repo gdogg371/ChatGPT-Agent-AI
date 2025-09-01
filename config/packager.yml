@@ -147,7 +147,7 @@ metadata_emission:
 analysis_filenames:
   # Priority
   asset:        "asset.summary.json"
-  deps:         "deps.index.summary.json"
+  deps:         "deps.scan.summary.json"
   entrypoints:  "entrypoints.summary.json"
   env:          "env.summary.json"
   git:          "git.info.summary.json"
