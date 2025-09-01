@@ -58,7 +58,7 @@ from v2.backend.core.utils.code_bundles.code_bundles.entrypoints import scan as 
 from v2.backend.core.utils.code_bundles.code_bundles.html_index import scan as scan_html
 from v2.backend.core.utils.code_bundles.code_bundles.sql_index import scan as scan_sql
 from v2.backend.core.utils.code_bundles.code_bundles.js_ts_index import scan as scan_js_ts
-from v2.backend.core.utils.code_bundles.code_bundles.deps_index import scan as scan_deps
+from v2.backend.core.utils.code_bundles.code_bundles.deps_index_OLD import scan as scan_deps
 from v2.backend.core.utils.code_bundles.code_bundles.git_info import scan as scan_git
 from v2.backend.core.utils.code_bundles.code_bundles.license_scan import scan as scan_license
 from v2.backend.core.utils.code_bundles.code_bundles.secrets_scan import scan as scan_secrets
