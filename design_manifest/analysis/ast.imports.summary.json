@@ -1,8 +1,8 @@
 {
   "family": "ast_imports",
   "stats": {
-    "count": 3154,
-    "files": 480,
+    "count": 3124,
+    "files": 476,
     "modules": 173
   },
   "top_files": [
@@ -184,7 +184,7 @@
     },
     {
       "edges": 10,
-      "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/code_bundles/assets_index.py"
+      "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/code_bundles/src/packager/scanners/assets_index.py"
     },
     {
       "edges": 10,
@@ -200,7 +200,7 @@
     },
     {
       "edges": 10,
-      "path": "v2/backend/core/utils/code_bundles/code_bundles/assets_index.py"
+      "path": "v2/backend/core/utils/code_bundles/code_bundles/src/packager/scanners/assets_index.py"
     },
     {
       "edges": 10,
@@ -224,23 +224,23 @@
     },
     {
       "edges": 9,
-      "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/code_bundles/entrypoints.py"
-    },
-    {
-      "edges": 9,
-      "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/code_bundles/env_index.py"
-    },
-    {
-      "edges": 9,
-      "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/code_bundles/secrets_scan.py"
-    },
-    {
-      "edges": 9,
       "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/code_bundles/src/packager/analysis_emitter.py"
     },
     {
       "edges": 9,
       "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/code_bundles/src/packager/io/manifest_writer.py"
+    },
+    {
+      "edges": 9,
+      "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/code_bundles/src/packager/scanners/entrypoints.py"
+    },
+    {
+      "edges": 9,
+      "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/code_bundles/src/packager/scanners/env_index.py"
+    },
+    {
+      "edges": 9,
+      "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/code_bundles/src/packager/scanners/secrets_scan.py"
     },
     {
       "edges": 9,
@@ -284,23 +284,23 @@
     },
     {
       "edges": 9,
-      "path": "v2/backend/core/utils/code_bundles/code_bundles/entrypoints.py"
-    },
-    {
-      "edges": 9,
-      "path": "v2/backend/core/utils/code_bundles/code_bundles/env_index.py"
-    },
-    {
-      "edges": 9,
-      "path": "v2/backend/core/utils/code_bundles/code_bundles/secrets_scan.py"
-    },
-    {
-      "edges": 9,
       "path": "v2/backend/core/utils/code_bundles/code_bundles/src/packager/analysis_emitter.py"
     },
     {
       "edges": 9,
       "path": "v2/backend/core/utils/code_bundles/code_bundles/src/packager/io/manifest_writer.py"
+    },
+    {
+      "edges": 9,
+      "path": "v2/backend/core/utils/code_bundles/code_bundles/src/packager/scanners/entrypoints.py"
+    },
+    {
+      "edges": 9,
+      "path": "v2/backend/core/utils/code_bundles/code_bundles/src/packager/scanners/env_index.py"
+    },
+    {
+      "edges": 9,
+      "path": "v2/backend/core/utils/code_bundles/code_bundles/src/packager/scanners/secrets_scan.py"
     },
     {
       "edges": 9,
@@ -364,23 +364,19 @@
     },
     {
       "edges": 8,
-      "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/code_bundles/deps_index_OLD.py"
-    },
-    {
-      "edges": 8,
-      "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/code_bundles/git_info.py"
-    },
-    {
-      "edges": 8,
-      "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/code_bundles/html_index.py"
-    },
-    {
-      "edges": 8,
       "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/code_bundles/src/packager/core/orchestrator.py"
     },
     {
       "edges": 8,
       "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/code_bundles/src/packager/io/publisher.py"
+    },
+    {
+      "edges": 8,
+      "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/code_bundles/src/packager/scanners/git_info.py"
+    },
+    {
+      "edges": 8,
+      "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/code_bundles/src/packager/scanners/html_index.py"
     },
     {
       "edges": 8,
@@ -405,27 +401,31 @@
     {
       "edges": 8,
       "path": "output/patch_code_bundles/v2/backend/core/utils/standalone/ChatGPT_Bot_STAGED/code_bundles/src/packager/io/publisher.py"
+    },
+    {
+      "edges": 8,
+      "path": "output/patch_code_bundles/v2/backend/core/utils/standalone/ChatGPT_Bot_STAGED/code_bundles_OLD/python_index.py"
     }
   ],
   "top_modules": [
     {
-      "edges": 458,
+      "edges": 454,
       "name": "__future__"
     },
     {
-      "edges": 410,
+      "edges": 406,
       "name": "typing"
     },
     {
-      "edges": 312,
+      "edges": 308,
       "name": "pathlib"
     },
     {
-      "edges": 198,
+      "edges": 196,
       "name": "dataclasses"
     },
     {
-      "edges": 152,
+      "edges": 150,
       "name": "json"
     },
     {
@@ -437,7 +437,7 @@
       "name": "hashlib"
     },
     {
-      "edges": 96,
+      "edges": 94,
       "name": "re"
     },
     {
@@ -457,12 +457,12 @@
       "name": "bundle_io"
     },
     {
-      "edges": 40,
-      "name": "collections"
+      "edges": 36,
+      "name": "fnmatch"
     },
     {
       "edges": 36,
-      "name": "fnmatch"
+      "name": "collections"
     },
     {
       "edges": 34,
@@ -511,14 +511,6 @@
     {
       "edges": 16,
       "name": "inspect"
-    },
-    {
-      "edges": 16,
-      "name": "math"
-    },
-    {
-      "edges": 16,
-      "name": "tomllib"
     },
     {
       "edges": 16,
@@ -577,16 +569,20 @@
       "name": "normalize"
     },
     {
+      "edges": 14,
+      "name": "math"
+    },
+    {
+      "edges": 14,
+      "name": "tomllib"
+    },
+    {
       "edges": 12,
       "name": "config"
     },
     {
       "edges": 12,
       "name": "subprocess"
-    },
-    {
-      "edges": 12,
-      "name": "html.parser"
     },
     {
       "edges": 12,
@@ -615,6 +611,10 @@
     {
       "edges": 10,
       "name": "packager.core.orchestrator"
+    },
+    {
+      "edges": 10,
+      "name": "html.parser"
     },
     {
       "edges": 10,
@@ -766,31 +766,11 @@
     },
     {
       "edges": 4,
-      "name": "mimetypes"
-    },
-    {
-      "edges": 4,
-      "name": "struct"
-    },
-    {
-      "edges": 4,
-      "name": "xml.etree.ElementTree"
-    },
-    {
-      "edges": 4,
-      "name": "shlex"
-    },
-    {
-      "edges": 4,
-      "name": "os.path"
-    },
-    {
-      "edges": 4,
       "name": "v2.backend.core.utils.code_bundles.code_bundles.bundle_io"
     },
     {
       "edges": 4,
-      "name": "v2.backend.core.utils.code_bundles.code_bundles.python_index"
+      "name": "v2.backend.core.utils.code_bundles.code_bundles.src.packager.scanners.python_index"
     },
     {
       "edges": 4,
@@ -802,11 +782,31 @@
     },
     {
       "edges": 4,
-      "name": "v2.backend.core.utils.code_bundles.code_bundles.doc_coverage"
+      "name": "v2.backend.core.utils.code_bundles.code_bundles.src.packager.scanners.doc_coverage"
     },
     {
       "edges": 4,
-      "name": "v2.backend.core.utils.code_bundles.code_bundles.complexity"
+      "name": "v2.backend.core.utils.code_bundles.code_bundles.src.packager.scanners.complexity"
+    },
+    {
+      "edges": 4,
+      "name": "v2.backend.core.utils.code_bundles.code_bundles.src.packager.scanners.owners_index"
+    },
+    {
+      "edges": 4,
+      "name": "v2.backend.core.utils.code_bundles.code_bundles.src.packager.scanners.env_index"
+    },
+    {
+      "edges": 4,
+      "name": "v2.backend.core.utils.code_bundles.code_bundles.src.packager.scanners.entrypoints"
+    },
+    {
+      "edges": 4,
+      "name": "v2.backend.core.utils.code_bundles.code_bundles.src.packager.scanners.html_index"
+    },
+    {
+      "edges": 4,
+      "name": "v2.backend.core.utils.code_bundles.code_bundles.src.packager.scanners.sql_index"
     }
   ]
 }
