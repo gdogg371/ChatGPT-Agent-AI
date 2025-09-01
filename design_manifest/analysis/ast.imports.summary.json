@@ -1,17 +1,17 @@
 {
   "family": "ast_imports",
   "stats": {
-    "count": 3132,
+    "count": 3134,
     "files": 476,
     "modules": 175
   },
   "top_files": [
     {
-      "edges": 39,
+      "edges": 40,
       "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/code_bundles/run_pack.py"
     },
     {
-      "edges": 39,
+      "edges": 40,
       "path": "v2/backend/core/utils/code_bundles/code_bundles/run_pack.py"
     },
     {
@@ -762,6 +762,10 @@
     },
     {
       "edges": 4,
+      "name": "v2.backend.core.utils.code_bundles.code_bundles.src.packager.io.guide_writer"
+    },
+    {
+      "edges": 4,
       "name": "v2.backend.core.utils.code_bundles.code_bundles.bundle_io"
     },
     {
@@ -803,10 +807,6 @@
     {
       "edges": 4,
       "name": "v2.backend.core.utils.code_bundles.code_bundles.src.packager.scanners.sql_index"
-    },
-    {
-      "edges": 4,
-      "name": "v2.backend.core.utils.code_bundles.code_bundles.src.packager.scanners.js_ts_index"
     }
   ]
 }
