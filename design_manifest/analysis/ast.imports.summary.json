@@ -1,17 +1,17 @@
 {
   "family": "ast_imports",
   "stats": {
-    "count": 3124,
+    "count": 3130,
     "files": 476,
-    "modules": 173
+    "modules": 175
   },
   "top_files": [
     {
-      "edges": 37,
+      "edges": 39,
       "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/code_bundles/run_pack.py"
     },
     {
-      "edges": 37,
+      "edges": 39,
       "path": "v2/backend/core/utils/code_bundles/code_bundles/run_pack.py"
     },
     {
@@ -228,6 +228,10 @@
     },
     {
       "edges": 9,
+      "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/code_bundles/src/packager/core/orchestrator.py"
+    },
+    {
+      "edges": 9,
       "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/code_bundles/src/packager/io/manifest_writer.py"
     },
     {
@@ -285,6 +289,10 @@
     {
       "edges": 9,
       "path": "v2/backend/core/utils/code_bundles/code_bundles/src/packager/analysis_emitter.py"
+    },
+    {
+      "edges": 9,
+      "path": "v2/backend/core/utils/code_bundles/code_bundles/src/packager/core/orchestrator.py"
     },
     {
       "edges": 9,
@@ -364,10 +372,6 @@
     },
     {
       "edges": 8,
-      "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/code_bundles/src/packager/core/orchestrator.py"
-    },
-    {
-      "edges": 8,
       "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/code_bundles/src/packager/io/publisher.py"
     },
     {
@@ -401,10 +405,6 @@
     {
       "edges": 8,
       "path": "output/patch_code_bundles/v2/backend/core/utils/standalone/ChatGPT_Bot_STAGED/code_bundles/src/packager/io/publisher.py"
-    },
-    {
-      "edges": 8,
-      "path": "output/patch_code_bundles/v2/backend/core/utils/standalone/ChatGPT_Bot_STAGED/code_bundles_OLD/python_index.py"
     }
   ],
   "top_modules": [
@@ -433,11 +433,11 @@
       "name": "os"
     },
     {
-      "edges": 108,
+      "edges": 110,
       "name": "hashlib"
     },
     {
-      "edges": 94,
+      "edges": 96,
       "name": "re"
     },
     {
@@ -690,10 +690,6 @@
     },
     {
       "edges": 6,
-      "name": "packager.core.writer"
-    },
-    {
-      "edges": 6,
       "name": "platform"
     },
     {
@@ -807,6 +803,10 @@
     {
       "edges": 4,
       "name": "v2.backend.core.utils.code_bundles.code_bundles.src.packager.scanners.sql_index"
+    },
+    {
+      "edges": 4,
+      "name": "v2.backend.core.utils.code_bundles.code_bundles.src.packager.scanners.js_ts_index"
     }
   ]
 }
