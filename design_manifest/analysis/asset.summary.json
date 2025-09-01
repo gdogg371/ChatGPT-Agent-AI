@@ -1,7 +1,72 @@
 {
   "family": "asset",
-  "items": [],
   "stats": {
-    "count": 0
+    "count": 214,
+    "top_category": [
+      [
+        "other",
+        186
+      ],
+      [
+        "document",
+        22
+      ],
+      [
+        "binary",
+        4
+      ],
+      [
+        "unknown",
+        2
+      ]
+    ],
+    "top_ext": [
+      [
+        ".sql",
+        176
+      ],
+      [
+        ".yml",
+        18
+      ],
+      [
+        ".service",
+        4
+      ],
+      [
+        "unknown",
+        4
+      ],
+      [
+        ".json",
+        4
+      ],
+      [
+        ".dll",
+        4
+      ],
+      [
+        ".patch",
+        2
+      ],
+      [
+        ".db",
+        2
+      ]
+    ],
+    "top_mime": [
+      [
+        "unknown",
+        206
+      ],
+      [
+        "application/json",
+        4
+      ],
+      [
+        "application/x-msdownload",
+        4
+      ]
+    ]
   }
 }
