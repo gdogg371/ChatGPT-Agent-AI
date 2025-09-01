@@ -359,6 +359,6 @@
     "functions_measured": 6904,
     "max_function_complexity": 76,
     "p95_function_complexity": 14.0,
-    "total_complexity": 34438
+    "total_complexity": 34434
   }
 }
