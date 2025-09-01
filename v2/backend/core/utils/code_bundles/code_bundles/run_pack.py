@@ -69,7 +69,7 @@ def _load_analysis_emitter(cfg):
     print("[packager] analysis_emitter import failed → emitter unavailable", flush=True)
     return None
 
-from v2.backend.core.utils.code_bundles.code_bundles.python_index import index_python_file
+from v2.backend.core.utils.code_bundles.code_bundles.src.packager.scanners.python_index import index_python_file
 from v2.backend.core.utils.code_bundles.code_bundles.quality import quality_for_python
 from v2.backend.core.utils.code_bundles.code_bundles.graphs import coalesce_edges
 from v2.backend.core.utils.code_bundles.code_bundles.contracts import (
@@ -78,21 +78,21 @@ from v2.backend.core.utils.code_bundles.code_bundles.contracts import (
 )
 
 # Wired scanners
-from v2.backend.core.utils.code_bundles.code_bundles.doc_coverage import scan as scan_doc_coverage
-from v2.backend.core.utils.code_bundles.code_bundles.complexity import scan as scan_complexity
-from v2.backend.core.utils.code_bundles.code_bundles.owners_index import scan as scan_owners
-from v2.backend.core.utils.code_bundles.code_bundles.env_index import scan as scan_env
-from v2.backend.core.utils.code_bundles.code_bundles.entrypoints import scan as scan_entrypoints
-from v2.backend.core.utils.code_bundles.code_bundles.html_index import scan as scan_html
-from v2.backend.core.utils.code_bundles.code_bundles.sql_index import scan as scan_sql
-from v2.backend.core.utils.code_bundles.code_bundles.js_ts_index import scan as scan_js_ts
+from v2.backend.core.utils.code_bundles.code_bundles.src.packager.scanners.doc_coverage import scan as scan_doc_coverage
+from v2.backend.core.utils.code_bundles.code_bundles.src.packager.scanners.complexity import scan as scan_complexity
+from v2.backend.core.utils.code_bundles.code_bundles.src.packager.scanners.owners_index import scan as scan_owners
+from v2.backend.core.utils.code_bundles.code_bundles.src.packager.scanners.env_index import scan as scan_env
+from v2.backend.core.utils.code_bundles.code_bundles.src.packager.scanners.entrypoints import scan as scan_entrypoints
+from v2.backend.core.utils.code_bundles.code_bundles.src.packager.scanners.html_index import scan as scan_html
+from v2.backend.core.utils.code_bundles.code_bundles.src.packager.scanners.sql_index import scan as scan_sql
+from v2.backend.core.utils.code_bundles.code_bundles.src.packager.scanners.js_ts_index import scan as scan_js_ts
 #from v2.backend.core.utils.code_bundles.code_bundles.deps_index import scan as scan_deps
 from v2.backend.core.utils.code_bundles.code_bundles.src.packager.scanners.deps_scan import scan_dependencies
 
-from v2.backend.core.utils.code_bundles.code_bundles.git_info import scan as scan_git
-from v2.backend.core.utils.code_bundles.code_bundles.license_scan import scan as scan_license
-from v2.backend.core.utils.code_bundles.code_bundles.secrets_scan import scan as scan_secrets
-from v2.backend.core.utils.code_bundles.code_bundles.assets_index import scan as scan_assets
+from v2.backend.core.utils.code_bundles.code_bundles.src.packager.scanners.git_info import scan as scan_git
+from v2.backend.core.utils.code_bundles.code_bundles.src.packager.scanners.license_scan import scan as scan_license
+from v2.backend.core.utils.code_bundles.code_bundles.src.packager.scanners.secrets_scan import scan as scan_secrets
+from v2.backend.core.utils.code_bundles.code_bundles.src.packager.scanners.assets_index import scan as scan_assets
 
 from v2.backend.core.configuration.loader import (
     get_repo_root,
