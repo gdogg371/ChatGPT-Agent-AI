@@ -6,17 +6,19 @@ Responsibilities
 ----------------
 - Provide a single place that maps canonical family names → reducer callables.
 - House robust, stdlib-only reducers for key families:
-    • quality      → complexity/quality rollups
-    • entrypoints  → python/shell entrypoint inventory
-    • env          → environment variable usage
-    • deps         → dependency index summary (graceful no-data handling)
+    • quality       → complexity/quality rollups
+    • entrypoints   → python/shell entrypoint inventory
+    • env           → environment variable usage
+    • deps          → dependency index summary (graceful no-data handling)
+    • ast_imports   → import-edge rollup (edges emitted as edge.import)
+    • io_core       → manifest header / bundle summary rollup
+    • git           → repo info rollup (if present)
 - Expose helpers for canonicalization and zero summaries.
 
 Design notes
 ------------
 - Deterministic output: stable sorts, explicit rounding.
-- Accept heterogeneous item shapes seen in manifests (e.g., quality metrics
-  may be per-function or per-file aggregates).
+- Accept heterogeneous item shapes seen in manifests.
 - Avoid emitting misleading empty collections: mark `no_data: true` where appropriate.
 
 Public API
@@ -29,7 +31,7 @@ Public API
 from __future__ import annotations
 
 from collections import Counter, defaultdict
-from typing import Any, Callable, Dict, Iterable, List, Mapping, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -55,9 +57,12 @@ _ALIASES: Dict[str, str] = {
     "class": "ast_symbols",
     "function": "ast_symbols",
     "method": "ast_symbols",
+
+    # Imports
     "import": "ast_imports",
     "ast.import": "ast_imports",
     "ast.imports": "ast_imports",
+    "edge.import": "ast_imports",
 
     # Entrypoints
     "entrypoint": "entrypoints",
@@ -72,6 +77,8 @@ _ALIASES: Dict[str, str] = {
     # IO / manifest
     "io": "io_core",
     "manifest": "io_core",
+    "manifest_header": "io_core",
+    "bundle_summary": "io_core",
 
     # SBOM / deps
     "deps": "deps",
@@ -114,10 +121,7 @@ _ALIASES: Dict[str, str] = {
     "docs.coverage": "docs.coverage",
     "docs.coverage.summary": "docs.coverage",
     "ast.xref": "ast.xref",
-    "edge.import": "edge.import",
     "module_index": "module_index",
-    "manifest_header": "manifest_header",
-    "bundle_summary": "bundle_summary",
 }
 
 
@@ -149,10 +153,10 @@ def _str(v: Any, default: str = "unknown") -> str:
     return s if s else default
 
 
-def _stable_top(items: List[dict], key: Callable[[dict], tuple], limit: int) -> List[dict]:
+def _stable_top(items: List[dict], key_fn, limit: int) -> List[dict]:
     # Stable by original order, then sort by key descending
     with_index = [(i, it) for i, it in enumerate(items)]
-    with_index.sort(key=lambda t: (key(t[1]), -t[0]), reverse=True)
+    with_index.sort(key=lambda t: (key_fn(t[1]), -t[0]), reverse=True)
     return [it for _, it in with_index[:limit]]
 
 
@@ -242,7 +246,7 @@ def _reduce_quality(items: List[dict]) -> dict:
         })
     heavy = _stable_top(
         heavy,
-        key=lambda d: (d["total_complexity"], d["max_function_complexity"] or 0),
+        key_fn=lambda d: (d["total_complexity"], d["max_function_complexity"] or 0),
         limit=50
     )
 
@@ -360,8 +364,7 @@ def _reduce_deps(items: List[dict]) -> dict:
     If only placeholder/summary rows exist (e.g., deps.index.summary with empty maps),
     emit a minimal, non-misleading summary with `no_data: true`.
     """
-    # Detect placeholder-only payloads (empty ecosystems/manifests/top_packages but with a 'rows' count)
-    placeholder = False
+    placeholder_only = True
     ecosystems: Counter[str] = Counter()
     manifests: Counter[str] = Counter()
     lockfiles_by_kind: Counter[str] = Counter()
@@ -369,14 +372,10 @@ def _reduce_deps(items: List[dict]) -> dict:
     files = set()
 
     for it in items:
-        # Heuristic: if item looks like a summary scaffold with all empties, mark placeholder
-        stats = it.get("stats") if isinstance(it.get("stats"), dict) else None
-        if not stats and all(k in it for k in ("ecosystems", "manifests", "top_packages", "lockfiles")):
-            if not it.get("ecosystems") and not it.get("manifests") and not it.get("top_packages"):
-                placeholder = True
-                continue
+        # Heuristic: if any substantive dep fields are present, it's not a placeholder
+        if any(k in it for k in ("ecosystem", "purl_type", "manifest", "manifest_path", "lockfile", "package", "name", "version")):
+            placeholder_only = False
 
-        # Otherwise try to extract signals
         p = it.get("path")
         if p:
             files.add(str(p))
@@ -397,8 +396,7 @@ def _reduce_deps(items: List[dict]) -> dict:
         if name:
             packages[str(name)] += 1
 
-    # If nothing meaningful was extracted
-    if not ecosystems and not manifests and not packages and placeholder:
+    if placeholder_only and not ecosystems and not manifests and not packages:
         return {
             "family": "deps",
             "no_data": True,
@@ -412,7 +410,6 @@ def _reduce_deps(items: List[dict]) -> dict:
             },
         }
 
-    # Build a concrete summary from whatever we have
     top_packages = [{"name": n, "count": c} for n, c in packages.most_common(50)]
     return {
         "family": "deps",
@@ -427,6 +424,134 @@ def _reduce_deps(items: List[dict]) -> dict:
     }
 
 
+def _reduce_ast_imports(items: List[dict]) -> dict:
+    """
+    Summarize import edges. Your pipeline emits edges as 'edge.import', which the
+    reader aliases to 'ast_imports'. We accept several shapes:
+
+    Common keys we look for:
+      - path/file (source file)
+      - from/module/source
+      - to/imported/target/name
+    """
+    count = 0
+    top_modules = Counter()
+    top_files = Counter()
+
+    for it in items:
+        count += 1
+        # File/source path
+        path = it.get("path") or it.get("file") or it.get("src_file")
+        if path:
+            top_files[str(path)] += 1
+
+        # Module/import target
+        mod = (
+            it.get("to") or it.get("imported") or it.get("target") or
+            it.get("module") or it.get("name")
+        )
+        if mod:
+            top_modules[str(mod)] += 1
+
+    return {
+        "family": "ast_imports",
+        "stats": {
+            "count": count,
+            "files": len(top_files),
+            "modules": len(top_modules),
+        },
+        "top_modules": [{"name": n, "edges": c} for n, c in top_modules.most_common(100)],
+        "top_files": [{"path": n, "edges": c} for n, c in top_files.most_common(100)],
+    }
+
+
+def _reduce_io_core(items: List[dict]) -> dict:
+    """
+    Roll up manifest header / bundle summary information (aliased to io_core).
+    We try to surface stable totals: modules, metrics, edges, artifacts, and basic mode metadata.
+    """
+    totals = {"modules": 0, "metrics": 0, "edges": 0, "artifacts": 0}
+    modes = Counter()
+    parts = 0
+
+    for it in items:
+        # Some records carry aggregates
+        for k in ("modules", "metrics", "edges", "artifacts"):
+            if k in it:
+                try:
+                    totals[k] = max(totals[k], int(it.get(k) or 0))
+                except Exception:
+                    pass
+        # Path mode / run mode
+        pm = it.get("path_mode") or it.get("mode") or it.get("run_mode")
+        if pm:
+            modes[str(pm)] += 1
+        # Chunking info
+        if "parts" in it:
+            try:
+                parts = max(parts, int(it.get("parts") or 0))
+            except Exception:
+                pass
+
+    return {
+        "family": "io_core",
+        "stats": {
+            "modules": totals["modules"],
+            "metrics": totals["metrics"],
+            "edges": totals["edges"],
+            "artifacts": totals["artifacts"],
+            "parts": parts,
+            "path_modes": dict(modes),
+        },
+    }
+
+
+def _reduce_git(items: List[dict]) -> dict:
+    """
+    Summarize git info items, if present. If no items exist (e.g., snapshot build),
+    the backfill will write a zero summary.
+    """
+    commits = []
+    branches = Counter()
+    remotes = Counter()
+    tags = Counter()
+    dirty_any = False
+
+    for it in items:
+        c = it.get("commit") or it.get("sha") or it.get("hash")
+        if c:
+            commits.append(str(c))
+        b = it.get("branch") or it.get("ref")
+        if b:
+            branches[str(b)] += 1
+        r = it.get("remote") or it.get("origin")
+        if r:
+            remotes[str(r)] += 1
+        t = it.get("tag") or it.get("describe")
+        if t:
+            tags[str(t)] += 1
+        if bool(it.get("dirty")):
+            dirty_any = True
+
+    latest = commits[0] if commits else None
+    return {
+        "family": "git",
+        "stats": {
+            "items": len(items),
+            "branches": len(branches),
+            "remotes": len(remotes),
+            "tags": len(tags),
+            "dirty": bool(dirty_any),
+        },
+        "heads": {
+            "latest_commit": latest,
+            "branches": list(branches.keys())[:10],
+            "remotes": list(remotes.keys())[:10],
+            "tags": list(tags.keys())[:10],
+        },
+    }
+
+
 # ──────────────────────────────────────────────────────────────────────────────
 # Registry
 # ──────────────────────────────────────────────────────────────────────────────
@@ -437,9 +562,11 @@ _REDUCERS: Dict[str, Callable[[List[dict]], dict]] = {
     "entrypoints": _reduce_entrypoints,
     "env": _reduce_env,
     "deps": _reduce_deps,
+    "ast_imports": _reduce_ast_imports,
+    "io_core": _reduce_io_core,
+    "git": _reduce_git,
 
-    # Generic families will fall back to counter
-    # "ast_calls": _generic_counter, ...  (left to default)
+    # Others fall back to generic counter
 }
 
 
@@ -453,6 +580,7 @@ def zero_summary_for(family: str) -> dict:
     """Produce a non-misleading zero summary for empty families."""
     fam = canonicalize_family(family)
     return {"family": fam, "stats": {"count": 0}, "items": []}
+
 
 
 
