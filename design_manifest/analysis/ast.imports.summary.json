@@ -1,7 +1,7 @@
 {
   "family": "ast_imports",
   "stats": {
-    "count": 3130,
+    "count": 3132,
     "files": 476,
     "modules": 175
   },
@@ -458,15 +458,15 @@
     },
     {
       "edges": 36,
+      "name": "datetime"
+    },
+    {
+      "edges": 36,
       "name": "fnmatch"
     },
     {
       "edges": 36,
       "name": "collections"
-    },
-    {
-      "edges": 34,
-      "name": "datetime"
     },
     {
       "edges": 32,
