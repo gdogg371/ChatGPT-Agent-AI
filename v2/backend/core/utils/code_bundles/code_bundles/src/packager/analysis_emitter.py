@@ -25,7 +25,7 @@ This module is stdlib-only and makes no network calls.
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 from packager.core.loader import load_packager_config  # uses config/packager.yml
 from packager.manifest.reader import ManifestReader
@@ -55,13 +55,63 @@ def _analysis_dir_from_cfg(cfg) -> Path:
     return (src_root / "design_manifest" / "analysis").resolve()
 
 
-def _manifest_dir_from_cfg(cfg) -> Path:
+def _candidate_manifest_dirs(cfg) -> List[Path]:
     """
-    Resolve the manifest directory that contains the part files:
-      <source_root>/design_manifest/
+    Return candidate directories that may contain manifest parts for this run.
+    Priority:
+      1) <source_root>/design_manifest
+      2) <source_root>/output/design_manifest
+      3) <source_root>/output/patch_code_bundles/published/design_manifest   (if present)
     """
-    src_root = Path(getattr(cfg, "source_root", "."))
-    return (src_root / "design_manifest").resolve()
+    sr = Path(getattr(cfg, "source_root", ".")).resolve()
+    cands = [
+        sr / "design_manifest",
+        sr / "output" / "design_manifest",
+        sr / "output" / "patch_code_bundles" / "published" / "design_manifest",
+    ]
+    # Deduplicate while preserving order
+    seen = set()
+    uniq: List[Path] = []
+    for p in cands:
+        if p not in seen:
+            uniq.append(p)
+            seen.add(p)
+    return uniq
+
+
+def _has_parts(dirpath: Path, part_stem: str = "design_manifest_", part_ext: str = ".txt") -> bool:
+    try:
+        return any(dirpath.glob(f"{part_stem}*{part_ext}"))
+    except Exception:
+        return False
+
+
+def _has_bundle_jsonl(dirpath: Path) -> bool:
+    try:
+        return (dirpath / "design_manifest.jsonl").exists()
+    except Exception:
+        return False
+
+
+def _resolve_manifest_dir(cfg) -> Tuple[Path, Dict[str, Any]]:
+    """
+    Probe likely locations and choose the first directory that contains
+    either parts or the jsonl bundle. Returns (dir, diagnostics).
+    """
+    diagnostics: Dict[str, Any] = {"candidates": [], "selected": None}
+    for cand in _candidate_manifest_dirs(cfg):
+        has_parts = _has_parts(cand)
+        has_jsonl = _has_bundle_jsonl(cand)
+        diagnostics["candidates"].append(
+            {"path": str(cand), "has_parts": has_parts, "has_jsonl": has_jsonl}
+        )
+        if has_parts or has_jsonl:
+            diagnostics["selected"] = str(cand)
+            return cand, diagnostics
+    # Fallback to first
+    first = _candidate_manifest_dirs(cfg)[0]
+    diagnostics["selected"] = str(first)
+    return first, diagnostics
 
 
 def _default_filenames() -> Dict[str, str]:
@@ -151,12 +201,18 @@ def emit_analysis(*, cfg=None) -> Dict[str, Any]:
     if cfg is None:
         cfg = load_packager_config()
 
-    manifest_dir = _manifest_dir_from_cfg(cfg)
+    # Choose the actual manifest dir for this run
+    manifest_dir, diag = _resolve_manifest_dir(cfg)
     out_dir = _analysis_dir_from_cfg(cfg)
     out_dir.mkdir(parents=True, exist_ok=True)
 
     print(_pfx(f"source manifest dir: {manifest_dir}"))
     print(_pfx(f"target analysis dir: {out_dir}"))
+    # Useful diagnosis if counts unexpectedly zero
+    try:
+        print(_pfx(f"probe: {diag}"))
+    except Exception:
+        pass
 
     reader = ManifestReader(
         manifest_dir=manifest_dir,
@@ -230,7 +286,3 @@ if __name__ == "__main__":
         print(_pfx(f"ERROR: {e}"), file=sys.stderr)
         traceback.print_exc()
         raise
-
-
-
-
