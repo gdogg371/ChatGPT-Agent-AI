@@ -150,83 +150,77 @@ def _ast_calls_reducer(items: List[dict]) -> dict:
 
 
 def _deps_reducer(items: List[dict]) -> dict:
-    """
-    Supports both per-package rows and summary rows:
-      - per-package: name/package/pkg (+ optional version/spec)
-      - summary: packages_unique, top_packages, ecosystems, manifests (top-level or under payload)
-    """
-    # detect presence of summary-shaped rows
     has_summary = any(
-        _vget(it, ("packages_unique",), ("payload", "packages_unique")) is not None
-        or _vget(it, ("top_packages",), ("payload", "top_packages")) is not None
+        _vget(it, ("packages_unique",), ("payload","packages_unique")) is not None
+        or _vget(it, ("top_packages",), ("payload","top_packages")) is not None
         for it in items
     )
 
     if has_summary:
-        # merge summaries
         pkgs_unique_vals: List[int] = []
         top_pairs: Counter = Counter()
         ecosystems: Counter = Counter()
         manifests: Counter = Counter()
 
-        def _as_pairs(v) -> List[Tuple[str, int]]:
-            # Accept [["name",count], {"name": "...", "count": n}, {"pkg": "...","n":n}], or {name:count}
-            out: List[Tuple[str, int]] = []
+        files_total = 0
+        lockfiles_total = 0
+        lockfiles_by_kind: Counter = Counter()
+
+        def _as_pairs(v) -> List[Tuple[str,int]]:
+            out = []
             if isinstance(v, list):
                 for el in v:
                     if isinstance(el, (list, tuple)) and len(el) == 2:
-                        name, cnt = el[0], el[1]
+                        name, cnt = el
                     elif isinstance(el, dict):
                         name = el.get("name") or el.get("pkg") or el.get("package") or el.get("id")
                         cnt = el.get("count") or el.get("n") or el.get("num") or 1
                     else:
                         continue
-                    try:
-                        cnt = int(cnt)
-                    except Exception:
-                        cnt = 1
+                    try: cnt = int(cnt)
+                    except Exception: cnt = 1
                     name = _str_or_unknown(name)
                     if name and name != "unknown":
                         out.append((name, cnt))
             elif isinstance(v, dict):
                 for k, cnt in v.items():
-                    try:
-                        top = int(cnt)
-                    except Exception:
-                        top = 1
+                    try: top = int(cnt)
+                    except Exception: top = 1
                     out.append((_str_or_unknown(k), top))
             return out
 
         for it in items:
-            pu = _vget(it, ("packages_unique",), ("payload", "packages_unique"))
-            if isinstance(pu, (int, float)):
-                pkgs_unique_vals.append(int(pu))
+            # packages_unique/top_packages
+            pu = _vget(it, ("packages_unique",), ("payload","packages_unique"))
+            if isinstance(pu, (int, float)): pkgs_unique_vals.append(int(pu))
+            tp = _vget(it, ("top_packages",), ("payload","top_packages"))
+            for name, cnt in _as_pairs(tp): top_pairs[name] += int(cnt)
 
-            tp = _vget(it, ("top_packages",), ("payload", "top_packages"))
-            for name, cnt in _as_pairs(tp):
-                top_pairs[name] += int(cnt)
-
-            ecs = _vget(it, ("ecosystems",), ("payload", "ecosystems"))
+            # ecosystems/manifests (dicts)
+            ecs = _vget(it, ("ecosystems",), ("payload","ecosystems"))
             if isinstance(ecs, dict):
-                for k, v in ecs.items():
-                    try:
-                        ecosystems[_str_or_unknown(k)] += int(v)
-                    except Exception:
-                        ecosystems[_str_or_unknown(k)] += 1
-            elif isinstance(ecs, list):
-                for el in ecs:
-                    ecosystems[_str_or_unknown(el)] += 1
+                for k,v in ecs.items():
+                    try: ecosystems[_str_or_unknown(k)] += int(v)
+                    except Exception: ecosystems[_str_or_unknown(k)] += 1
 
-            man = _vget(it, ("manifests",), ("payload", "manifests"))
+            man = _vget(it, ("manifests",), ("payload","manifests"))
             if isinstance(man, dict):
-                for k, v in man.items():
-                    try:
-                        manifests[_str_or_unknown(k)] += int(v)
-                    except Exception:
-                        manifests[_str_or_unknown(k)] += 1
-            elif isinstance(man, list):
-                for el in man:
-                    manifests[_str_or_unknown(el)] += 1
+                for k,v in man.items():
+                    try: manifests[_str_or_unknown(k)] += int(v)
+                    except Exception: manifests[_str_or_unknown(k)] += 1
+
+            # NEW: files / lockfiles
+            f = _vget(it, ("files",), ("payload","files"))
+            if isinstance(f, (int, float)): files_total += int(f)
+            lf = _vget(it, ("lockfiles",), ("payload","lockfiles"))
+            if isinstance(lf, dict):
+                c = lf.get("count")
+                if isinstance(c, (int, float)): lockfiles_total += int(c)
+                bk = lf.get("by_kind")
+                if isinstance(bk, dict):
+                    for k,v in bk.items():
+                        try: lockfiles_by_kind[_str_or_unknown(k)] += int(v)
+                        except Exception: lockfiles_by_kind[_str_or_unknown(k)] += 1
 
         return {
             "family": "deps",
@@ -234,33 +228,18 @@ def _deps_reducer(items: List[dict]) -> dict:
                 "rows": len(items),
                 "packages_unique": max(pkgs_unique_vals) if pkgs_unique_vals else 0,
                 "top_packages": top_pairs.most_common(50),
-                "ecosystems": ecosystems.most_common(20),
-                "manifests": manifests.most_common(20),
+                # Keep dict shapes for fidelity (you can switch to list-of-pairs if preferred)
+                "ecosystems": dict(ecosystems),
+                "manifests": dict(manifests),
+                # NEW
+                "files": files_total,
+                "lockfiles": {
+                    "count": lockfiles_total,
+                    "by_kind": dict(lockfiles_by_kind),
+                },
             },
         }
 
-    # Fallback: per-package counting
-    pkgs = Counter(
-        _str_or_unknown(
-            _vget(it, ("payload", "name"), ("name",), ("package",), ("pkg",), ("id",))
-        )
-        for it in items
-    )
-    vers = Counter(
-        _str_or_unknown(
-            _vget(it, ("payload", "version"), ("version",), ("spec",), ("ver",))
-        )
-        for it in items
-        if _vget(it, ("payload", "version"), ("version",), ("spec",), ("ver",)) is not None
-    )
-    return {
-        "family": "deps",
-        "stats": {
-            "rows": len(items),
-            "packages": pkgs.most_common(100),
-            "versions_top": vers.most_common(50),
-        },
-    }
 
 
 def _entrypoints_reducer(items: List[dict]) -> dict:
