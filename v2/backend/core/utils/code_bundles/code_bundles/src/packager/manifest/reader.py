@@ -20,7 +20,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any, Dict, Iterable, Iterator, List, Mapping, Optional, Sequence, Tuple, Union
+from typing import Any, Dict, Iterator, List, Mapping, Optional
 
 __all__ = ["ManifestReader"]
 
@@ -46,6 +46,8 @@ _FALLBACK_ALIASES: Dict[str, str] = {
     "import": "ast_imports",
     "ast.import": "ast_imports",
     "ast.imports": "ast_imports",
+    # Edge graph importer (what your run emits)
+    "edge.import": "ast_imports",
 
     # Entrypoints
     "entrypoint": "entrypoints",
@@ -60,6 +62,8 @@ _FALLBACK_ALIASES: Dict[str, str] = {
     # IO / manifest
     "io": "io_core",
     "manifest": "io_core",
+    "manifest_header": "io_core",
+    "bundle_summary": "io_core",
 
     # SBOM / deps
     "sbom": "sbom",
@@ -104,10 +108,7 @@ _FALLBACK_ALIASES: Dict[str, str] = {
     "docs.coverage": "docs.coverage",
     "docs.coverage.summary": "docs.coverage",
     "ast.xref": "ast.xref",
-    "edge.import": "edge.import",
     "module_index": "module_index",
-    "manifest_header": "manifest_header",
-    "bundle_summary": "bundle_summary",
 }
 
 
@@ -149,7 +150,7 @@ class ManifestReader:
 
     def __init__(
         self,
-        manifest_dir: Union[str, Path],
+        manifest_dir: str | Path,
         *,
         part_stem: str = "design_manifest_",
         part_ext: str = ".txt",
@@ -205,16 +206,9 @@ class ManifestReader:
 
                     # Accept several index shapes
                     if isinstance(data, dict):
-                        if "parts" in data and isinstance(data["parts"], list):
-                            for p in data["parts"]:
-                                if isinstance(p, str):
-                                    parts.append(self.manifest_dir / p)
-                                elif isinstance(p, dict):
-                                    name = p.get("path") or p.get("name")
-                                    if name:
-                                        parts.append(self.manifest_dir / str(name))
-                        elif "files" in data and isinstance(data["files"], list):
-                            for p in data["files"]:
+                        seq = data.get("parts") or data.get("files") or []
+                        if isinstance(seq, list):
+                            for p in seq:
                                 if isinstance(p, str):
                                     parts.append(self.manifest_dir / p)
                                 elif isinstance(p, dict):
@@ -310,6 +304,7 @@ class ManifestReader:
         if not fam:
             return ""
         return self.aliases.get(fam, fam)
+
 
 
 
