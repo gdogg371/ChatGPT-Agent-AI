@@ -4,29 +4,35 @@ from __future__ import annotations
 import json
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 
 def _iso_now() -> str:
     return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
 
 
-def _as_posix_rel_to(base: Path, target: Path) -> str:
-    """
-    Return POSIX-style path for `target` relative to `base` if possible.
-    Falls back to POSIX absolute if not under base.
-    """
+def _posix_rel(base: Path, target: Path, *, trailing_slash: bool = False) -> str:
+    base = base.resolve()
+    target = target.resolve()
     try:
-        rel = target.resolve().relative_to(base.resolve())
-        return rel.as_posix()
+        p = target.relative_to(base).as_posix()
     except Exception:
-        return target.as_posix()
+        p = target.as_posix()
+    if trailing_slash and not p.endswith("/"):
+        p += "/"
+    return p
+
+
+def _read_json(path: Path) -> Optional[dict]:
+    try:
+        return json.loads(Path(path).read_text(encoding="utf-8"))
+    except Exception:
+        return None
 
 
 class GuideWriter:
     """
-    Writes a concise assistant_handoff.v1.json with stable, relative paths and a clear,
-    chunked-manifest transport description matching the requested schema.
+    Build a rich assistant_handoff.v1.json that matches the target schema.
     """
 
     def __init__(self, out_path: Path) -> None:
@@ -35,60 +41,84 @@ class GuideWriter:
     def write(self, *, cfg: Any) -> None:
         data = self.build(cfg=cfg)
         self.out_path.parent.mkdir(parents=True, exist_ok=True)
-        self.out_path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+        payload = json.dumps(data, ensure_ascii=False, sort_keys=True, indent=2) + "\n"
+        self.out_path.write_text(payload, encoding="utf-8")
 
     def build(self, *, cfg: Any) -> Dict[str, Any]:
-        # Resolve primary locations from cfg
+        # anchors
         source_root = Path(getattr(cfg, "source_root"))
-        out_bundle = Path(getattr(cfg, "out_bundle"))
+        out_bundle = Path(getattr(cfg, "out_bundle"))            # e.g. .../design_manifest/design_manifest_00001.txt
+        artifact_root = out_bundle.parent                         # .../design_manifest/
         out_runspec = Path(getattr(cfg, "out_runspec"))
         out_guide = Path(getattr(cfg, "out_guide"))
-
-        artifact_root = out_bundle.parent
         analysis_dir = artifact_root / "analysis"
-        parts_index = artifact_root / f"{getattr(cfg.transport, 'part_stem', 'design_manifest')}_parts_index.json"
-        monolith = artifact_root / f"{getattr(cfg.transport, 'part_stem', 'design_manifest')}.jsonl"
 
-        # Helper for consistent relative output paths (relative to repo root)
-        rel_artifact_root = _as_posix_rel_to(source_root, artifact_root).rstrip("/") + "/"
-        rel_analysis_dir = _as_posix_rel_to(source_root, analysis_dir).rstrip("/") + "/"
-        rel_runspec = _as_posix_rel_to(source_root, out_runspec)
-        rel_handoff = _as_posix_rel_to(source_root, out_guide)
-        rel_parts_index = _as_posix_rel_to(source_root, parts_index)
-        rel_monolith = _as_posix_rel_to(source_root, monolith)
-
-        # Transport fields (verbatim from cfg.transport where applicable)
+        # transport config
         t = getattr(cfg, "transport")
-        transport = {
-            "part_stem": str(getattr(t, "part_stem", "design_manifest")),
-            "part_ext": str(getattr(t, "part_ext", ".txt")),
-            "parts_per_dir": int(getattr(t, "parts_per_dir", 10)),
-            "split_bytes": int(getattr(t, "split_bytes", 150000)),
-            "preserve_monolith": bool(getattr(t, "preserve_monolith", False)),
-            "parts_index": rel_parts_index,
-            "monolith": rel_monolith,
-        }
+        part_stem = str(getattr(t, "part_stem", "design_manifest"))
+        part_ext = str(getattr(t, "part_ext", ".txt"))
+        parts_per_dir = int(getattr(t, "parts_per_dir", 10))
+        split_bytes = int(getattr(t, "split_bytes", 150_000))
+        preserve_monolith = bool(getattr(t, "preserve_monolith", False))
+        parts_index_name = f"{part_stem}_parts_index.json"
 
-        # Analysis files map from cfg.analysis_filenames, normalized to relative paths
+        parts_index_path = artifact_root / parts_index_name
+        parts_index = _read_json(parts_index_path) or {}
+        parts_count = int(parts_index.get("total_parts") or 0)
+        chunked = parts_count > 0
+
+        monolith_path = artifact_root / f"{part_stem}.jsonl"
+        monolith_available = monolith_path.exists()
+
+        # relative paths (repo-root based)
+        rel_artifact_root = _posix_rel(source_root, artifact_root, trailing_slash=True)
+        rel_analysis_dir = _posix_rel(source_root, analysis_dir, trailing_slash=True)
+        rel_runspec = _posix_rel(source_root, out_runspec)
+        rel_handoff = _posix_rel(source_root, out_guide)
+        rel_parts_index = _posix_rel(source_root, parts_index_path)
+        rel_monolith = _posix_rel(source_root, monolith_path)
+
+        # publish (if configured)
+        pub = getattr(cfg, "publish", None)
+        mode = (getattr(pub, "mode", None) or "local").lower() if pub else "local"
+        gh = getattr(pub, "github", None)
+        github_block = None
+        if gh and getattr(gh, "owner", None) and getattr(gh, "repo", None):
+            owner = str(getattr(gh, "owner"))
+            repo = str(getattr(gh, "repo"))
+            branch = str(getattr(gh, "branch", "main"))
+            base_path = str(getattr(gh, "base_path", "") or "")
+            if base_path and not base_path.endswith("/"):
+                base_path += "/"
+            raw_base = f"https://raw.githubusercontent.com/{owner}/{repo}/{branch}/{base_path}"
+            github_block = {"owner": owner, "repo": repo, "branch": branch, "raw_base": raw_base}
+
+        # analysis files -> derive from analysis/_index.json (families.<key>.path)
         analysis_files: Dict[str, str] = {}
-        af_map = getattr(cfg, "analysis_filenames", {}) or {}
-        for key, filename in af_map.items():
-            analysis_files[key] = rel_analysis_dir + filename
+        idx = _read_json(analysis_dir / "_index.json") or {}
+        for key, meta in (idx.get("families") or {}).items():
+            p = meta.get("path")
+            if p and (analysis_dir / p).exists():
+                analysis_files[key] = rel_analysis_dir + p
 
-        # Quickstart: fixed order with "why" text; only include if path exists in map
-        def _qs_item(k: str, title: str, why: str) -> Dict[str, str] | None:
-            p = analysis_files.get(k)
-            if not p:
-                return None
-            return {"title": title, "path": p, "why": why}
+        # quickstart cards (only include if available)
+        def card(title: str, key: str, why: str):
+            p = analysis_files.get(key)
+            return {"title": title, "path": p, "why": why} if p else None
 
-        start_here = list(filter(None, [
-            _qs_item("entrypoints", "How to run it", "Binary/scripts/CLI entrypoints and how to invoke them."),
-            _qs_item("docs", "Docs health", "Docstring coverage by module; obvious gaps."),
-            _qs_item("quality", "Complexity hotspots", "Cyclomatic/maintainability signals to prioritize refactors."),
-            _qs_item("sql", "SQL surface", "DB schema and query files in one place."),
-            _qs_item("git", "Repo provenance", "Branch, last commit, author/date if available."),
-        ]))
+        quickstart = {
+            "start_here": list(filter(None, [
+                card("Run & CLI", "entrypoints", "How to invoke binaries/scripts and service entrypoints."),
+                card("Docs coverage", "docs", "Docstring coverage by module; identify gaps."),
+                card("Complexity hotspots", "quality", "Prioritize risky modules/functions."),
+                card("SQL surface", "sql", "DB schemas and queries in one place."),
+                card("Repo provenance", "git", "Branch, commit, authorship if available."),
+            ])),
+            "raw_manifest": [
+                {"title": "Chunked manifest (parts index)", "path": rel_parts_index,
+                 "how": "Follow the listed order to stream parts."}
+            ],
+        }
 
         data: Dict[str, Any] = {
             "record_type": "assistant_handoff.v1",
@@ -97,56 +127,64 @@ class GuideWriter:
 
             "artifact_root": rel_artifact_root,
 
-            "transport": transport,
+            "publish": {"mode": mode, **({"github": github_block} if github_block else {})},
+
+            "transport": {
+                "chunked": chunked,
+                "part_stem": part_stem,
+                "part_ext": part_ext,
+                "parts_per_dir": parts_per_dir,
+                "split_bytes": split_bytes,
+                "preserve_monolith": preserve_monolith,
+
+                "parts_index": rel_parts_index,
+                "parts_dir": rel_artifact_root,
+                "parts_count": parts_count,
+
+                "monolith_path": rel_monolith,
+                "monolith_available": monolith_available,
+
+                "how_to_consume": [
+                    "Read parts_index to get ordered part file refs.",
+                    "Stream and concatenate part files in the listed order to reconstruct the manifest stream.",
+                    "Do NOT lexically sort filenames; always follow the index order.",
+                ],
+            },
 
             "paths": {
                 "analysis_dir": rel_analysis_dir,
                 "run_spec": rel_runspec,
                 "handoff": rel_handoff,
+                "checksums": {
+                    "monolith_sha256": rel_artifact_root + "design_manifest.SHA256SUMS",
+                    "parts_sha256":   rel_artifact_root + "parts.SHA256SUMS",
+                    "algo": "sha256",
+                },
             },
 
             "analysis_files": analysis_files,
 
-            "quickstart": {
-                "start_here": start_here,
-                "raw_sources": [
-                    {
-                        "title": "Open parts index (chunked manifest)",
-                        "path": rel_parts_index
-                    }
-                ]
-            },
+            "quickstart": quickstart,
 
             "highlights": {
                 "stats": {
-                    "files_total": None,
-                    "python_modules": None,
-                    "edges": None
+                    "files_total": (idx.get("families") or {}).get("asset", {}).get("count"),
+                    "python_modules": (idx.get("families") or {}).get("ast_symbols", {}).get("count"),
+                    "graph_edges": None,
                 },
-                "top": {
-                    "complexity_modules": [],
-                    "import_modules": [],
-                    "entrypoints": []
-                },
-                "risks": {
-                    "secrets_findings": 0,
-                    "license_flags": 0
-                }
+                "top": {"complexity_modules": [], "import_modules": [], "entrypoints": []},
+                "risks": {"secrets_findings": 0, "license_flags": 0},
             },
 
-            "constraints": {
-                "offline_only": True
-            },
-
-            "limits": {},
-
+            "limits": {"max_files": 0, "max_bytes": 0, "timeout_seconds": 0},
+            "constraints": {"offline_only": True},
             "notes": [
-                "All analysis paths are relative to artifact_root.",
-                "If preserve_monolith=false, the monolithic manifest may be empty or removed after chunking."
-            ]
+                "Paths are relative to artifact_root unless absolute.",
+                "If preserve_monolith=false, the monolithic manifest may be empty or removed.",
+            ],
         }
-
         return data
+
 
 
 
