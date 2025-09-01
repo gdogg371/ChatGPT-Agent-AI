@@ -2,18 +2,18 @@
   "family": "quality",
   "heavy_files_top": [
     {
-      "avg_complexity": 7.736,
+      "avg_complexity": 7.75,
       "functions": 72,
       "max_function_complexity": 45,
       "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/code_bundles/run_pack.py",
-      "total_complexity": 557
+      "total_complexity": 558
     },
     {
-      "avg_complexity": 7.736,
+      "avg_complexity": 7.75,
       "functions": 72,
       "max_function_complexity": 45,
       "path": "v2/backend/core/utils/code_bundles/code_bundles/run_pack.py",
-      "total_complexity": 557
+      "total_complexity": 558
     },
     {
       "avg_complexity": 7.643,
@@ -33,7 +33,7 @@
       "avg_complexity": 8.705,
       "functions": 44,
       "max_function_complexity": 28,
-      "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/code_bundles/deps_index.py",
+      "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/code_bundles/deps_index_OLD.py",
       "total_complexity": 383
     },
     {
@@ -47,7 +47,7 @@
       "avg_complexity": 8.705,
       "functions": 44,
       "max_function_complexity": 28,
-      "path": "v2/backend/core/utils/code_bundles/code_bundles/deps_index.py",
+      "path": "v2/backend/core/utils/code_bundles/code_bundles/deps_index_OLD.py",
       "total_complexity": 383
     },
     {
@@ -56,6 +56,20 @@
       "max_function_complexity": 28,
       "path": "v2/backend/core/utils/standalone/ChatGPT_Bot_STAGED/code_bundles/deps_index.py",
       "total_complexity": 383
+    },
+    {
+      "avg_complexity": 9.188,
+      "functions": 32,
+      "max_function_complexity": 33,
+      "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/code_bundles/src/packager/scanners/deps_scan.py",
+      "total_complexity": 294
+    },
+    {
+      "avg_complexity": 9.188,
+      "functions": 32,
+      "max_function_complexity": 33,
+      "path": "v2/backend/core/utils/code_bundles/code_bundles/src/packager/scanners/deps_scan.py",
+      "total_complexity": 294
     },
     {
       "avg_complexity": 8.469,
@@ -254,6 +268,20 @@
       "total_complexity": 207
     },
     {
+      "avg_complexity": 6.438,
+      "functions": 32,
+      "max_function_complexity": 20,
+      "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/code_bundles/src/packager/emitters/registry.py",
+      "total_complexity": 206
+    },
+    {
+      "avg_complexity": 6.438,
+      "functions": 32,
+      "max_function_complexity": 20,
+      "path": "v2/backend/core/utils/code_bundles/code_bundles/src/packager/emitters/registry.py",
+      "total_complexity": 206
+    },
+    {
       "avg_complexity": 4.636,
       "functions": 44,
       "max_function_complexity": 14,
@@ -280,20 +308,6 @@
       "max_function_complexity": 14,
       "path": "v2/backend/core/utils/standalone/ChatGPT_Bot_STAGED/code_bundles/env_index.py",
       "total_complexity": 204
-    },
-    {
-      "avg_complexity": 6.312,
-      "functions": 32,
-      "max_function_complexity": 20,
-      "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/code_bundles/src/packager/emitters/registry.py",
-      "total_complexity": 202
-    },
-    {
-      "avg_complexity": 6.312,
-      "functions": 32,
-      "max_function_complexity": 20,
-      "path": "v2/backend/core/utils/code_bundles/code_bundles/src/packager/emitters/registry.py",
-      "total_complexity": 202
     },
     {
       "avg_complexity": 6.733,
@@ -336,29 +350,15 @@
       "max_function_complexity": 18,
       "path": "v2/backend/core/docstrings/providers.py",
       "total_complexity": 189
-    },
-    {
-      "avg_complexity": 5.844,
-      "functions": 32,
-      "max_function_complexity": 22,
-      "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/code_bundles/assets_index.py",
-      "total_complexity": 187
-    },
-    {
-      "avg_complexity": 5.844,
-      "functions": 32,
-      "max_function_complexity": 22,
-      "path": "output/patch_code_bundles/v2/backend/core/utils/standalone/ChatGPT_Bot_STAGED/code_bundles/assets_index.py",
-      "total_complexity": 187
     }
   ],
   "metric": "cyclomatic_complexity_approx",
   "stats": {
-    "avg_complexity": 5.01,
-    "files": 582,
-    "functions_measured": 6972,
+    "avg_complexity": 5.05,
+    "files": 586,
+    "functions_measured": 7036,
     "max_function_complexity": 76,
     "p95_function_complexity": 14.0,
-    "total_complexity": 34930
+    "total_complexity": 35530
   }
 }
