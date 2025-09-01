@@ -1,15 +1,7 @@
 {
   "family": "deps",
-  "no_data": true,
+  "items": [],
   "stats": {
-    "ecosystems": {},
-    "files": 0,
-    "lockfiles": {
-      "by_kind": {},
-      "count": 0
-    },
-    "manifests": {},
-    "packages_unique": 0,
-    "top_packages": []
+    "count": 0
   }
 }
