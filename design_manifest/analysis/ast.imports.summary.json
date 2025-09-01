@@ -1,7 +1,10 @@
 {
   "family": "ast_imports",
-  "items": [],
   "stats": {
-    "count": 0
-  }
+    "count": 3132,
+    "files": 0,
+    "modules": 0
+  },
+  "top_files": [],
+  "top_modules": []
 }
