@@ -1,3 +1,26 @@
+{"asname": null, "end_lineno": 24, "from_module": "typing", "kind": "import_from", "level": 0, "lineno": 24, "module": "v2.patches.executor.run_patch_loop_local", "name": "Any", "path": "v2/patches/executor/run_patch_loop_local.py", "record_type": "ast.xref"}
+{"asname": null, "end_lineno": 24, "from_module": "typing", "kind": "import_from", "level": 0, "lineno": 24, "module": "v2.patches.executor.run_patch_loop_local", "name": "Dict", "path": "v2/patches/executor/run_patch_loop_local.py", "record_type": "ast.xref"}
+{"asname": null, "end_lineno": 24, "from_module": "typing", "kind": "import_from", "level": 0, "lineno": 24, "module": "v2.patches.executor.run_patch_loop_local", "name": "List", "path": "v2/patches/executor/run_patch_loop_local.py", "record_type": "ast.xref"}
+{"asname": null, "end_lineno": 24, "from_module": "typing", "kind": "import_from", "level": 0, "lineno": 24, "module": "v2.patches.executor.run_patch_loop_local", "name": "Optional", "path": "v2/patches/executor/run_patch_loop_local.py", "record_type": "ast.xref"}
+{"asname": null, "end_lineno": 27, "from_module": "v2.backend.core.spine", "kind": "import_from", "level": 0, "lineno": 27, "module": "v2.patches.executor.run_patch_loop_local", "name": "Spine", "path": "v2/patches/executor/run_patch_loop_local.py", "record_type": "ast.xref"}
+{"asname": null, "end_lineno": 30, "from_module": "v2.backend.core.configuration.config", "kind": "import_from", "level": 0, "lineno": 30, "module": "v2.patches.executor.run_patch_loop_local", "name": "PatchLoopConfig", "path": "v2/patches/executor/run_patch_loop_local.py", "record_type": "ast.xref"}
+{"asname": null, "end_lineno": 31, "from_module": "v2.backend.core.prompt_pipeline.executor.errors", "kind": "import_from", "level": 0, "lineno": 31, "module": "v2.patches.executor.run_patch_loop_local", "name": "AskSpecError", "path": "v2/patches/executor/run_patch_loop_local.py", "record_type": "ast.xref"}
+{"asname": null, "end_lineno": 32, "from_module": "v2.backend.core.types.types", "kind": "import_from", "level": 0, "lineno": 32, "module": "v2.patches.executor.run_patch_loop_local", "name": "AskSpec", "path": "v2/patches/executor/run_patch_loop_local.py", "record_type": "ast.xref"}
+{"asname": null, "end_lineno": 131, "kind": "import", "lineno": 131, "module": "v2.patches.executor.run_patch_loop_local", "name": "yaml", "path": "v2/patches/executor/run_patch_loop_local.py", "record_type": "ast.xref"}
+{"callee": "start.resolve", "caller_name": "v2.patches.executor.run_patch_loop_local._find_repo_root", "end_lineno": 39, "lineno": 39, "module": "v2.patches.executor.run_patch_loop_local", "path": "v2/patches/executor/run_patch_loop_local.py", "record_type": "ast.call"}
+{"callee": "BinOp.is_file", "caller_name": "v2.patches.executor.run_patch_loop_local._find_repo_root", "end_lineno": 41, "lineno": 41, "module": "v2.patches.executor.run_patch_loop_local", "path": "v2/patches/executor/run_patch_loop_local.py", "record_type": "ast.call"}
+{"callee": "Path.cwd.resolve", "caller_name": "v2.patches.executor.run_patch_loop_local._find_repo_root", "end_lineno": 43, "lineno": 43, "module": "v2.patches.executor.run_patch_loop_local", "path": "v2/patches/executor/run_patch_loop_local.py", "record_type": "ast.call"}
+{"callee": "Path.cwd", "caller_name": "v2.patches.executor.run_patch_loop_local._find_repo_root", "end_lineno": 43, "lineno": 43, "module": "v2.patches.executor.run_patch_loop_local", "path": "v2/patches/executor/run_patch_loop_local.py", "record_type": "ast.call"}
+{"callee": "Path.resolve", "caller_name": "v2.patches.executor.run_patch_loop_local._default_project_root", "end_lineno": 49, "lineno": 49, "module": "v2.patches.executor.run_patch_loop_local", "path": "v2/patches/executor/run_patch_loop_local.py", "record_type": "ast.call"}
+{"callee": "Path", "caller_name": "v2.patches.executor.run_patch_loop_local._default_project_root", "end_lineno": 49, "lineno": 49, "module": "v2.patches.executor.run_patch_loop_local", "path": "v2/patches/executor/run_patch_loop_local.py", "record_type": "ast.call"}
+{"callee": "_find_repo_root", "caller_name": "v2.patches.executor.run_patch_loop_local._default_project_root", "end_lineno": 50, "lineno": 50, "module": "v2.patches.executor.run_patch_loop_local", "path": "v2/patches/executor/run_patch_loop_local.py", "record_type": "ast.call"}
+{"callee": "BinOp.is_dir", "caller_name": "v2.patches.executor.run_patch_loop_local._default_project_root", "end_lineno": 54, "lineno": 54, "module": "v2.patches.executor.run_patch_loop_local", "path": "v2/patches/executor/run_patch_loop_local.py", "record_type": "ast.call"}
+{"callee": "BinOp.is_dir", "caller_name": "v2.patches.executor.run_patch_loop_local._default_project_root", "end_lineno": 54, "lineno": 54, "module": "v2.patches.executor.run_patch_loop_local", "path": "v2/patches/executor/run_patch_loop_local.py", "record_type": "ast.call"}
+{"callee": "Path.cwd.resolve", "caller_name": "v2.patches.executor.run_patch_loop_local._default_project_root", "end_lineno": 56, "lineno": 56, "module": "v2.patches.executor.run_patch_loop_local", "path": "v2/patches/executor/run_patch_loop_local.py", "record_type": "ast.call"}
+{"callee": "Path.cwd", "caller_name": "v2.patches.executor.run_patch_loop_local._default_project_root", "end_lineno": 56, "lineno": 56, "module": "v2.patches.executor.run_patch_loop_local", "path": "v2/patches/executor/run_patch_loop_local.py", "record_type": "ast.call"}
+{"callee": "isinstance", "caller_name": "v2.patches.executor.run_patch_loop_local._extract_openai_key", "end_lineno": 61, "lineno": 61, "module": "v2.patches.executor.run_patch_loop_local", "path": "v2/patches/executor/run_patch_loop_local.py", "record_type": "ast.call"}
+{"callee": "secrets.get", "caller_name": "v2.patches.executor.run_patch_loop_local._extract_openai_key", "end_lineno": 65, "lineno": 65, "module": "v2.patches.executor.run_patch_loop_local", "path": "v2/patches/executor/run_patch_loop_local.py", "record_type": "ast.call"}
+{"callee": "isinstance", "caller_name": "v2.patches.executor.run_patch_loop_local._extract_openai_key", "end_lineno": 66, "lineno": 66, "module": "v2.patches.executor.run_patch_loop_local", "path": "v2/patches/executor/run_patch_loop_local.py", "record_type": "ast.call"}
 {"callee": "val.strip", "caller_name": "v2.patches.executor.run_patch_loop_local._extract_openai_key", "end_lineno": 66, "lineno": 66, "module": "v2.patches.executor.run_patch_loop_local", "path": "v2/patches/executor/run_patch_loop_local.py", "record_type": "ast.call"}
 {"callee": "val.strip", "caller_name": "v2.patches.executor.run_patch_loop_local._extract_openai_key", "end_lineno": 67, "lineno": 67, "module": "v2.patches.executor.run_patch_loop_local", "path": "v2/patches/executor/run_patch_loop_local.py", "record_type": "ast.call"}
 {"callee": "secrets.get", "caller_name": "v2.patches.executor.run_patch_loop_local._extract_openai_key", "end_lineno": 69, "lineno": 69, "module": "v2.patches.executor.run_patch_loop_local", "path": "v2/patches/executor/run_patch_loop_local.py", "record_type": "ast.call"}
@@ -284,7 +307,7 @@
 {"avg_fn_len": 21.4, "cyclomatic": 11, "kind": "quality.metric", "language": "python", "loc": 156, "n_classes": 2, "n_functions": 5, "notes": null, "path": "v2/backend/core/utils/code_bundles/code_bundles/patch_pack.py", "sloc": 127}
 {"avg_fn_len": 0.0, "cyclomatic": 1, "kind": "quality.metric", "language": "python", "loc": 0, "n_classes": 0, "n_functions": 0, "notes": null, "path": "v2/backend/core/utils/code_bundles/code_bundles/python_api.py", "sloc": 0}
 {"avg_fn_len": 25.75, "cyclomatic": 24, "kind": "quality.metric", "language": "python", "loc": 150, "n_classes": 0, "n_functions": 4, "notes": null, "path": "v2/backend/core/utils/code_bundles/code_bundles/quality.py", "sloc": 129}
-{"avg_fn_len": 34.22, "cyclomatic": 299, "kind": "quality.metric", "language": "python", "loc": 1409, "n_classes": 1, "n_functions": 37, "notes": null, "path": "v2/backend/core/utils/code_bundles/code_bundles/run_pack.py", "sloc": 1152}
+{"avg_fn_len": 34.3, "cyclomatic": 299, "kind": "quality.metric", "language": "python", "loc": 1414, "n_classes": 1, "n_functions": 37, "notes": null, "path": "v2/backend/core/utils/code_bundles/code_bundles/run_pack.py", "sloc": 1146}
 {"avg_fn_len": 17.33, "cyclomatic": 14, "kind": "quality.metric", "language": "python", "loc": 89, "n_classes": 0, "n_functions": 3, "notes": null, "path": "v2/backend/core/utils/code_bundles/code_bundles/spine_targets.py", "sloc": 74}
 {"avg_fn_len": 0.0, "cyclomatic": 1, "kind": "quality.metric", "language": "python", "loc": 0, "n_classes": 0, "n_functions": 0, "notes": null, "path": "v2/backend/core/utils/code_bundles/code_bundles/src/__init__.py", "sloc": 0}
 {"avg_fn_len": 0.0, "cyclomatic": 1, "kind": "quality.metric", "language": "python", "loc": 0, "n_classes": 0, "n_functions": 0, "notes": null, "path": "v2/backend/core/utils/code_bundles/code_bundles/src/packager/__init__.py", "sloc": 0}
@@ -302,7 +325,7 @@
 {"avg_fn_len": 26.0, "cyclomatic": 26, "kind": "quality.metric", "language": "python", "loc": 196, "n_classes": 0, "n_functions": 5, "notes": null, "path": "v2/backend/core/utils/code_bundles/code_bundles/src/packager/emitters/backfill.py", "sloc": 153}
 {"avg_fn_len": 26.31, "cyclomatic": 92, "kind": "quality.metric", "language": "python", "loc": 604, "n_classes": 0, "n_functions": 16, "notes": null, "path": "v2/backend/core/utils/code_bundles/code_bundles/src/packager/emitters/registry.py", "sloc": 459}
 {"avg_fn_len": 0.0, "cyclomatic": 1, "kind": "quality.metric", "language": "python", "loc": 0, "n_classes": 0, "n_functions": 0, "notes": null, "path": "v2/backend/core/utils/code_bundles/code_bundles/src/packager/io/__init__.py", "sloc": 0}
-{"avg_fn_len": 23.86, "cyclomatic": 25, "kind": "quality.metric", "language": "python", "loc": 190, "n_classes": 1, "n_functions": 7, "notes": null, "path": "v2/backend/core/utils/code_bundles/code_bundles/src/packager/io/guide_writer.py", "sloc": 147}
+{"avg_fn_len": 29.43, "cyclomatic": 24, "kind": "quality.metric", "language": "python", "loc": 230, "n_classes": 1, "n_functions": 7, "notes": null, "path": "v2/backend/core/utils/code_bundles/code_bundles/src/packager/io/guide_writer.py", "sloc": 184}
 {"avg_fn_len": 8.12, "cyclomatic": 14, "kind": "quality.metric", "language": "python", "loc": 134, "n_classes": 3, "n_functions": 8, "notes": null, "path": "v2/backend/core/utils/code_bundles/code_bundles/src/packager/io/manifest_writer.py", "sloc": 99}
 {"avg_fn_len": 7.67, "cyclomatic": 15, "kind": "quality.metric", "language": "python", "loc": 118, "n_classes": 2, "n_functions": 9, "notes": null, "path": "v2/backend/core/utils/code_bundles/code_bundles/src/packager/io/publisher.py", "sloc": 89}
 {"avg_fn_len": 16.33, "cyclomatic": 27, "kind": "quality.metric", "language": "python", "loc": 115, "n_classes": 1, "n_functions": 6, "notes": null, "path": "v2/backend/core/utils/code_bundles/code_bundles/src/packager/io/runspec_writer.py", "sloc": 88}
@@ -614,44 +637,3 @@
 {"dst_module": "shutil", "language": "python", "lineno": 8, "record_type": "edge.import", "src_path": "v2/backend/core/patch_engine/interactive_run.py"}
 {"dst_module": "json", "language": "python", "lineno": 9, "record_type": "edge.import", "src_path": "v2/backend/core/patch_engine/interactive_run.py"}
 {"dst_module": "hashlib", "language": "python", "lineno": 10, "record_type": "edge.import", "src_path": "v2/backend/core/patch_engine/interactive_run.py"}
-{"dst_module": "config", "language": "python", "lineno": 12, "record_type": "edge.import", "src_path": "v2/backend/core/patch_engine/interactive_run.py"}
-{"dst_module": "scope", "language": "python", "lineno": 13, "record_type": "edge.import", "src_path": "v2/backend/core/patch_engine/interactive_run.py"}
-{"dst_module": "workspace", "language": "python", "lineno": 14, "record_type": "edge.import", "src_path": "v2/backend/core/patch_engine/interactive_run.py"}
-{"dst_module": "evaluator", "language": "python", "lineno": 15, "record_type": "edge.import", "src_path": "v2/backend/core/patch_engine/interactive_run.py"}
-{"dst_module": "applier", "language": "python", "lineno": 16, "record_type": "edge.import", "src_path": "v2/backend/core/patch_engine/interactive_run.py"}
-{"dst_module": "run_manifest", "language": "python", "lineno": 17, "record_type": "edge.import", "src_path": "v2/backend/core/patch_engine/interactive_run.py"}
-{"dst_module": "__future__", "language": "python", "lineno": 1, "record_type": "edge.import", "src_path": "v2/backend/core/patch_engine/ops_compile.py"}
-{"dst_module": "pathlib", "language": "python", "lineno": 3, "record_type": "edge.import", "src_path": "v2/backend/core/patch_engine/ops_compile.py"}
-{"dst_module": "typing", "language": "python", "lineno": 4, "record_type": "edge.import", "src_path": "v2/backend/core/patch_engine/ops_compile.py"}
-{"dst_module": "difflib", "language": "python", "lineno": 5, "record_type": "edge.import", "src_path": "v2/backend/core/patch_engine/ops_compile.py"}
-{"dst_module": "plan", "language": "python", "lineno": 7, "record_type": "edge.import", "src_path": "v2/backend/core/patch_engine/ops_compile.py"}
-{"dst_module": "textops", "language": "python", "lineno": 8, "record_type": "edge.import", "src_path": "v2/backend/core/patch_engine/ops_compile.py"}
-{"dst_module": "__future__", "language": "python", "lineno": 1, "record_type": "edge.import", "src_path": "v2/backend/core/patch_engine/plan.py"}
-{"dst_module": "dataclasses", "language": "python", "lineno": 3, "record_type": "edge.import", "src_path": "v2/backend/core/patch_engine/plan.py"}
-{"dst_module": "typing", "language": "python", "lineno": 4, "record_type": "edge.import", "src_path": "v2/backend/core/patch_engine/plan.py"}
-{"dst_module": "__future__", "language": "python", "lineno": 2, "record_type": "edge.import", "src_path": "v2/backend/core/patch_engine/providers.py"}
-{"dst_module": "typing", "language": "python", "lineno": 4, "record_type": "edge.import", "src_path": "v2/backend/core/patch_engine/providers.py"}
-{"dst_module": "os", "language": "python", "lineno": 5, "record_type": "edge.import", "src_path": "v2/backend/core/patch_engine/providers.py"}
-{"dst_module": "json", "language": "python", "lineno": 5, "record_type": "edge.import", "src_path": "v2/backend/core/patch_engine/providers.py"}
-{"dst_module": "re", "language": "python", "lineno": 5, "record_type": "edge.import", "src_path": "v2/backend/core/patch_engine/providers.py"}
-{"dst_module": "shutil", "language": "python", "lineno": 5, "record_type": "edge.import", "src_path": "v2/backend/core/patch_engine/providers.py"}
-{"dst_module": "datetime", "language": "python", "lineno": 6, "record_type": "edge.import", "src_path": "v2/backend/core/patch_engine/providers.py"}
-{"dst_module": "dataclasses", "language": "python", "lineno": 7, "record_type": "edge.import", "src_path": "v2/backend/core/patch_engine/providers.py"}
-{"dst_module": "pathlib", "language": "python", "lineno": 8, "record_type": "edge.import", "src_path": "v2/backend/core/patch_engine/providers.py"}
-{"dst_module": "v2.backend.core.spine.contracts", "language": "python", "lineno": 10, "record_type": "edge.import", "src_path": "v2/backend/core/patch_engine/providers.py"}
-{"dst_module": "v2.backend.core.utils.io.file_ops", "language": "python", "lineno": 13, "record_type": "edge.import", "src_path": "v2/backend/core/patch_engine/providers.py"}
-{"dst_module": "v2.backend.core.utils.io.run_dir", "language": "python", "lineno": 14, "record_type": "edge.import", "src_path": "v2/backend/core/patch_engine/providers.py"}
-{"dst_module": "v2.backend.core.utils.io.output_writer", "language": "python", "lineno": 15, "record_type": "edge.import", "src_path": "v2/backend/core/patch_engine/providers.py"}
-{"dst_module": "v2.patches.core.rewrite", "language": "python", "lineno": 19, "record_type": "edge.import", "src_path": "v2/backend/core/patch_engine/providers.py"}
-{"dst_module": "v2.patches.core.patch_ops", "language": "python", "lineno": 20, "record_type": "edge.import", "src_path": "v2/backend/core/patch_engine/providers.py"}
-{"dst_module": "patches.core.rewrite", "language": "python", "lineno": 22, "record_type": "edge.import", "src_path": "v2/backend/core/patch_engine/providers.py"}
-{"dst_module": "patches.core.patch_ops", "language": "python", "lineno": 23, "record_type": "edge.import", "src_path": "v2/backend/core/patch_engine/providers.py"}
-{"dst_module": "traceback", "language": "python", "lineno": 366, "record_type": "edge.import", "src_path": "v2/backend/core/patch_engine/providers.py"}
-{"dst_module": "v2.backend.core.spine.bootstrap", "language": "python", "lineno": 372, "record_type": "edge.import", "src_path": "v2/backend/core/patch_engine/providers.py"}
-{"dst_module": "v2.backend.core.configuration.loader", "language": "python", "lineno": 373, "record_type": "edge.import", "src_path": "v2/backend/core/patch_engine/providers.py"}
-{"dst_module": "__future__", "language": "python", "lineno": 2, "record_type": "edge.import", "src_path": "v2/backend/core/patch_engine/run_manifest.py"}
-{"dst_module": "dataclasses", "language": "python", "lineno": 3, "record_type": "edge.import", "src_path": "v2/backend/core/patch_engine/run_manifest.py"}
-{"dst_module": "pathlib", "language": "python", "lineno": 4, "record_type": "edge.import", "src_path": "v2/backend/core/patch_engine/run_manifest.py"}
-{"dst_module": "typing", "language": "python", "lineno": 5, "record_type": "edge.import", "src_path": "v2/backend/core/patch_engine/run_manifest.py"}
-{"dst_module": "json", "language": "python", "lineno": 6, "record_type": "edge.import", "src_path": "v2/backend/core/patch_engine/run_manifest.py"}
-{"dst_module": "hashlib", "language": "python", "lineno": 7, "record_type": "edge.import", "src_path": "v2/backend/core/patch_engine/run_manifest.py"}
