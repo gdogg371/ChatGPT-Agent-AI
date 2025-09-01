@@ -1,10 +1,812 @@
 {
   "family": "ast_imports",
   "stats": {
-    "count": 3132,
-    "files": 0,
-    "modules": 0
+    "count": 3154,
+    "files": 480,
+    "modules": 173
   },
-  "top_files": [],
-  "top_modules": []
+  "top_files": [
+    {
+      "edges": 37,
+      "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/code_bundles/run_pack.py"
+    },
+    {
+      "edges": 37,
+      "path": "v2/backend/core/utils/code_bundles/code_bundles/run_pack.py"
+    },
+    {
+      "edges": 34,
+      "path": "output/patch_code_bundles/v2/backend/core/utils/standalone/ChatGPT_Bot_STAGED/code_bundles/run_pack.py"
+    },
+    {
+      "edges": 34,
+      "path": "v2/backend/core/utils/standalone/ChatGPT_Bot_STAGED/code_bundles/run_pack.py"
+    },
+    {
+      "edges": 30,
+      "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/code_bundles/orchestrate.py"
+    },
+    {
+      "edges": 30,
+      "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/code_bundles_OLD/orchestrate.py"
+    },
+    {
+      "edges": 30,
+      "path": "output/patch_code_bundles/v2/backend/core/utils/standalone/ChatGPT_Bot_STAGED/code_bundles/orchestrate.py"
+    },
+    {
+      "edges": 30,
+      "path": "output/patch_code_bundles/v2/backend/core/utils/standalone/ChatGPT_Bot_STAGED/code_bundles_OLD/orchestrate.py"
+    },
+    {
+      "edges": 30,
+      "path": "v2/backend/core/utils/code_bundles/code_bundles/orchestrate.py"
+    },
+    {
+      "edges": 30,
+      "path": "v2/backend/core/utils/code_bundles/code_bundles_OLD/orchestrate.py"
+    },
+    {
+      "edges": 30,
+      "path": "v2/backend/core/utils/standalone/ChatGPT_Bot_STAGED/code_bundles/orchestrate.py"
+    },
+    {
+      "edges": 30,
+      "path": "v2/backend/core/utils/standalone/ChatGPT_Bot_STAGED/code_bundles_OLD/orchestrate.py"
+    },
+    {
+      "edges": 27,
+      "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/code_bundles_OLD/src/packager/core/orchestrator.py"
+    },
+    {
+      "edges": 27,
+      "path": "output/patch_code_bundles/v2/backend/core/utils/standalone/ChatGPT_Bot_STAGED/code_bundles_OLD/src/packager/core/orchestrator.py"
+    },
+    {
+      "edges": 27,
+      "path": "v2/backend/core/utils/code_bundles/code_bundles_OLD/src/packager/core/orchestrator.py"
+    },
+    {
+      "edges": 27,
+      "path": "v2/backend/core/utils/standalone/ChatGPT_Bot_STAGED/code_bundles_OLD/src/packager/core/orchestrator.py"
+    },
+    {
+      "edges": 20,
+      "path": "output/patch_code_bundles/v2/backend/core/patch_engine/providers.py"
+    },
+    {
+      "edges": 20,
+      "path": "output/patch_code_bundles/v2/backend/core/utils/standalone/ChatGPT_Bot_STAGED/code_bundles/src/packager/core/orchestrator.py"
+    },
+    {
+      "edges": 20,
+      "path": "v2/backend/core/patch_engine/providers.py"
+    },
+    {
+      "edges": 20,
+      "path": "v2/backend/core/utils/standalone/ChatGPT_Bot_STAGED/code_bundles/src/packager/core/orchestrator.py"
+    },
+    {
+      "edges": 14,
+      "path": "output/patch_code_bundles/v2/backend/core/utils/db/load_sqlite_vector_plugin.py"
+    },
+    {
+      "edges": 14,
+      "path": "v2/backend/core/utils/db/load_sqlite_vector_plugin.py"
+    },
+    {
+      "edges": 13,
+      "path": "output/patch_code_bundles/v2/backend/core/utils/standalone/standalone_patch_apply_verify.py"
+    },
+    {
+      "edges": 13,
+      "path": "output/patch_code_bundles/v2/patches/executor/run_patch_loop.py"
+    },
+    {
+      "edges": 13,
+      "path": "output/patch_code_bundles/v2/patches/executor/run_patch_loop_local.py"
+    },
+    {
+      "edges": 13,
+      "path": "v2/backend/core/utils/standalone/standalone_patch_apply_verify.py"
+    },
+    {
+      "edges": 13,
+      "path": "v2/patches/executor/run_patch_loop.py"
+    },
+    {
+      "edges": 13,
+      "path": "v2/patches/executor/run_patch_loop_local.py"
+    },
+    {
+      "edges": 12,
+      "path": "output/patch_code_bundles/v2/backend/core/introspect/read_docstrings.py"
+    },
+    {
+      "edges": 12,
+      "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/code_bundles_OLD/run_pack.py"
+    },
+    {
+      "edges": 12,
+      "path": "output/patch_code_bundles/v2/backend/core/utils/scanners/code_indexer.py"
+    },
+    {
+      "edges": 12,
+      "path": "output/patch_code_bundles/v2/backend/core/utils/standalone/ChatGPT_Bot_STAGED/code_bundles_OLD/run_pack.py"
+    },
+    {
+      "edges": 12,
+      "path": "v2/backend/core/introspect/read_docstrings.py"
+    },
+    {
+      "edges": 12,
+      "path": "v2/backend/core/utils/code_bundles/code_bundles_OLD/run_pack.py"
+    },
+    {
+      "edges": 12,
+      "path": "v2/backend/core/utils/scanners/code_indexer.py"
+    },
+    {
+      "edges": 12,
+      "path": "v2/backend/core/utils/standalone/ChatGPT_Bot_STAGED/code_bundles_OLD/run_pack.py"
+    },
+    {
+      "edges": 11,
+      "path": "output/patch_code_bundles/v2/backend/core/patch_engine/interactive_run.py"
+    },
+    {
+      "edges": 11,
+      "path": "output/patch_code_bundles/v2/backend/core/spine/bootstrap.py"
+    },
+    {
+      "edges": 11,
+      "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/code_bundles/src/packager/scanners/deps_scan.py"
+    },
+    {
+      "edges": 11,
+      "path": "v2/backend/core/patch_engine/interactive_run.py"
+    },
+    {
+      "edges": 11,
+      "path": "v2/backend/core/spine/bootstrap.py"
+    },
+    {
+      "edges": 11,
+      "path": "v2/backend/core/utils/code_bundles/code_bundles/src/packager/scanners/deps_scan.py"
+    },
+    {
+      "edges": 10,
+      "path": "output/patch_code_bundles/v2/backend/core/spine/providers/packager_bundle_make.py"
+    },
+    {
+      "edges": 10,
+      "path": "output/patch_code_bundles/v2/backend/core/spine/providers/utils_code_index.py"
+    },
+    {
+      "edges": 10,
+      "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/code_bundles/assets_index.py"
+    },
+    {
+      "edges": 10,
+      "path": "output/patch_code_bundles/v2/backend/core/utils/standalone/ChatGPT_Bot_STAGED/code_bundles/assets_index.py"
+    },
+    {
+      "edges": 10,
+      "path": "v2/backend/core/spine/providers/packager_bundle_make.py"
+    },
+    {
+      "edges": 10,
+      "path": "v2/backend/core/spine/providers/utils_code_index.py"
+    },
+    {
+      "edges": 10,
+      "path": "v2/backend/core/utils/code_bundles/code_bundles/assets_index.py"
+    },
+    {
+      "edges": 10,
+      "path": "v2/backend/core/utils/standalone/ChatGPT_Bot_STAGED/code_bundles/assets_index.py"
+    },
+    {
+      "edges": 9,
+      "path": "output/patch_code_bundles/v2/backend/core/docstrings/patchplan.py"
+    },
+    {
+      "edges": 9,
+      "path": "output/patch_code_bundles/v2/backend/core/patch_engine/test_engine_smoke.py"
+    },
+    {
+      "edges": 9,
+      "path": "output/patch_code_bundles/v2/backend/core/run/docstrings.py"
+    },
+    {
+      "edges": 9,
+      "path": "output/patch_code_bundles/v2/backend/core/spine/providers/packager_bundle_unpack.py"
+    },
+    {
+      "edges": 9,
+      "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/code_bundles/entrypoints.py"
+    },
+    {
+      "edges": 9,
+      "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/code_bundles/env_index.py"
+    },
+    {
+      "edges": 9,
+      "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/code_bundles/secrets_scan.py"
+    },
+    {
+      "edges": 9,
+      "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/code_bundles/src/packager/analysis_emitter.py"
+    },
+    {
+      "edges": 9,
+      "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/code_bundles/src/packager/io/manifest_writer.py"
+    },
+    {
+      "edges": 9,
+      "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/code_bundles_OLD/src/packager/languages/python/plugin.py"
+    },
+    {
+      "edges": 9,
+      "path": "output/patch_code_bundles/v2/backend/core/utils/standalone/ChatGPT_Bot_STAGED/code_bundles/entrypoints.py"
+    },
+    {
+      "edges": 9,
+      "path": "output/patch_code_bundles/v2/backend/core/utils/standalone/ChatGPT_Bot_STAGED/code_bundles/env_index.py"
+    },
+    {
+      "edges": 9,
+      "path": "output/patch_code_bundles/v2/backend/core/utils/standalone/ChatGPT_Bot_STAGED/code_bundles/secrets_scan.py"
+    },
+    {
+      "edges": 9,
+      "path": "output/patch_code_bundles/v2/backend/core/utils/standalone/ChatGPT_Bot_STAGED/code_bundles_OLD/src/packager/languages/python/plugin.py"
+    },
+    {
+      "edges": 9,
+      "path": "output/patch_code_bundles/v2/cli/docstring.py"
+    },
+    {
+      "edges": 9,
+      "path": "v2/backend/core/docstrings/patchplan.py"
+    },
+    {
+      "edges": 9,
+      "path": "v2/backend/core/patch_engine/test_engine_smoke.py"
+    },
+    {
+      "edges": 9,
+      "path": "v2/backend/core/run/docstrings.py"
+    },
+    {
+      "edges": 9,
+      "path": "v2/backend/core/spine/providers/packager_bundle_unpack.py"
+    },
+    {
+      "edges": 9,
+      "path": "v2/backend/core/utils/code_bundles/code_bundles/entrypoints.py"
+    },
+    {
+      "edges": 9,
+      "path": "v2/backend/core/utils/code_bundles/code_bundles/env_index.py"
+    },
+    {
+      "edges": 9,
+      "path": "v2/backend/core/utils/code_bundles/code_bundles/secrets_scan.py"
+    },
+    {
+      "edges": 9,
+      "path": "v2/backend/core/utils/code_bundles/code_bundles/src/packager/analysis_emitter.py"
+    },
+    {
+      "edges": 9,
+      "path": "v2/backend/core/utils/code_bundles/code_bundles/src/packager/io/manifest_writer.py"
+    },
+    {
+      "edges": 9,
+      "path": "v2/backend/core/utils/code_bundles/code_bundles_OLD/src/packager/languages/python/plugin.py"
+    },
+    {
+      "edges": 9,
+      "path": "v2/backend/core/utils/standalone/ChatGPT_Bot_STAGED/code_bundles/entrypoints.py"
+    },
+    {
+      "edges": 9,
+      "path": "v2/backend/core/utils/standalone/ChatGPT_Bot_STAGED/code_bundles/env_index.py"
+    },
+    {
+      "edges": 9,
+      "path": "v2/backend/core/utils/standalone/ChatGPT_Bot_STAGED/code_bundles/secrets_scan.py"
+    },
+    {
+      "edges": 9,
+      "path": "v2/backend/core/utils/standalone/ChatGPT_Bot_STAGED/code_bundles_OLD/src/packager/languages/python/plugin.py"
+    },
+    {
+      "edges": 9,
+      "path": "v2/cli/docstring.py"
+    },
+    {
+      "edges": 8,
+      "path": "output/patch_code_bundles/v2/backend/core/docstrings/sanitize.py"
+    },
+    {
+      "edges": 8,
+      "path": "output/patch_code_bundles/v2/backend/core/introspect/providers.py"
+    },
+    {
+      "edges": 8,
+      "path": "output/patch_code_bundles/v2/backend/core/patch_engine/evaluator.py"
+    },
+    {
+      "edges": 8,
+      "path": "output/patch_code_bundles/v2/backend/core/patch_engine/run_manifest.py"
+    },
+    {
+      "edges": 8,
+      "path": "output/patch_code_bundles/v2/backend/core/prompt_pipeline/executor/engine.py"
+    },
+    {
+      "edges": 8,
+      "path": "output/patch_code_bundles/v2/backend/core/prompt_pipeline/executor/providers.py"
+    },
+    {
+      "edges": 8,
+      "path": "output/patch_code_bundles/v2/backend/core/spine/providers/packager_pack_run.py"
+    },
+    {
+      "edges": 8,
+      "path": "output/patch_code_bundles/v2/backend/core/spine/providers/utils_db_load_sqlite_vec.py"
+    },
+    {
+      "edges": 8,
+      "path": "output/patch_code_bundles/v2/backend/core/spine/registry.py"
+    },
+    {
+      "edges": 8,
+      "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/code_bundles/deps_index_OLD.py"
+    },
+    {
+      "edges": 8,
+      "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/code_bundles/git_info.py"
+    },
+    {
+      "edges": 8,
+      "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/code_bundles/html_index.py"
+    },
+    {
+      "edges": 8,
+      "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/code_bundles/src/packager/core/orchestrator.py"
+    },
+    {
+      "edges": 8,
+      "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/code_bundles/src/packager/io/publisher.py"
+    },
+    {
+      "edges": 8,
+      "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/code_bundles_OLD/python_index.py"
+    },
+    {
+      "edges": 8,
+      "path": "output/patch_code_bundles/v2/backend/core/utils/code_fixers/change_imports.py"
+    },
+    {
+      "edges": 8,
+      "path": "output/patch_code_bundles/v2/backend/core/utils/standalone/ChatGPT_Bot_STAGED/code_bundles/deps_index.py"
+    },
+    {
+      "edges": 8,
+      "path": "output/patch_code_bundles/v2/backend/core/utils/standalone/ChatGPT_Bot_STAGED/code_bundles/git_info.py"
+    },
+    {
+      "edges": 8,
+      "path": "output/patch_code_bundles/v2/backend/core/utils/standalone/ChatGPT_Bot_STAGED/code_bundles/html_index.py"
+    },
+    {
+      "edges": 8,
+      "path": "output/patch_code_bundles/v2/backend/core/utils/standalone/ChatGPT_Bot_STAGED/code_bundles/src/packager/io/publisher.py"
+    }
+  ],
+  "top_modules": [
+    {
+      "edges": 458,
+      "name": "__future__"
+    },
+    {
+      "edges": 410,
+      "name": "typing"
+    },
+    {
+      "edges": 312,
+      "name": "pathlib"
+    },
+    {
+      "edges": 198,
+      "name": "dataclasses"
+    },
+    {
+      "edges": 152,
+      "name": "json"
+    },
+    {
+      "edges": 118,
+      "name": "os"
+    },
+    {
+      "edges": 108,
+      "name": "hashlib"
+    },
+    {
+      "edges": 96,
+      "name": "re"
+    },
+    {
+      "edges": 54,
+      "name": "sys"
+    },
+    {
+      "edges": 48,
+      "name": "ast"
+    },
+    {
+      "edges": 46,
+      "name": "base64"
+    },
+    {
+      "edges": 44,
+      "name": "bundle_io"
+    },
+    {
+      "edges": 40,
+      "name": "collections"
+    },
+    {
+      "edges": 36,
+      "name": "fnmatch"
+    },
+    {
+      "edges": 34,
+      "name": "datetime"
+    },
+    {
+      "edges": 32,
+      "name": "time"
+    },
+    {
+      "edges": 30,
+      "name": "io"
+    },
+    {
+      "edges": 22,
+      "name": "importlib"
+    },
+    {
+      "edges": 20,
+      "name": "yaml"
+    },
+    {
+      "edges": 20,
+      "name": "v2.backend.core.spine.contracts"
+    },
+    {
+      "edges": 18,
+      "name": "zipfile"
+    },
+    {
+      "edges": 16,
+      "name": "sqlite3"
+    },
+    {
+      "edges": 16,
+      "name": "types"
+    },
+    {
+      "edges": 16,
+      "name": "urllib.request"
+    },
+    {
+      "edges": 16,
+      "name": "urllib.error"
+    },
+    {
+      "edges": 16,
+      "name": "inspect"
+    },
+    {
+      "edges": 16,
+      "name": "math"
+    },
+    {
+      "edges": 16,
+      "name": "tomllib"
+    },
+    {
+      "edges": 16,
+      "name": "urllib"
+    },
+    {
+      "edges": 14,
+      "name": "v2.backend.core.configuration.loader"
+    },
+    {
+      "edges": 14,
+      "name": "sqlalchemy"
+    },
+    {
+      "edges": 14,
+      "name": "packager.core.paths"
+    },
+    {
+      "edges": 14,
+      "name": "packager.core.discovery"
+    },
+    {
+      "edges": 14,
+      "name": "packager.io.manifest_writer"
+    },
+    {
+      "edges": 14,
+      "name": "packager.io.runspec_writer"
+    },
+    {
+      "edges": 14,
+      "name": "packager.io.guide_writer"
+    },
+    {
+      "edges": 14,
+      "name": "paths"
+    },
+    {
+      "edges": 14,
+      "name": "discovery"
+    },
+    {
+      "edges": 14,
+      "name": "io.manifest_writer"
+    },
+    {
+      "edges": 14,
+      "name": "io.runspec_writer"
+    },
+    {
+      "edges": 14,
+      "name": "io.guide_writer"
+    },
+    {
+      "edges": 14,
+      "name": "normalize"
+    },
+    {
+      "edges": 12,
+      "name": "config"
+    },
+    {
+      "edges": 12,
+      "name": "subprocess"
+    },
+    {
+      "edges": 12,
+      "name": "html.parser"
+    },
+    {
+      "edges": 12,
+      "name": "packager.languages.python.plugin"
+    },
+    {
+      "edges": 12,
+      "name": "languages.python.plugin"
+    },
+    {
+      "edges": 12,
+      "name": "packager.io.publisher"
+    },
+    {
+      "edges": 10,
+      "name": "sqlalchemy.orm"
+    },
+    {
+      "edges": 10,
+      "name": "shutil"
+    },
+    {
+      "edges": 10,
+      "name": "contextlib"
+    },
+    {
+      "edges": 10,
+      "name": "packager.core.orchestrator"
+    },
+    {
+      "edges": 10,
+      "name": "configparser"
+    },
+    {
+      "edges": 10,
+      "name": "argparse"
+    },
+    {
+      "edges": 8,
+      "name": "v2.backend.core.spine.registry"
+    },
+    {
+      "edges": 8,
+      "name": "traceback"
+    },
+    {
+      "edges": 8,
+      "name": "registry"
+    },
+    {
+      "edges": 8,
+      "name": "packager.core.config"
+    },
+    {
+      "edges": 8,
+      "name": "urllib.parse"
+    },
+    {
+      "edges": 8,
+      "name": "v2.backend.core.utils.code_bundles.code_bundles.contracts"
+    },
+    {
+      "edges": 8,
+      "name": "core.paths"
+    },
+    {
+      "edges": 8,
+      "name": "core.integrity"
+    },
+    {
+      "edges": 6,
+      "name": "v2.backend.core.db.access.db_init"
+    },
+    {
+      "edges": 6,
+      "name": "textwrap"
+    },
+    {
+      "edges": 6,
+      "name": "tempfile"
+    },
+    {
+      "edges": 6,
+      "name": "difflib"
+    },
+    {
+      "edges": 6,
+      "name": "v2.backend.core.utils.io.file_ops"
+    },
+    {
+      "edges": 6,
+      "name": "contracts"
+    },
+    {
+      "edges": 6,
+      "name": "v2.backend.core.types.types"
+    },
+    {
+      "edges": 6,
+      "name": "importlib.util"
+    },
+    {
+      "edges": 6,
+      "name": "packager.core.writer"
+    },
+    {
+      "edges": 6,
+      "name": "platform"
+    },
+    {
+      "edges": 6,
+      "name": "v2.backend.core.spine"
+    },
+    {
+      "edges": 6,
+      "name": "pydantic"
+    },
+    {
+      "edges": 4,
+      "name": "sqlalchemy.engine"
+    },
+    {
+      "edges": 4,
+      "name": "sqlalchemy.exc"
+    },
+    {
+      "edges": 4,
+      "name": "scope"
+    },
+    {
+      "edges": 4,
+      "name": "workspace"
+    },
+    {
+      "edges": 4,
+      "name": "evaluator"
+    },
+    {
+      "edges": 4,
+      "name": "applier"
+    },
+    {
+      "edges": 4,
+      "name": "run_manifest"
+    },
+    {
+      "edges": 4,
+      "name": "enum"
+    },
+    {
+      "edges": 4,
+      "name": "v2.backend.core.utils.io.run_dir"
+    },
+    {
+      "edges": 4,
+      "name": "orchestrator"
+    },
+    {
+      "edges": 4,
+      "name": "v2.backend.core.prompt_pipeline.llm.response_parser"
+    },
+    {
+      "edges": 4,
+      "name": "schema"
+    },
+    {
+      "edges": 4,
+      "name": "loader"
+    },
+    {
+      "edges": 4,
+      "name": "base"
+    },
+    {
+      "edges": 4,
+      "name": "csv"
+    },
+    {
+      "edges": 4,
+      "name": "mimetypes"
+    },
+    {
+      "edges": 4,
+      "name": "struct"
+    },
+    {
+      "edges": 4,
+      "name": "xml.etree.ElementTree"
+    },
+    {
+      "edges": 4,
+      "name": "shlex"
+    },
+    {
+      "edges": 4,
+      "name": "os.path"
+    },
+    {
+      "edges": 4,
+      "name": "v2.backend.core.utils.code_bundles.code_bundles.bundle_io"
+    },
+    {
+      "edges": 4,
+      "name": "v2.backend.core.utils.code_bundles.code_bundles.python_index"
+    },
+    {
+      "edges": 4,
+      "name": "v2.backend.core.utils.code_bundles.code_bundles.quality"
+    },
+    {
+      "edges": 4,
+      "name": "v2.backend.core.utils.code_bundles.code_bundles.graphs"
+    },
+    {
+      "edges": 4,
+      "name": "v2.backend.core.utils.code_bundles.code_bundles.doc_coverage"
+    },
+    {
+      "edges": 4,
+      "name": "v2.backend.core.utils.code_bundles.code_bundles.complexity"
+    }
+  ]
 }
