@@ -1,12 +1,10 @@
-"""
-Packager runner (direct-source). Single source of truth:
-- Config:   config/packager.yml  (root-level 'publish_analysis' + publish.* + emit_ast)
-- Token:    secret_management/secrets.yml -> github.api_key
-- No reads of publish.local.json.
-
-Code publish respects publish.github.base_path.
-Artifacts publish to repo-root/design_manifest/ (including analysis/** when enabled).
-"""
+# Packager runner (direct-source). Single source of truth:
+# - Config:   config/packager.yml  (root-level 'publish_analysis' + publish.* + emit_ast)
+# - Token:    secret_management/secrets.yml -> github.api_key
+# - No reads of publish.local.json.
+#
+# Code publish respects publish.github.base_path.
+# Artifacts publish to repo-root/design_manifest/ (including analysis/** when enabled).
 
 from __future__ import annotations
 from hashlib import sha256
@@ -33,6 +31,9 @@ if str(SRC_DIR) not in sys.path:
 from packager.core.orchestrator import Packager
 import packager.core.orchestrator as orch_mod  # provenance
 from packager.io.publisher import GitHubPublisher, GitHubTarget
+
+# (added) Handoff writer
+from v2.backend.core.utils.code_bundles.code_bundles.src.packager.io.guide_writer import GuideWriter
 
 # Manifest helpers + enrichment
 from v2.backend.core.utils.code_bundles.code_bundles.bundle_io import (
@@ -1349,6 +1350,9 @@ def main() -> int:
         print("[packager] Emitting analysis sidecars...", flush=True)
         _emit_analysis_sidecars(repo_root=Path(cfg.source_root).resolve(), cfg=cfg)
 
+    # (added) Write assistant handoff after chunking + analysis, before publish
+    GuideWriter(Path(cfg.out_guide)).write(cfg=cfg)
+
     # GitHub publish (includes analysis/** when root-level flag is true)
     if do_github:
         if clean_repo_root:
@@ -1407,3 +1411,4 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         print("[packager] interrupted.")
         raise SystemExit(130)
+
