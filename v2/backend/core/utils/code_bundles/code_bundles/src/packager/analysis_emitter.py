@@ -243,7 +243,7 @@ def emit_from_config() -> Dict[str, Any]:
 
 def emit_all(*, repo_root: Path | str, cfg) -> Dict[str, Any]:
     """
-    Compatibility shim for run_pack.py
+    Compatibility shim for manage_github.py
 
     run_pack dynamically imports:
         from src.packager.analysis_emitter import emit_all
