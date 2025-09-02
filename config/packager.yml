@@ -31,6 +31,7 @@ exclude_globs:
   - "**/.venv/**"
   - "**/venv/**"
   - "**/tests/**"
+  - "**/standalone/**"
 
 # Segment-level excludes (directory basenames to ignore regardless of depth).
 segment_excludes:
@@ -57,6 +58,7 @@ segment_excludes:
   - "tests"
   - "tests_adhoc"
   - "tests_adhoc2"
+  - "standalone"
 
 # Write analysis sidecars when enabled in metadata_emission (see below).
 publish_analysis: true
