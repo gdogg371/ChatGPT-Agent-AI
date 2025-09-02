@@ -88,21 +88,21 @@ class GuideWriter:
         rel_parts_index = _posix_rel(source_root, parts_index_path)
         rel_monolith = _posix_rel(source_root, monolith_path)
 
-        # If writing a GitHub-targeted handoff, normalize paths to repo layout (design_manifest/ under optional base_path)
-        if is_github_handoff:
+        # If output filename indicates GitHub variant, switch to repo layout under repo root
+        if ".github." in self.out_path.name:
             pub = getattr(cfg, "publish", None)
             gh = getattr(pub, "github", None) if pub else None
-            base_path = ""
-            if gh is not None:
-                base_path = str(getattr(gh, "base_path", "") or "")
-                if base_path and not base_path.endswith("/"):
-                    base_path += "/"
+            base_path = str(getattr(gh, "base_path", "") or "")
+            if base_path and not base_path.endswith("/"):
+                base_path += "/"
+
+            # In-repo layout: design_manifest/ sits at repo root (or under base_path if set)
             rel_artifact_root = f"{base_path}design_manifest/"
-            rel_analysis_dir = rel_artifact_root + "analysis/"
-            rel_runspec = rel_artifact_root + "superbundle.run.json"
-            rel_handoff = rel_artifact_root + self.out_path.name
-            rel_parts_index = rel_artifact_root + f"{part_stem}_parts_index.json"
-            rel_monolith = rel_artifact_root + f"{part_stem}.jsonl"
+            rel_analysis_dir  = rel_artifact_root + "analysis/"
+            rel_runspec       = rel_artifact_root + "superbundle.run.json"
+            rel_handoff       = rel_artifact_root + self.out_path.name
+            rel_parts_index   = rel_artifact_root + f"{part_stem}_parts_index.json"
+            rel_monolith      = rel_artifact_root + f"{part_stem}.jsonl"
 
         # Publish block
         pub = getattr(cfg, "publish", None)
@@ -247,6 +247,7 @@ class GuideWriter:
         }
 
         return data
+
 
 
 
