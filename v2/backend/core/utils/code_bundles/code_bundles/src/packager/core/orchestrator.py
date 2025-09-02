@@ -24,7 +24,7 @@ class _Result:
 
 class Packager:
     """
-    Minimal orchestrator used by your run_pack.py.
+    Minimal orchestrator used by your manage_github.py.
     Responsibilities:
       - Ensure design_manifest directory exists
       - Create placeholder design_manifest.jsonl (if missing)
