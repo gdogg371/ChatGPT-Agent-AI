@@ -19,7 +19,7 @@ Per rule:
 Per file assignment (last matching rule wins):
   {
     "kind": "codeowners.assignment",
-    "path": "v2/backend/core/utils/code_bundles/code_bundles/run_pack.py",
+    "path": "v2/backend/core/utils/code_bundles/code_bundles/manage_github.py",
     "owners": ["@team/backend","@you"],
     "rule_index": 7,
     "pattern": "/v2/backend/**",
