@@ -354,11 +354,11 @@
   ],
   "metric": "cyclomatic_complexity_approx",
   "stats": {
-    "avg_complexity": 4.869,
+    "avg_complexity": 4.876,
     "files": 428,
-    "functions_measured": 4780,
+    "functions_measured": 4776,
     "max_function_complexity": 76,
     "p95_function_complexity": 14.0,
-    "total_complexity": 23276
+    "total_complexity": 23290
   }
 }
