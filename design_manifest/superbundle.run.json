@@ -1,5 +1,5 @@
 {
-  "generated_at": "2025-09-01T21:29:46.418947+00:00",
+  "generated_at": "2025-09-02T09:45:41.398376+00:00",
   "modes": {
     "github": true,
     "local": true
@@ -11,6 +11,6 @@
     "part_stem": "design_manifest",
     "parts_per_dir": 10,
     "preserve_monolith": false,
-    "split_bytes": 300000
+    "split_bytes": 150000
   }
 }
