@@ -1,22 +1,22 @@
 {
   "families": {
     "asset": {
-      "count": 212,
+      "count": 208,
       "mode": "both",
       "path": "asset.summary.json"
     },
     "ast_calls": {
-      "count": 31704,
+      "count": 21554,
       "mode": "both",
       "path": "ast.calls.summary.json"
     },
     "ast_imports": {
-      "count": 3134,
+      "count": 2180,
       "mode": "both",
       "path": "ast.imports.summary.json"
     },
     "ast_symbols": {
-      "count": 4206,
+      "count": 2882,
       "mode": "both",
       "path": "ast.symbols.summary.json"
     },
@@ -36,17 +36,17 @@
       "path": "deps.index.summary.json"
     },
     "docs.coverage": {
-      "count": 584,
+      "count": 430,
       "mode": "both",
       "path": "docs.coverage.summary.json"
     },
     "entrypoints": {
-      "count": 74,
+      "count": 60,
       "mode": "both",
       "path": "entrypoints.summary.json"
     },
     "env": {
-      "count": 24,
+      "count": 26,
       "mode": "both",
       "path": "env.summary.json"
     },
@@ -76,7 +76,7 @@
       "path": "license.summary.json"
     },
     "quality": {
-      "count": 1164,
+      "count": 856,
       "mode": "both",
       "path": "quality.complexity.summary.json"
     },
