@@ -6,7 +6,7 @@
       "path": "asset.summary.json"
     },
     "ast_calls": {
-      "count": 21554,
+      "count": 21552,
       "mode": "both",
       "path": "ast.calls.summary.json"
     },
@@ -16,7 +16,7 @@
       "path": "ast.imports.summary.json"
     },
     "ast_symbols": {
-      "count": 2882,
+      "count": 2880,
       "mode": "both",
       "path": "ast.symbols.summary.json"
     },
