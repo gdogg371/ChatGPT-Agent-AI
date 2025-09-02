@@ -188,7 +188,7 @@ class GuideWriter:
                 "handoff": rel_handoff,
                 "checksums": {
                     "monolith_sha256": rel_artifact_root + "design_manifest.SHA256SUMS",
-                    "parts_sha256":   rel_artifact_root + "parts.SHA256SUMS",
+                    "parts_sha256":   rel_artifact_root + "design_manifest.SHA256SUMS",
                     "algo": "sha256",
                 },
             },
