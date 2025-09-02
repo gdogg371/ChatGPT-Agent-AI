@@ -20,6 +20,9 @@ from pathlib import Path
 from types import SimpleNamespace as NS
 from typing import Any, Dict, List, Optional, Tuple, Iterable
 from urllib import error, parse, request
+# Runtime flow logging (strict)
+from v2.backend.core.utils.code_bundles.code_bundles.telemetry.runtime_flow import FlowLogger
+
 
 # Ensure the embedded packager is importable first
 ROOT = Path(__file__).parent
@@ -410,6 +413,10 @@ def build_cfg(
     out_guide = (artifact_out / "assistant_handoff.v1.json").resolve()
     out_sums = (artifact_out / "design_manifest.SHA256SUMS").resolve()
 
+    # (dynamic) read split_bytes from vars.yml (fallback 300000)
+    cb_params = _read_code_bundle_params()
+    split_dyn = int(cb_params.get("split_bytes", 300000) or 300000)
+
     transport = Transport(
         chunk_bytes=64000,
         chunk_records=True,
@@ -419,7 +426,7 @@ def build_cfg(
         part_ext=".txt",
         part_stem="design_manifest",
         parts_index_name="design_manifest_parts_index.json",
-        split_bytes=300000,
+        split_bytes=split_dyn,
         transport_as_text=True,
         preserve_monolith=False,
     )
@@ -642,27 +649,24 @@ def _maybe_chunk_manifest_and_update(
         parts_per_dir=int(getattr(cfg.transport, "parts_per_dir", 10)),
     )
     (parts_dir / index_name).write_text(json.dumps(index, ensure_ascii=False, indent=2), encoding="utf-8")
-    # --- CHECKSUMS: monolith + parts (added) ---
+    # --- CHECKSUMS unified into design_manifest*.SHA256SUMS ---
     try:
-        # write monolith sums if the monolith exists (or keep file absent if not present)
-        write_sha256sums_for_file(
-            target_file=Path(cfg.out_bundle).parent / f"{part_stem}.jsonl",
-            out_sums_path=Path(cfg.out_bundle).parent / "design_manifest.SHA256SUMS",
-        )
-    except Exception as e:
-        print("[packager] WARN: monolith checksums:", type(e).__name__, e)
-
-    try:
-        _write_sha256sums_for_parts(
+        sums_file = Path(cfg.out_sums)
+        _ = _write_sha256sums_for_parts(
             parts_dir=Path(cfg.out_bundle).parent,
             parts_index_name=str(cfg.transport.parts_index_name),
             part_stem=part_stem,
             part_ext=part_ext,
-            out_sums_path=Path(cfg.out_bundle).parent / "parts.SHA256SUMS",
+            out_sums_path=sums_file,
         )
+        # Append monolith checksum line if present
+        mono = Path(cfg.out_bundle).parent / f"{part_stem}.jsonl"
+        if mono.exists():
+            dg = sha256(mono.read_bytes()).hexdigest()
+            with open(sums_file, "a", encoding="utf-8") as _f:
+                _f.write(f"{dg}  {mono.name}\n")
     except Exception as e:
-        print("[packager] WARN: parts checksums:", type(e).__name__, e)
-    # --- END CHECKSUMS ---
+        print("[packager] WARN: checksums:", type(e).__name__, e)
 
     added = _append_parts_artifacts_into_manifest(
         manifest_path=manifest_path,
@@ -724,7 +728,7 @@ def _publish_to_github(
     if bool(getattr(cfg.publish, "clean_before_publish", False)):
         try:
             github_clean_remote_repo(
-                owner=gh.owner, repo=gh.repo, branch=gh.branch, base_path="design_manifest", token=token
+                owner=gh.owner, repo=gh.repo, branch=gh.branch, token=token, base_path="design_manifest"
             )
         except Exception as e:
             print(f"[packager] WARN: remote clean failed: {type(e).__name__}: {e}")
@@ -747,6 +751,9 @@ def _publish_to_github(
 
     if manifest_path.exists():
         candidates.append((manifest_path, f"design_manifest/{manifest_path.name}"))
+    ev = art_dir / "run_events.jsonl"
+    if ev.exists():
+        candidates.append((ev, f"design_manifest/{ev.name}"))
 
     # Parts + parts index
     idx = art_dir / str(getattr(cfg.transport, "parts_index_name", "design_manifest_parts_index.json"))
@@ -1239,6 +1246,9 @@ def main() -> int:
         gh_base=gh_base,
         gh_token=gh_token if do_github else None,
         publish_codebase=bool(pub.get("publish_codebase", True)),
+
+    # Initialize runtime flow logger to write alongside manifest files
+
         publish_analysis=root_publish_analysis,  # <- root-level only
         publish_handoff=bool(pub.get("publish_handoff", True)),
         publish_transport=bool(pub.get("publish_transport", True)),
@@ -1246,6 +1256,9 @@ def main() -> int:
         clean_before_publish=bool(clean_artifacts) if (do_github and not clean_repo_root) else False,
         emit_ast=root_emit_ast,  # <- root-level only
     )
+
+    flow = FlowLogger(log_path=(Path(cfg.out_bundle).parent / "run_events.jsonl"))
+    flow.begin_run(meta={"argv": sys.argv, "cwd": str(Path.cwd())})
 
     print(f"[packager] using orchestrator from: {inspect.getsourcefile(orch_mod) or '?'}")
     print(f"[packager] source_root: {cfg.source_root}")
@@ -1260,12 +1273,14 @@ def main() -> int:
         _clear_dir_contents(artifact_root)
         _clear_dir_contents(code_output_root)
 
-    result = Packager(cfg, rules=None).run(external_source=None)
+    with flow.phase("packager.run", step=10):
+        result = Packager(cfg, rules=None).run(external_source=None)
     print(f"Bundle: {result.out_bundle}")
     print(f"Run-spec: {result.out_runspec}")
     print(f"Guide: {result.out_guide}")
 
-    discovered_repo = discover_repo_paths(
+    with flow.phase("discover.repo", step=20):
+        discovered_repo = discover_repo_paths(
         src_root=cfg.source_root,
         include_globs=list(cfg.include_globs),
         exclude_globs=list(cfg.exclude_globs),
@@ -1276,12 +1291,14 @@ def main() -> int:
     print(f"[packager] discovered repo files: {len(discovered_repo)}")
 
     if do_local:
-        copied = copy_snapshot(discovered_repo, code_output_root)
+        with flow.phase("snapshot.local", step=30, files=len(discovered_repo)):
+            copied = copy_snapshot(discovered_repo, code_output_root)
         print(f"[packager] Local snapshot: copied {copied} files to {code_output_root}")
 
     # LOCAL augment
     if do_local:
-        augment_manifest(
+        with flow.phase("augment.local", step=40):
+            augment_manifest(
             cfg=cfg,
             discovered_repo=discovered_repo,
             mode_local=do_local,
@@ -1312,7 +1329,8 @@ def main() -> int:
         try:
             cfg.out_bundle = gh_manifest_override
             cfg.out_sums = manifest_path.parent / "design_manifest.github.SHA256SUMS"
-            augment_manifest(
+            with flow.phase("augment.github", step=41):
+                augment_manifest(
                 cfg=cfg,
                 discovered_repo=discovered_repo,
                 mode_local=do_local,
@@ -1325,7 +1343,8 @@ def main() -> int:
 
     # Chunking (after augmentation)
     if do_local:
-        rep = _maybe_chunk_manifest_and_update(cfg=cfg, which="local")
+        with flow.phase("chunk.local", step=50):
+            rep = _maybe_chunk_manifest_and_update(cfg=cfg, which="local")
         print(f"[packager] chunk report (local): {rep}")
 
     if do_github and gh_manifest_override and gh_manifest_override.exists():
@@ -1333,7 +1352,8 @@ def main() -> int:
         try:
             cfg.out_bundle = gh_manifest_override
             cfg.out_sums = gh_sums_override or (gh_manifest_override.parent / "design_manifest.github.SHA256SUMS")
-            rep = _maybe_chunk_manifest_and_update(cfg=cfg, which="github")
+            with flow.phase("chunk.github", step=51):
+                rep = _maybe_chunk_manifest_and_update(cfg=cfg, which="github")
             print(f"[packager] chunk report (github): {rep}")
         finally:
             cfg.out_bundle, cfg.out_sums = local_bundle, local_sums
@@ -1348,10 +1368,12 @@ def main() -> int:
         flush=True)
     if getattr(cfg, "publish_analysis", True) and _emit_analysis_sidecars:
         print("[packager] Emitting analysis sidecars...", flush=True)
-        _emit_analysis_sidecars(repo_root=Path(cfg.source_root).resolve(), cfg=cfg)
+        with flow.phase("analysis.emit", step=60):
+            _emit_analysis_sidecars(repo_root=Path(cfg.source_root).resolve(), cfg=cfg)
 
     # (added) Write assistant handoff after chunking + analysis, before publish
-    GuideWriter(Path(cfg.out_guide)).write(cfg=cfg)
+    with flow.phase("handoff.write", step=65):
+        GuideWriter(Path(cfg.out_guide)).write(cfg=cfg)
 
     # GitHub publish (includes analysis/** when root-level flag is true)
     if do_github:
@@ -1361,7 +1383,8 @@ def main() -> int:
             except Exception as e:
                 print(f"[packager] WARN: full repo clean failed: {type(e).__name__}: {e}")
 
-            _publish_to_github(
+            with flow.phase("publish.github", step=70):
+                _publish_to_github(
                 cfg=cfg,
                 code_items_repo_rel=discovered_repo,
                 base_path=gh_base,
@@ -1370,7 +1393,8 @@ def main() -> int:
             )
             _print_full_raw_links(gh_owner, gh_repo, gh_branch, str(gh_token))
         else:
-            _publish_to_github(
+            with flow.phase("publish.github", step=70):
+                _publish_to_github(
                 cfg=cfg,
                 code_items_repo_rel=discovered_repo,
                 base_path=gh_base,
@@ -1378,7 +1402,8 @@ def main() -> int:
                 sums_override=gh_sums_override if (gh_sums_override and gh_sums_override.exists()) else None,
             )
             try:
-                deleted_code = _prune_remote_code_delta(
+                with flow.phase("prune.github.code", step=80):
+                    deleted_code = _prune_remote_code_delta(
                     cfg=cfg,
                     gh_owner=gh_owner,
                     gh_repo=gh_repo,
@@ -1387,7 +1412,8 @@ def main() -> int:
                     discovered_repo=discovered_repo,
                     base_path=gh_base,
                 )
-                deleted_art = _prune_remote_artifacts_delta(
+                with flow.phase("prune.github.artifacts", step=81):
+                    deleted_art = _prune_remote_artifacts_delta(
                     cfg=cfg,
                     gh_owner=gh_owner,
                     gh_repo=gh_repo,
@@ -1399,6 +1425,10 @@ def main() -> int:
                 _print_full_raw_links(gh_owner, gh_repo, gh_branch, str(gh_token))
 
     print("[packager] done.")
+    try:
+        flow.end_run(status="ok")
+    except Exception:
+        pass
     return 0
 
 
@@ -1411,4 +1441,6 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         print("[packager] interrupted.")
         raise SystemExit(130)
+
+
 
