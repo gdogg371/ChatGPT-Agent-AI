@@ -14,144 +14,6 @@
       "path": "cold_start/cleanup_locks.py"
     },
     {
-      "has_main_fn": true,
-      "kind": "entrypoint.python",
-      "module": "cold_start.bootstrap_check",
-      "path": "output/patch_code_bundles/cold_start/bootstrap_check.py"
-    },
-    {
-      "has_main_fn": false,
-      "kind": "entrypoint.python",
-      "module": "cold_start.cleanup_locks",
-      "path": "output/patch_code_bundles/cold_start/cleanup_locks.py"
-    },
-    {
-      "has_main_fn": false,
-      "kind": "entrypoint.python",
-      "module": "v2.backend.core.configuration.spine_paths",
-      "path": "output/patch_code_bundles/v2/backend/core/configuration/spine_paths.py"
-    },
-    {
-      "has_main_fn": false,
-      "kind": "entrypoint.python",
-      "module": "v2.backend.core.patch_engine.interactive_run",
-      "path": "output/patch_code_bundles/v2/backend/core/patch_engine/interactive_run.py"
-    },
-    {
-      "has_main_fn": true,
-      "kind": "entrypoint.python",
-      "module": "v2.backend.core.run.docstrings",
-      "path": "output/patch_code_bundles/v2/backend/core/run/docstrings.py"
-    },
-    {
-      "has_main_fn": false,
-      "kind": "entrypoint.python",
-      "module": "v2.backend.core.spine.bootstrap",
-      "path": "output/patch_code_bundles/v2/backend/core/spine/bootstrap.py"
-    },
-    {
-      "has_main_fn": false,
-      "kind": "entrypoint.python",
-      "module": "v2.backend.core.spine.validation",
-      "path": "output/patch_code_bundles/v2/backend/core/spine/validation.py"
-    },
-    {
-      "has_main_fn": true,
-      "kind": "entrypoint.python",
-      "module": "v2.backend.core.utils.code_bundles.code_bundles.run_pack",
-      "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/code_bundles/run_pack.py"
-    },
-    {
-      "has_main_fn": false,
-      "kind": "entrypoint.python",
-      "module": "v2.backend.core.utils.code_bundles.code_bundles.src.packager.analysis_emitter",
-      "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/code_bundles/src/packager/analysis_emitter.py"
-    },
-    {
-      "has_main_fn": true,
-      "kind": "entrypoint.python",
-      "module": "v2.backend.core.utils.code_bundles.code_bundles_OLD.run_pack",
-      "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/code_bundles_OLD/run_pack.py"
-    },
-    {
-      "has_main_fn": true,
-      "kind": "entrypoint.python",
-      "module": "v2.backend.core.utils.code_bundles.packers.make_code_bundle",
-      "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/packers/make_code_bundle.py"
-    },
-    {
-      "has_main_fn": true,
-      "kind": "entrypoint.python",
-      "module": "v2.backend.core.utils.code_bundles.packers.unpack_code_bundle",
-      "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/packers/unpack_code_bundle.py"
-    },
-    {
-      "has_main_fn": false,
-      "kind": "entrypoint.python",
-      "module": "v2.backend.core.utils.code_fixers.change_imports",
-      "path": "output/patch_code_bundles/v2/backend/core/utils/code_fixers/change_imports.py"
-    },
-    {
-      "has_main_fn": false,
-      "kind": "entrypoint.python",
-      "module": "v2.backend.core.utils.db.init_sqlite_dev",
-      "path": "output/patch_code_bundles/v2/backend/core/utils/db/init_sqlite_dev.py"
-    },
-    {
-      "has_main_fn": false,
-      "kind": "entrypoint.python",
-      "module": "v2.backend.core.utils.db.load_sqlite_vector_plugin",
-      "path": "output/patch_code_bundles/v2/backend/core/utils/db/load_sqlite_vector_plugin.py"
-    },
-    {
-      "has_main_fn": false,
-      "kind": "entrypoint.python",
-      "module": "v2.backend.core.utils.db.sqlite_viewer",
-      "path": "output/patch_code_bundles/v2/backend/core/utils/db/sqlite_viewer.py"
-    },
-    {
-      "has_main_fn": true,
-      "kind": "entrypoint.python",
-      "module": "v2.backend.core.utils.downloaders.download_ai_models",
-      "path": "output/patch_code_bundles/v2/backend/core/utils/downloaders/download_ai_models.py"
-    },
-    {
-      "has_main_fn": false,
-      "kind": "entrypoint.python",
-      "module": "v2.backend.core.utils.io.recursively_zip_directory",
-      "path": "output/patch_code_bundles/v2/backend/core/utils/io/recursively_zip_directory.py"
-    },
-    {
-      "has_main_fn": false,
-      "kind": "entrypoint.python",
-      "module": "v2.backend.core.utils.scanners.code_indexer",
-      "path": "output/patch_code_bundles/v2/backend/core/utils/scanners/code_indexer.py"
-    },
-    {
-      "has_main_fn": false,
-      "kind": "entrypoint.python",
-      "module": "v2.backend.core.utils.scanners.dir_crawler",
-      "path": "output/patch_code_bundles/v2/backend/core/utils/scanners/dir_crawler.py"
-    },
-    {
-      "has_main_fn": true,
-      "kind": "entrypoint.python",
-      "module": "v2.cli.docstring",
-      "path": "output/patch_code_bundles/v2/cli/docstring.py"
-    },
-    {
-      "has_main_fn": true,
-      "kind": "entrypoint.python",
-      "module": "v2.patches.executor.run_patch_loop",
-      "path": "output/patch_code_bundles/v2/patches/executor/run_patch_loop.py"
-    },
-    {
-      "has_main_fn": true,
-      "kind": "entrypoint.python",
-      "module": "v2.patches.executor.run_patch_loop_local",
-      "path": "output/patch_code_bundles/v2/patches/executor/run_patch_loop_local.py"
-    },
-    {
       "has_main_fn": false,
       "kind": "entrypoint.python",
       "module": "v2.backend.core.configuration.spine_paths",
@@ -290,41 +152,6 @@
     {
       "interpreter": "/bin/bash",
       "kind": "entrypoint.shell",
-      "path": "output/patch_code_bundles/cold_start/bootstrap.sh"
-    },
-    {
-      "interpreter": "/bin/bash",
-      "kind": "entrypoint.shell",
-      "path": "output/patch_code_bundles/cold_start/verify_services.sh"
-    },
-    {
-      "interpreter": "/bin/bash",
-      "kind": "entrypoint.shell",
-      "path": "output/patch_code_bundles/scripts/sandbox_validate.sh"
-    },
-    {
-      "interpreter": "/usr/bin/env",
-      "kind": "entrypoint.shell",
-      "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/packers/unpack_code_bundle.py"
-    },
-    {
-      "interpreter": "/usr/bin/env",
-      "kind": "entrypoint.shell",
-      "path": "output/patch_code_bundles/v2/backend/core/utils/code_fixers/change_imports.py"
-    },
-    {
-      "interpreter": "/usr/bin/env",
-      "kind": "entrypoint.shell",
-      "path": "output/patch_code_bundles/v2/backend/core/utils/io/recursively_zip_directory.py"
-    },
-    {
-      "interpreter": "/usr/bin/env",
-      "kind": "entrypoint.shell",
-      "path": "output/patch_code_bundles/v2/backend/core/utils/scanners/code_indexer.py"
-    },
-    {
-      "interpreter": "/bin/bash",
-      "kind": "entrypoint.shell",
       "path": "scripts/sandbox_validate.sh"
     },
     {
@@ -350,12 +177,12 @@
   ],
   "stats": {
     "by_kind": {
-      "entrypoint.python": 46,
-      "entrypoint.shell": 14
+      "entrypoint.python": 23,
+      "entrypoint.shell": 7
     },
-    "count": 60,
-    "files": 52,
-    "python": 46,
-    "shell": 14
+    "count": 30,
+    "files": 26,
+    "python": 23,
+    "shell": 7
   }
 }
