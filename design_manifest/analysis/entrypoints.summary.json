@@ -136,36 +136,6 @@
     {
       "has_main_fn": true,
       "kind": "entrypoint.python",
-      "module": "v2.backend.core.utils.standalone.ChatGPT_Bot_STAGED.code_bundles.run_pack",
-      "path": "output/patch_code_bundles/v2/backend/core/utils/standalone/ChatGPT_Bot_STAGED/code_bundles/run_pack.py"
-    },
-    {
-      "has_main_fn": true,
-      "kind": "entrypoint.python",
-      "module": "v2.backend.core.utils.standalone.ChatGPT_Bot_STAGED.code_bundles_OLD.run_pack",
-      "path": "output/patch_code_bundles/v2/backend/core/utils/standalone/ChatGPT_Bot_STAGED/code_bundles_OLD/run_pack.py"
-    },
-    {
-      "has_main_fn": true,
-      "kind": "entrypoint.python",
-      "module": "v2.backend.core.utils.standalone.ChatGPT_Bot_STAGED.packers.make_code_bundle",
-      "path": "output/patch_code_bundles/v2/backend/core/utils/standalone/ChatGPT_Bot_STAGED/packers/make_code_bundle.py"
-    },
-    {
-      "has_main_fn": true,
-      "kind": "entrypoint.python",
-      "module": "v2.backend.core.utils.standalone.ChatGPT_Bot_STAGED.packers.unpack_code_bundle",
-      "path": "output/patch_code_bundles/v2/backend/core/utils/standalone/ChatGPT_Bot_STAGED/packers/unpack_code_bundle.py"
-    },
-    {
-      "has_main_fn": false,
-      "kind": "entrypoint.python",
-      "module": "v2.backend.core.utils.standalone.standalone_patch_apply_verify",
-      "path": "output/patch_code_bundles/v2/backend/core/utils/standalone/standalone_patch_apply_verify.py"
-    },
-    {
-      "has_main_fn": true,
-      "kind": "entrypoint.python",
       "module": "v2.cli.docstring",
       "path": "output/patch_code_bundles/v2/cli/docstring.py"
     },
@@ -292,36 +262,6 @@
     {
       "has_main_fn": true,
       "kind": "entrypoint.python",
-      "module": "v2.backend.core.utils.standalone.ChatGPT_Bot_STAGED.code_bundles.run_pack",
-      "path": "v2/backend/core/utils/standalone/ChatGPT_Bot_STAGED/code_bundles/run_pack.py"
-    },
-    {
-      "has_main_fn": true,
-      "kind": "entrypoint.python",
-      "module": "v2.backend.core.utils.standalone.ChatGPT_Bot_STAGED.code_bundles_OLD.run_pack",
-      "path": "v2/backend/core/utils/standalone/ChatGPT_Bot_STAGED/code_bundles_OLD/run_pack.py"
-    },
-    {
-      "has_main_fn": true,
-      "kind": "entrypoint.python",
-      "module": "v2.backend.core.utils.standalone.ChatGPT_Bot_STAGED.packers.make_code_bundle",
-      "path": "v2/backend/core/utils/standalone/ChatGPT_Bot_STAGED/packers/make_code_bundle.py"
-    },
-    {
-      "has_main_fn": true,
-      "kind": "entrypoint.python",
-      "module": "v2.backend.core.utils.standalone.ChatGPT_Bot_STAGED.packers.unpack_code_bundle",
-      "path": "v2/backend/core/utils/standalone/ChatGPT_Bot_STAGED/packers/unpack_code_bundle.py"
-    },
-    {
-      "has_main_fn": false,
-      "kind": "entrypoint.python",
-      "module": "v2.backend.core.utils.standalone.standalone_patch_apply_verify",
-      "path": "v2/backend/core/utils/standalone/standalone_patch_apply_verify.py"
-    },
-    {
-      "has_main_fn": true,
-      "kind": "entrypoint.python",
       "module": "v2.cli.docstring",
       "path": "v2/cli/docstring.py"
     },
@@ -383,16 +323,6 @@
       "path": "output/patch_code_bundles/v2/backend/core/utils/scanners/code_indexer.py"
     },
     {
-      "interpreter": "/usr/bin/env",
-      "kind": "entrypoint.shell",
-      "path": "output/patch_code_bundles/v2/backend/core/utils/standalone/ChatGPT_Bot_STAGED/packers/unpack_code_bundle.py"
-    },
-    {
-      "interpreter": "/usr/bin/env",
-      "kind": "entrypoint.shell",
-      "path": "output/patch_code_bundles/v2/backend/core/utils/standalone/standalone_patch_apply_verify.py"
-    },
-    {
       "interpreter": "/bin/bash",
       "kind": "entrypoint.shell",
       "path": "scripts/sandbox_validate.sh"
@@ -416,26 +346,16 @@
       "interpreter": "/usr/bin/env",
       "kind": "entrypoint.shell",
       "path": "v2/backend/core/utils/scanners/code_indexer.py"
-    },
-    {
-      "interpreter": "/usr/bin/env",
-      "kind": "entrypoint.shell",
-      "path": "v2/backend/core/utils/standalone/ChatGPT_Bot_STAGED/packers/unpack_code_bundle.py"
-    },
-    {
-      "interpreter": "/usr/bin/env",
-      "kind": "entrypoint.shell",
-      "path": "v2/backend/core/utils/standalone/standalone_patch_apply_verify.py"
     }
   ],
   "stats": {
     "by_kind": {
-      "entrypoint.python": 56,
-      "entrypoint.shell": 18
+      "entrypoint.python": 46,
+      "entrypoint.shell": 14
     },
-    "count": 74,
-    "files": 62,
-    "python": 56,
-    "shell": 18
+    "count": 60,
+    "files": 52,
+    "python": 46,
+    "shell": 14
   }
 }
