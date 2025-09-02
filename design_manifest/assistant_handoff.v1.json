@@ -1,7 +1,7 @@
 {
   "record_type": "assistant_handoff.v1",
   "version": "2",
-  "generated_at": "2025-09-02T17:36:00.276262Z",
+  "generated_at": "2025-09-02T20:09:31.881673Z",
   "artifact_root": "output/design_manifest/",
   "publish": {
     "mode": "both",
