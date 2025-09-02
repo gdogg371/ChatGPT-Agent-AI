@@ -37,7 +37,13 @@ def _read_json(path: Path) -> Optional[dict]:
 
 class GuideWriter:
     """
-    Emit assistant_handoff.v1.json matching the target schema (no checksum writing).
+    Writes an assistant handoff JSON beside the manifest artifacts.
+
+    Behavior:
+      - If the output filename contains ".github." (e.g., "assistant_handoff.github.v1.json"),
+        all manifest paths are normalized to the GitHub repo layout:
+          [<github.base_path>/]design_manifest/...
+      - Otherwise, paths are rooted in the local artifact directory.
     """
 
     def __init__(self, out_path: Path) -> None:
@@ -51,35 +57,52 @@ class GuideWriter:
         self.out_path.write_text(payload, encoding="utf-8")
 
     def build(self, *, cfg: Any) -> Dict[str, Any]:
+        is_github_handoff = '.github.' in self.out_path.name
         # Anchors
         source_root = Path(getattr(cfg, "source_root"))
         out_bundle = Path(getattr(cfg, "out_bundle"))   # .../design_manifest/design_manifest_0001.txt or .jsonl
         artifact_root = out_bundle.parent               # .../design_manifest/
-        out_runspec = Path(getattr(cfg, "out_runspec"))
-        out_guide = Path(getattr(cfg, "out_guide"))
         analysis_dir = artifact_root / "analysis"
+        out_guide = self.out_path
 
-        # Transport config (reflect runtime; default split to 150_000 if unset)
+        # Transport / chunking
         t = getattr(cfg, "transport")
+        chunked = bool(getattr(t, "chunked", False))
         part_stem = str(getattr(t, "part_stem", "design_manifest"))
         part_ext = str(getattr(t, "part_ext", ".txt"))
         parts_per_dir = int(getattr(t, "parts_per_dir", 10))
-        split_bytes = int(getattr(t, "split_bytes", 150_000))
+        split_bytes = int(getattr(t, "split_bytes", 300_000))
         preserve_monolith = bool(getattr(t, "preserve_monolith", False))
-        parts_index_path = artifact_root / f"{part_stem}_parts_index.json"
-        parts_index = _read_json(parts_index_path) or {}
-        parts_count = int(parts_index.get("total_parts") or 0)
-        chunked = parts_count > 0
-        monolith_path = artifact_root / f"{part_stem}.jsonl"
-        monolith_available = monolith_path.exists()
 
-        # Relative (repo-root) POSIX paths
+        # Monolith + index paths (local)
+        parts_index_path = artifact_root / f"{part_stem}_parts_index.json"
+        monolith_path = artifact_root / f"{part_stem}.jsonl"
+
+        # Relative paths (local, relative to source_root)
         rel_artifact_root = _posix_rel(source_root, artifact_root, trailing_slash=True)
         rel_analysis_dir = _posix_rel(source_root, analysis_dir, trailing_slash=True)
-        rel_runspec = _posix_rel(source_root, out_runspec)
-        rel_handoff = _posix_rel(source_root, out_guide)
+        rel_parts_dir = _posix_rel(source_root, artifact_root, trailing_slash=True)
         rel_parts_index = _posix_rel(source_root, parts_index_path)
         rel_monolith = _posix_rel(source_root, monolith_path)
+        rel_runspec = _posix_rel(source_root, artifact_root / "superbundle.run.json")
+        rel_handoff = _posix_rel(source_root, out_guide)
+
+        # If writing a GitHub-targeted handoff, normalize paths to repo layout (design_manifest/ under optional base_path)
+        if is_github_handoff:
+            pub = getattr(cfg, "publish", None)
+            gh = getattr(pub, "github", None) if pub else None
+            base_path = ""
+            if gh is not None:
+                base_path = str(getattr(gh, "base_path", "") or "")
+                if base_path and not base_path.endswith("/"):
+                    base_path += "/"
+            rel_artifact_root = f"{base_path}design_manifest/"
+            rel_analysis_dir = rel_artifact_root + "analysis/"
+            rel_parts_dir = rel_artifact_root
+            rel_parts_index = rel_artifact_root + f"{part_stem}_parts_index.json"
+            rel_monolith = rel_artifact_root + f"{part_stem}.jsonl"
+            rel_runspec = rel_artifact_root + "superbundle.run.json"
+            rel_handoff = rel_artifact_root + self.out_path.name
 
         # Publish block
         pub = getattr(cfg, "publish", None)
@@ -94,56 +117,42 @@ class GuideWriter:
             if base_path and not base_path.endswith("/"):
                 base_path += "/"
             raw_base = f"https://raw.githubusercontent.com/{owner}/{repo}/{branch}/{base_path}"
-            github_block = {"owner": owner, "repo": repo, "branch": branch, "raw_base": raw_base}
+            github_block = {
+                "owner": owner,
+                "repo": repo,
+                "branch": branch,
+                "base_path": base_path,
+                "raw_base": raw_base,
+            }
 
-        # Canonical analysis_files (include only files that exist)
-        expected = {
-            "asset": "asset.summary.json",
-            "deps": "deps.scan.summary.json",
-            "entrypoints": "entrypoints.summary.json",
-            "env": "env.summary.json",
-            "git": "git.info.summary.json",
-            "license": "license.summary.json",
-            "secrets": "secrets.summary.json",
-            "sql": "sql.index.summary.json",
-            "ast_symbols": "ast.symbols.summary.json",
-            "ast_imports": "ast.imports.summary.json",
-            "ast_calls": "ast.calls.summary.json",
-            "docs": "docs.coverage.summary.json",
-            "quality": "quality.complexity.summary.json",
-            "html": "html.summary.json",
-            "js": "js.index.summary.json",
-            "cs": "cs.summary.json",
-            "sbom": "sbom.cyclonedx.json",
-            "manifest": "manifest.summary.json",
-            "codeowners": "codeowners.summary.json",
-        }
-        analysis_files: Dict[str, str] = {}
-        for k, fname in expected.items():
-            fp = analysis_dir / fname
-            if fp.exists():
-                analysis_files[k] = rel_analysis_dir + fname
+        # Quickstart (mode-agnostic; references are relative to artifact_root)
+        quickstart = [
+            "## Reconstructing the manifest",
+            "",
+            "1. Read `manifest.paths.chunking.parts_index` and follow the `parts` array order.",
+            "2. Concatenate each file under `manifest.paths.chunking.parts_dir` in that exact order.",
+            "3. The resulting stream is the monolithic manifest content.",
+            "",
+            "## Checksums",
+            "",
+            f'- Monolith checksums: `{rel_artifact_root}design_manifest.SHA256SUMS`',
+            f'- Parts checksums:    `{rel_artifact_root}design_manifest.SHA256SUMS`',
+            "",
+            "To verify (GNU coreutils sha256sum format):",
+            "",
+            "```bash",
+            f'cd "{rel_artifact_root}"  # adjust if needed',
+            'sha256sum -c "design_manifest.SHA256SUMS"',
+            "```",
+        ]
 
-        # Quickstart (include cards only if files exist)
-        def _card(title: str, key: str, why: str):
-            p = analysis_files.get(key)
-            return {"title": title, "path": p, "why": why} if p else None
-        quickstart = {
-            "start_here": list(filter(None, [
-                _card("Run & CLI", "entrypoints", "How to invoke binaries/scripts and service entrypoints."),
-                _card("Docs coverage", "docs", "Docstring coverage by module; identify gaps."),
-                _card("Complexity hotspots", "quality", "Prioritize risky modules/functions."),
-                _card("SQL surface", "sql", "DB schemas and queries in one place."),
-                _card("Repo provenance", "git", "Branch, commit, authorship if available."),
-            ])),
-            "raw_manifest": [
-                {
-                    "title": "Chunked manifest (parts index)",
-                    "path": rel_parts_index,
-                    "how": "Follow the listed order to stream parts.",
-                }
-            ],
-        }
+        # Enumerate analysis/** (relative to artifact_root)
+        analysis_files = []
+        if Path(analysis_dir).exists():
+            for p in sorted(Path(analysis_dir).rglob("*")):
+                if p.is_file():
+                    fname = p.relative_to(analysis_dir).as_posix()
+                    analysis_files.append(rel_analysis_dir + fname)
 
         # Optional highlights from analysis/_index.json (best-effort)
         idx = _read_json(analysis_dir / "_index.json") or {}
@@ -167,29 +176,31 @@ class GuideWriter:
                 "parts_per_dir": parts_per_dir,
                 "split_bytes": split_bytes,
                 "preserve_monolith": preserve_monolith,
-
                 "parts_index": rel_parts_index,
-                "parts_dir": rel_artifact_root,
-                "parts_count": parts_count,
-
-                "monolith_path": rel_monolith,
-                "monolith_available": bool(monolith_available),
-
-                "how_to_consume": [
-                    "Read parts_index to get ordered part file refs.",
-                    "Stream and concatenate part files in the listed order to reconstruct the manifest stream.",
-                    "Do NOT lexically sort filenames; always follow the index order.",
-                ],
+                "parts_dir": rel_parts_dir,
             },
 
-            "paths": {
-                "analysis_dir": rel_analysis_dir,
-                "run_spec": rel_runspec,
-                "handoff": rel_handoff,
-                "checksums": {
-                    "monolith_sha256": rel_artifact_root + "design_manifest.SHA256SUMS",
-                    "parts_sha256":   rel_artifact_root + "design_manifest.SHA256SUMS",
-                    "algo": "sha256",
+            "manifest": {
+                "path": rel_monolith,
+                "chunking": {
+                    "enabled": bool(chunked),
+                    "parts_dir": rel_parts_dir,
+                    "parts_index": rel_parts_index,
+                    "notes": [
+                        "Read parts_index to get ordered part file refs.",
+                        "Stream and concatenate part files in the listed order to reconstruct the manifest stream.",
+                        "Do NOT lexically sort filenames; always follow the index order.",
+                    ],
+                },
+                "paths": {
+                    "analysis_dir": rel_analysis_dir,
+                    "run_spec": rel_runspec,
+                    "handoff": rel_handoff,
+                    "checksums": {
+                        "monolith_sha256": rel_artifact_root + "design_manifest.SHA256SUMS",
+                        "parts_sha256":   rel_artifact_root + "design_manifest.SHA256SUMS",
+                        "algo": "sha256",
+                    },
                 },
             },
 
@@ -201,28 +212,14 @@ class GuideWriter:
                 "stats": {
                     "files_total": files_total,
                     "python_modules": python_modules,
-                    "graph_edges": None,
                 },
-                "top": {
-                    "complexity_modules": [],
-                    "import_modules": [],
-                    "entrypoints": [],
-                },
-                "risks": {
-                    "secrets_findings": 0,
-                    "license_flags": 0,
-                },
+                "constraints": {"offline_only": True},
+                "entrypoints": [],
             },
-
-            "limits": {"max_files": 0, "max_bytes": 0, "timeout_seconds": 600},
-            "constraints": {"offline_only": True},
-            "notes": [
-                "Paths are relative to artifact_root unless absolute.",
-                "If preserve_monolith=false, the monolithic manifest may be empty or removed.",
-            ],
         }
 
         return data
+
 
 
 
