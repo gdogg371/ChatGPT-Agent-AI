@@ -1,0 +1,159 @@
+{
+  "family": "docs.coverage",
+  "items": [
+    {
+      "path": "output/patch_code_bundles/cold_start/__init__.py"
+    },
+    {
+      "path": "output/patch_code_bundles/cold_start/bootstrap_check.py"
+    },
+    {
+      "path": "output/patch_code_bundles/cold_start/cleanup_locks.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/__init__.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/__init__.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/__init__.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/configuration/__init__.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/configuration/config.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/configuration/loader.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/configuration/spine_paths.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/db/__init__.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/db/access/__init__.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/db/access/db_init.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/db/access/sqlite.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/db/writers/__init__.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/db/writers/docstring_writer.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/docstrings/__init__.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/docstrings/ast_utils.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/docstrings/context.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/docstrings/formatter.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/docstrings/locator.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/docstrings/patchplan.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/docstrings/prompt_api.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/docstrings/prompt_builder.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/docstrings/providers.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/docstrings/sanitize.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/docstrings/verify.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/introspect/__init__.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/introspect/providers.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/introspect/read_docstrings.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/patch_engine/__init__.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/patch_engine/applier.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/patch_engine/config.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/patch_engine/evaluator.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/patch_engine/interactive_run.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/patch_engine/ops_compile.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/patch_engine/plan.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/patch_engine/providers.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/patch_engine/run_manifest.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/patch_engine/scope.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/patch_engine/test_engine_smoke.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/patch_engine/textops.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/patch_engine/workspace.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/prompt_pipeline/__init__.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/prompt_pipeline/executor/__init__.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/prompt_pipeline/executor/engine.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/prompt_pipeline/executor/errors.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/prompt_pipeline/executor/orchestrator.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/prompt_pipeline/executor/plugin_api.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/prompt_pipeline/executor/prompts.py"
+    }
+  ],
+  "stats": {
+    "count": 456,
+    "files_with_items": 454
+  }
+}
