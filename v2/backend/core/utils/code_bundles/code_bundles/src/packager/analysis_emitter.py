@@ -27,10 +27,10 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
-from packager.core.loader import load_packager_config  # uses config/packager.yml
-from packager.manifest.reader import ManifestReader
-from packager.emitters.backfill import emit_analysis_sidecars
-from packager.core.writer import write_json_atomic
+from v2.backend.core.utils.code_bundles.code_bundles.src.packager.core.loader import load_packager_config  # uses config/packager.yml
+from v2.backend.core.utils.code_bundles.code_bundles.src.packager.manifest.reader import ManifestReader
+from v2.backend.core.utils.code_bundles.code_bundles.src.packager.emitters.backfill import emit_analysis_sidecars
+from v2.backend.core.utils.code_bundles.code_bundles.src.packager.core.writer import write_json_atomic
 
 
 __all__ = ["emit_from_config", "emit_analysis", "emit_all"]
