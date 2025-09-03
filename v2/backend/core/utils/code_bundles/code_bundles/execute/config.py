@@ -1,195 +1,135 @@
-# v2/backend/core/utils/code_bundles/code_bundles/execute/config.py
 from __future__ import annotations
-
-import json
 import os
+import yaml
+from typing import Dict, Any
 from pathlib import Path
-from types import SimpleNamespace as NS
 from typing import Optional
+from types import SimpleNamespace as NS
 
-# PyYAML is required to parse config/packager.yml (match run_pack behavior).
-try:
-    import yaml
-except Exception as e:
-    raise ImportError("PyYAML is required to read config/packager.yml. Install 'pyyaml'.") from e
+from v2.backend.core.configuration.loader import (
+    get_repo_root,
+    get_packager,
+    ConfigPaths,
+)
 
-__all__ = ["build_cfg", "_read_root_publish_analysis", "_read_root_emit_ast", "_read_code_bundle_params"]
+class Transport(NS):
+    pass
 
-
-# -----------------------
-# Small local YAML helpers
-# -----------------------
-
-def _load_yaml(path: Path) -> dict:
-    data = yaml.safe_load(path.read_text(encoding="utf-8"))
-    return data if isinstance(data, dict) else {}
-
-
-def _read_yaml_if_exists(path: Path) -> dict:
-    if not path.exists():
-        return {}
+# ──────────────────────────────────────────────────────────────────────────────
+# Code-bundle params from vars.yml
+# ──────────────────────────────────────────────────────────────────────────────
+def read_code_bundle_params() -> Dict[str, Any]:
     try:
-        return _load_yaml(path)
-    except Exception:
-        # Keep loader tolerant; executor will validate required keys later.
-        return {}
+        paths = ConfigPaths.detect()
+        vars_yml = paths.spine_profile_dir / "vars.yml"
+        if not vars_yml.exists():
+            vars_yml = paths.spine_profile_dir / "vars.yaml"
+        if vars_yml.exists():
+            with vars_yml.open("r", encoding="utf-8") as f:
+                data = yaml.safe_load(f) or {}
+            cb = dict((data or {}).get("code_bundle") or {})
+            out = {
+                "chunk_manifest": str(cb.get("chunk_manifest", "auto")).strip().lower(),
+                "split_bytes": int(cb.get("split_bytes", 300000) or 300000),
+                "group_dirs": bool(cb.get("group_dirs", True)),
+            }
+            if out["chunk_manifest"] not in {"auto", "always", "never"}:
+                out["chunk_manifest"] = "auto"
+            if out["split_bytes"] < 1024:
+                out["split_bytes"] = 1024
+            return out
+    except Exception as e:
+        print(f"[packager] WARN: failed to read code_bundle params: {type(e).__name__}: {e}")
+    return {"chunk_manifest": "auto", "split_bytes": 300000, "group_dirs": True}
 
+def build_cfg(
+    *,
+    src: Path,
+    artifact_out: Path,
+    publish_mode: str = "local",
+    gh_owner: Optional[str] = None,
+    gh_repo: Optional[str] = None,
+    gh_branch: str = "main",
+    gh_base: str = "",
+    gh_token: Optional[str] = None,
+    publish_codebase: bool = True,
+    publish_analysis: bool = False,   # <- root-level flag passed in
+    publish_handoff: bool = True,
+    publish_transport: bool = True,
+    local_publish_root: Optional[Path] = None,
+    clean_before_publish: bool = False,
+    emit_ast: bool = False,           # <- root-level flag passed in
+) -> NS:
+    pack = get_packager()
+    repo_root = get_repo_root()
 
-def _resolve_path(base: Path, maybe_path: Optional[str]) -> Path:
-    """
-    Resolve a path from YAML. If it's absolute, keep it; if relative, anchor at 'base'.
-    If missing/empty, return 'base'.
-    """
-    if not maybe_path:
-        return base
-    p = Path(str(maybe_path))
-    return p if p.is_absolute() else (base / p)
+    out_bundle = (artifact_out / "design_manifest.jsonl").resolve()
+    out_runspec = (artifact_out / "superbundle.run.json").resolve()
+    out_guide = (artifact_out / "assistant_handoff.v1.json").resolve()
+    out_sums = (artifact_out / "design_manifest.SHA256SUMS").resolve()
 
+    # (dynamic) read split_bytes from vars.yml (fallback 300000)
+    cb_params = read_code_bundle_params()
+    split_dyn = int(cb_params.get("split_bytes", 300000) or 300000)
 
-# -----------------------
-# GitHub token resolution
-# -----------------------
-
-def _coalesce_github_token(project_root: Path) -> str:
-    """
-    Mirror run_pack behavior:
-      1) Environment variables (strongest):
-         GITHUB_TOKEN, GH_TOKEN, GITHUB_API_KEY
-      2) secret_management/secrets.yml (if present):
-         github.api_key | github.token | github_api_key
-      3) Fallback token file (developer convention):
-         ~/.config/github/token
-    Returns empty string if nothing found (executor will error if GitHub mode is used).
-    """
-    # 1) Env
-    env_token = (
-        os.environ.get("GITHUB_TOKEN")
-        or os.environ.get("GH_TOKEN")
-        or os.environ.get("GITHUB_API_KEY")
-        or ""
+    transport = Transport(
+        chunk_bytes=64000,
+        chunk_records=True,
+        group_dirs=True,
+        dir_suffix_width=2,
+        parts_per_dir=10,
+        part_ext=".txt",
+        part_stem="design_manifest",
+        parts_index_name="design_manifest_parts_index.json",
+        split_bytes=split_dyn,
+        transport_as_text=True,
+        preserve_monolith=False,
     )
-    if env_token:
-        return env_token.strip()
 
-    # 2) secrets.yml (optional)
-    secrets_path = project_root / "secret_management" / "secrets.yml"
-    secrets = _read_yaml_if_exists(secrets_path)
-    gh = secrets.get("github") or {}
-    token = (
-        gh.get("api_key")
-        or gh.get("token")
-        or secrets.get("github_api_key")
-        or ""
+    gh = None
+    mode = (publish_mode or "local").strip().lower()
+    if mode in ("github", "both"):
+        gh = NS(
+            owner=gh_owner or "",
+            repo=gh_repo or "",
+            branch=gh_branch or "main",
+            base_path=gh_base or "",
+        )
+
+    case_insensitive = True if os.name == "nt" else False
+    follow_symlinks = True
+
+    publish = NS(
+        mode=mode,
+        publish_codebase=bool(publish_codebase),
+        publish_analysis=bool(publish_analysis),  # <- strictly the root-level flag we read
+        publish_handoff=bool(publish_handoff),
+        publish_transport=bool(publish_transport),
+        github=gh,
+        github_token=(gh_token or ""),
+        local_publish_root=(local_publish_root.resolve() if local_publish_root else None),
+        clean_before_publish=bool(clean_before_publish),
     )
-    if token:
-        return str(token).strip()
 
-    # 3) ~/.config/github/token (optional)
-    token_file = Path.home() / ".config" / "github" / "token"
-    if token_file.exists():
-        try:
-            return token_file.read_text(encoding="utf-8").strip()
-        except Exception:
-            pass
-
-    return ""
-
-
-# -----------------------
-# Public API
-# -----------------------
-
-def _read_root_publish_analysis(project_root: Path) -> bool:
-    """
-    Read 'publish_analysis' from config/packager.yml (default False if absent).
-    """
-    cfg_path = Path(project_root) / "config" / "packager.yml"
-    if not cfg_path.exists():
-        return False
-    try:
-        data = _load_yaml(cfg_path)
-        return bool(data.get("publish_analysis", False))
-    except Exception:
-        return False
-
-
-def _read_root_emit_ast(project_root: Path) -> bool:
-    """
-    Read 'emit_ast' from config/packager.yml (default False if absent).
-    """
-    cfg_path = Path(project_root) / "config" / "packager.yml"
-    if not cfg_path.exists():
-        return False
-    try:
-        data = _load_yaml(cfg_path)
-        return bool(data.get("emit_ast", False))
-    except Exception:
-        return False
-
-
-def build_cfg(project_root: Path) -> NS:
-    """
-    Load config strictly from config/packager.yml and resolve GitHub credentials
-    using the same precedence run_pack uses (ENV → secrets.yml → token file).
-    Also normalizes key publish paths and exposes clean flags for the executor.
-    """
-    project_root = Path(project_root).resolve()
-
-    cfg_file = project_root / "config" / "packager.yml"
-    if not cfg_file.exists():
-        raise FileNotFoundError(f"Missing config file: {cfg_file}")
-
-    data = _load_yaml(cfg_file)
-    publish = data.get("publish") or {}
-    github = publish.get("github") or {}
-    clean = publish.get("clean") or {}
-
-    # Normalize / mirror fields
-    ns = NS(
-        project_root=project_root,
-        config=data,
+    cfg = NS(
+        source_root=src,
+        emitted_prefix=getattr(pack, "emitted_prefix", "output/patch_code_bundles"),
+        include_globs=list(getattr(pack, "include_globs", ["**/*"])),
+        exclude_globs=list(getattr(pack, "exclude_globs", [])),
+        follow_symlinks=follow_symlinks,
+        case_insensitive=case_insensitive,
+        segment_excludes=list(getattr(pack, "segment_excludes", [])),
+        out_bundle=out_bundle,
+        out_runspec=out_runspec,
+        out_guide=out_guide,
+        out_sums=out_sums,
+        transport=transport,
         publish=publish,
-        github=github,
-        publish_mode=str(publish.get("mode", "both")).lower(),
-        publish_analysis=bool(data.get("publish_analysis", False)),
-        emit_ast=bool(data.get("emit_ast", False)),
+        prompts=None,
+        prompt_mode="none",
+        emit_ast=bool(emit_ast),
     )
 
-    # Paths (normalize relative to project root)
-    ns.emitted_prefix = str(data.get("emitted_prefix", "output/patch_code_bundles")).strip("/")
-
-    ns.staging_root = _resolve_path(project_root, publish.get("staging_root") or "output/staging")
-    ns.output_root = _resolve_path(project_root, publish.get("output_root") or "output/patch_code_bundles")
-    ns.ingest_root = _resolve_path(project_root, publish.get("ingest_root") or ".")
-    ns.local_publish_root = _resolve_path(project_root, publish.get("local_publish_root") or "output/patch_code_bundles/published")
-
-    # Clean flags (so executor doesn’t have to poke through dicts)
-    ns.clean_before_publish = bool(publish.get("clean_before_publish", False))
-    ns.clean_repo_root = bool(clean.get("clean_repo_root", False))
-    ns.clean_artifacts = bool(clean.get("clean_artifacts", False))
-
-    # GitHub coordinates (from YAML)
-    ns.github_owner = str(github.get("owner", "")).strip()
-    ns.github_repo = str(github.get("repo", "")).strip()
-    ns.github_branch = str(github.get("branch", "main")).strip()
-    ns.github_base = str(github.get("base_path", "")).strip()
-
-    # GitHub token (ENV → secrets.yml → token file)
-    ns.github_token = _coalesce_github_token(project_root)
-
-    return ns
-
-
-def _read_code_bundle_params(project_root: Path) -> dict:
-    """
-    Read dynamic params emitted by the pipeline (if present).
-    """
-    fp = Path(project_root) / "output" / "patch_code_bundles" / "publish_params.json"
-    if not fp.exists():
-        return {}
-    try:
-        return json.loads(fp.read_text(encoding="utf-8"))
-    except Exception:
-        return {}
-
-
+    artifact_out.mkdir(parents=True, exist_ok=True)
+    (repo_root / "").exists()
+    return cfg
