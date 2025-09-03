@@ -30,20 +30,6 @@
       "total_complexity": 294
     },
     {
-      "avg_complexity": 8.469,
-      "functions": 32,
-      "max_function_complexity": 43,
-      "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/code_bundles_OLD/quality.py",
-      "total_complexity": 271
-    },
-    {
-      "avg_complexity": 8.469,
-      "functions": 32,
-      "max_function_complexity": 43,
-      "path": "v2/backend/core/utils/code_bundles/code_bundles_OLD/quality.py",
-      "total_complexity": 271
-    },
-    {
       "avg_complexity": 14.778,
       "functions": 18,
       "max_function_complexity": 76,
@@ -84,20 +70,6 @@
       "max_function_complexity": 25,
       "path": "v2/backend/core/utils/scanners/code_indexer.py",
       "total_complexity": 260
-    },
-    {
-      "avg_complexity": 5.1,
-      "functions": 50,
-      "max_function_complexity": 20,
-      "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/code_bundles_OLD/src/packager/core/orchestrator.py",
-      "total_complexity": 255
-    },
-    {
-      "avg_complexity": 5.1,
-      "functions": 50,
-      "max_function_complexity": 20,
-      "path": "v2/backend/core/utils/code_bundles/code_bundles_OLD/src/packager/core/orchestrator.py",
-      "total_complexity": 255
     },
     {
       "avg_complexity": 9.423,
@@ -152,21 +124,7 @@
       "avg_complexity": 6.088,
       "functions": 34,
       "max_function_complexity": 18,
-      "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/code_bundles_OLD/orchestrate.py",
-      "total_complexity": 207
-    },
-    {
-      "avg_complexity": 6.088,
-      "functions": 34,
-      "max_function_complexity": 18,
       "path": "v2/backend/core/utils/code_bundles/code_bundles/orchestrate.py",
-      "total_complexity": 207
-    },
-    {
-      "avg_complexity": 6.088,
-      "functions": 34,
-      "max_function_complexity": 18,
-      "path": "v2/backend/core/utils/code_bundles/code_bundles_OLD/orchestrate.py",
       "total_complexity": 207
     },
     {
@@ -268,20 +226,6 @@
       "total_complexity": 177
     },
     {
-      "avg_complexity": 6.25,
-      "functions": 28,
-      "max_function_complexity": 38,
-      "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/code_bundles_OLD/run_pack.py",
-      "total_complexity": 175
-    },
-    {
-      "avg_complexity": 6.25,
-      "functions": 28,
-      "max_function_complexity": 38,
-      "path": "v2/backend/core/utils/code_bundles/code_bundles_OLD/run_pack.py",
-      "total_complexity": 175
-    },
-    {
       "avg_complexity": 10.75,
       "functions": 16,
       "max_function_complexity": 19,
@@ -350,15 +294,71 @@
       "max_function_complexity": 32,
       "path": "v2/backend/core/spine/registry.py",
       "total_complexity": 153
+    },
+    {
+      "avg_complexity": 6.333,
+      "functions": 24,
+      "max_function_complexity": 15,
+      "path": "output/patch_code_bundles/v2/backend/core/patch_engine/applier.py",
+      "total_complexity": 152
+    },
+    {
+      "avg_complexity": 6.333,
+      "functions": 24,
+      "max_function_complexity": 15,
+      "path": "v2/backend/core/patch_engine/applier.py",
+      "total_complexity": 152
+    },
+    {
+      "avg_complexity": 5.583,
+      "functions": 24,
+      "max_function_complexity": 36,
+      "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/code_bundles/src/packager/scanners/html_index.py",
+      "total_complexity": 134
+    },
+    {
+      "avg_complexity": 5.583,
+      "functions": 24,
+      "max_function_complexity": 36,
+      "path": "v2/backend/core/utils/code_bundles/code_bundles/src/packager/scanners/html_index.py",
+      "total_complexity": 134
+    },
+    {
+      "avg_complexity": 5.542,
+      "functions": 24,
+      "max_function_complexity": 34,
+      "path": "output/patch_code_bundles/v2/backend/core/docstrings/sanitize.py",
+      "total_complexity": 133
+    },
+    {
+      "avg_complexity": 5.542,
+      "functions": 24,
+      "max_function_complexity": 34,
+      "path": "v2/backend/core/docstrings/sanitize.py",
+      "total_complexity": 133
+    },
+    {
+      "avg_complexity": 7.389,
+      "functions": 18,
+      "max_function_complexity": 16,
+      "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/code_bundles/src/packager/scanners/entrypoints.py",
+      "total_complexity": 133
+    },
+    {
+      "avg_complexity": 7.389,
+      "functions": 18,
+      "max_function_complexity": 16,
+      "path": "v2/backend/core/utils/code_bundles/code_bundles/src/packager/scanners/entrypoints.py",
+      "total_complexity": 133
     }
   ],
   "metric": "cyclomatic_complexity_approx",
   "stats": {
-    "avg_complexity": 4.866,
-    "files": 454,
-    "functions_measured": 5132,
+    "avg_complexity": 4.918,
+    "files": 412,
+    "functions_measured": 4456,
     "max_function_complexity": 76,
     "p95_function_complexity": 14.0,
-    "total_complexity": 24970
+    "total_complexity": 21914
   }
 }
