@@ -1,7 +1,7 @@
 {
   "record_type": "assistant_handoff.v1",
   "version": "2",
-  "generated_at": "2025-09-03T07:49:59.912751Z",
+  "generated_at": "2025-09-03T11:58:02.865741Z",
   "artifact_root": "output/design_manifest/",
   "publish": {
     "mode": "both",
@@ -21,7 +21,7 @@
     "preserve_monolith": false,
     "parts_index": "output/design_manifest/design_manifest_parts_index.json",
     "parts_dir": "output/design_manifest/",
-    "parts_count": 93,
+    "parts_count": 78,
     "monolith_path": "output/design_manifest/design_manifest.jsonl",
     "monolith_available": false,
     "how_to_consume": [
@@ -98,7 +98,7 @@
   "highlights": {
     "stats": {
       "files_total": 208,
-      "python_modules": 3068,
+      "python_modules": 2602,
       "graph_edges": null
     },
     "top": {
