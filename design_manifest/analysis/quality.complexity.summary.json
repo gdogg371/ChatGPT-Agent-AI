@@ -240,20 +240,6 @@
       "total_complexity": 172
     },
     {
-      "avg_complexity": 6.269,
-      "functions": 26,
-      "max_function_complexity": 29,
-      "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/code_bundles/execute/executor.py",
-      "total_complexity": 163
-    },
-    {
-      "avg_complexity": 6.269,
-      "functions": 26,
-      "max_function_complexity": 29,
-      "path": "v2/backend/core/utils/code_bundles/code_bundles/execute/executor.py",
-      "total_complexity": 163
-    },
-    {
       "avg_complexity": 4.289,
       "functions": 38,
       "max_function_complexity": 22,
@@ -280,6 +266,20 @@
       "max_function_complexity": 29,
       "path": "v2/backend/core/utils/code_bundles/code_bundles/src/packager/scanners/js_ts_index.py",
       "total_complexity": 162
+    },
+    {
+      "avg_complexity": 8.0,
+      "functions": 20,
+      "max_function_complexity": 26,
+      "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/code_bundles/execute/github.py",
+      "total_complexity": 160
+    },
+    {
+      "avg_complexity": 8.0,
+      "functions": 20,
+      "max_function_complexity": 26,
+      "path": "v2/backend/core/utils/code_bundles/code_bundles/execute/github.py",
+      "total_complexity": 160
     },
     {
       "avg_complexity": 4.5,
@@ -354,11 +354,11 @@
   ],
   "metric": "cyclomatic_complexity_approx",
   "stats": {
-    "avg_complexity": 4.918,
-    "files": 412,
-    "functions_measured": 4456,
+    "avg_complexity": 5.055,
+    "files": 406,
+    "functions_measured": 4344,
     "max_function_complexity": 76,
     "p95_function_complexity": 14.0,
-    "total_complexity": 21914
+    "total_complexity": 21958
   }
 }
