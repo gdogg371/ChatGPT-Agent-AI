@@ -46,12 +46,12 @@ from pathlib import Path
 from typing import Any, Dict, Iterable, List, Mapping, Tuple
 from collections import defaultdict
 
-from packager.emitters.registry import (
+from v2.backend.core.utils.code_bundles.code_bundles.src.packager.emitters.registry import (
     get_reducer,
     zero_summary_for,
     canonicalize_family,
 )
-from packager.core.writer import write_json_atomic
+from v2.backend.core.utils.code_bundles.code_bundles.src.packager.core.writer import write_json_atomic
 
 
 def _pfx(msg: str) -> str:
