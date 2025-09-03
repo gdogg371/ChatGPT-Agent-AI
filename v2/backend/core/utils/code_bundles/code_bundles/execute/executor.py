@@ -1,344 +1,435 @@
-# v2/backend/core/utils/code_bundles/code_bundles/executor.py
 from __future__ import annotations
 
+import fnmatch
 import json
+import os
+import sys
+import traceback
+from hashlib import sha256
 from pathlib import Path
-from typing import List, Optional
-
+from typing import Dict, List, Optional, Tuple
 from types import SimpleNamespace as NS
-from urllib import request, parse, error
 
-# --- use ONLY your split modules ---
+# ---- split modules already in your tree ----
 from v2.backend.core.utils.code_bundles.code_bundles.execute.config import build_cfg
-from v2.backend.core.utils.code_bundles.code_bundles.execute.repo import discover_repo_paths
-from v2.backend.core.utils.code_bundles.code_bundles.execute.fs import _clear_dir_contents, copy_snapshot
-from v2.backend.core.utils.code_bundles.code_bundles.execute.checksums import _write_sha256sums_for_parts
-from v2.backend.core.utils.code_bundles.code_bundles.execute.parts import (
-    _write_parts_from_jsonl,
-    _append_parts_artifacts_into_manifest,
-)
-from v2.backend.core.utils.code_bundles.code_bundles.execute.github_api import (
-    _gh_headers,
-    _gh_json,
-    _gh_delete_file,
-    _gh_walk_files,
-)
-from v2.backend.core.utils.code_bundles.code_bundles.execute.publish import (
-    github_clean_remote_repo,
-    _publish_to_github,
-    _prune_remote_code_delta,
-    _prune_remote_artifacts_delta,
-)
 from v2.backend.core.utils.code_bundles.code_bundles.execute.manifest import augment_manifest
 from v2.backend.core.utils.code_bundles.code_bundles.execute.emitter import _load_analysis_emitter
+from v2.backend.core.utils.code_bundles.code_bundles.execute.fs import (
+    _clear_dir_contents,
+    copy_snapshot,
+)
 
+# The JSONL appender + standard artifact emitters, same as run_pack
+from v2.backend.core.utils.code_bundles.code_bundles.bundle_io import (
+    ManifestAppender,
+    emit_standard_artifacts,
+)
 
-# ------------------
-# Validation helpers
-# ------------------
+# ============================================================================
+#// Minimal logger that matches the old "[packager]" style
+# ============================================================================
+def log(msg: str) -> None:
+    print(f"[packager] {msg}", flush=True)
 
+# ============================================================================
+#// Root discovery (locates config/packager.yml by walking upward)
+# ============================================================================
 class ConfigError(RuntimeError):
     pass
 
-
-def _require(d: dict, key_path: List[str]) -> None:
-    cur = d
-    for k in key_path:
-        if not isinstance(cur, dict) or k not in cur:
-            dotted = ".".join(key_path)
-            raise ConfigError(f"Missing required config key: {dotted}")
-        cur = cur[k]
-
-
-def _get(d: dict, key_path: List[str]):
-    cur = d
-    for k in key_path:
-        if not isinstance(cur, dict) or k not in cur:
-            dotted = ".".join(key_path)
-            raise ConfigError(f"Missing required config key: {dotted}")
-        cur = cur[k]
-    return cur
-
-
-# ------------------
-# GitHub small utils
-# ------------------
-
-def _gh_get_file_meta(owner: str, repo: str, path: str, token: str, ref: Optional[str]) -> Optional[dict]:
-    url = f"https://api.github.com/repos/{owner}/{repo}/contents/{parse.quote(path)}"
-    if ref:
-        url += f"?ref={parse.quote(ref)}"
-    req = request.Request(url, headers=_gh_headers(token))
-    try:
-        meta = _gh_json(req)
-        if isinstance(meta, dict) and meta.get("type") == "file":
-            return meta
-        return None
-    except error.HTTPError as e:
-        if e.code == 404:
-            return None
-        raise
-
-
-# ----------------------------
-# Project root auto-discovery
-# ----------------------------
-
 def _find_project_root() -> Path:
-    """
-    Walk upward from CWD to find 'config/packager.yml'.
-    If not found, walk upward from this file's directory.
-    """
     def search_up(start: Path) -> Optional[Path]:
         start = start.resolve()
         for p in [start] + list(start.parents):
             if (p / "config" / "packager.yml").is_file():
                 return p
         return None
+    got = search_up(Path.cwd()) or search_up(Path(__file__).resolve().parent)
+    if not got:
+        raise ConfigError("Could not locate config/packager.yml by walking up from CWD or script folder.")
+    return got
 
-    cwd_root = search_up(Path.cwd())
-    if cwd_root:
-        return cwd_root
-    here_root = search_up(Path(__file__).resolve().parent)
-    if here_root:
-        return here_root
-    raise ConfigError("Could not locate 'config/packager.yml' by walking up from CWD or script location.")
+# ============================================================================
+#// Discovery helpers (ported behavior)
+# ============================================================================
+def _match_any(rel_posix: str, globs: List[str], case_insensitive: bool = False) -> bool:
+    if not globs:
+        return False
+    rp = rel_posix.casefold() if case_insensitive else rel_posix
+    for g in globs:
+        pat = g.replace("\\", "/")
+        pat = pat.casefold() if case_insensitive else pat
+        if fnmatch.fnmatch(rp, pat):
+            return True
+    return False
 
+def _seg_excluded(parts: Tuple[str, ...], segment_excludes: List[str], case_insensitive: bool = False) -> bool:
+    if not segment_excludes:
+        return False
+    segs = set((s.casefold() if case_insensitive else s) for s in segment_excludes)
+    for seg in parts[:-1]:
+        s = seg.casefold() if case_insensitive else seg
+        if s in segs:
+            return True
+    return False
 
-# -------------
-# Core routine
-# -------------
+def _discover_repo_pairs(
+    *,
+    repo_root: Path,
+    include_globs: List[str],
+    exclude_globs: List[str],
+    segment_excludes: List[str],
+    case_insensitive: bool,
+    follow_symlinks: bool,
+) -> List[Tuple[Path, str]]:
+    out: List[Tuple[Path, str]] = []
+    for cur, dirs, files in os.walk(repo_root, followlinks=follow_symlinks):
+        pruned_dirs = []
+        for d in dirs:
+            try:
+                parts = (Path(cur) / d).relative_to(repo_root).parts
+            except Exception:
+                pruned_dirs.append(d)
+                continue
+            if _seg_excluded(parts, segment_excludes, case_insensitive):
+                continue
+            pruned_dirs.append(d)
+        dirs[:] = pruned_dirs
 
-def _run_once(project_root: Path) -> None:
-    project_root = Path(project_root).resolve()
-    print(f"[executor] project_root = {project_root}")
+        for fn in sorted(files):
+            p = Path(cur) / fn
+            if not p.is_file():
+                continue
+            rel_posix = p.relative_to(repo_root).as_posix()
+            if include_globs and not _match_any(rel_posix, include_globs, case_insensitive):
+                continue
+            if exclude_globs and _match_any(rel_posix, exclude_globs, case_insensitive):
+                continue
+            out.append((p, rel_posix))
+    out.sort(key=lambda t: t[1])
+    return out
 
-    # 1) Load config via your module (must read config/packager.yml; no code defaults)
-    cfg: NS = build_cfg(project_root=project_root)
-    if not hasattr(cfg, "config") or not isinstance(cfg.config, dict):
-        raise ConfigError("build_cfg() must return a namespace with a 'config' dict.")
+# ============================================================================
+#// Chunker + checksums (binary-safe)
+# ============================================================================
+def _write_parts_from_jsonl(
+    *,
+    jsonl_path: Path,
+    parts_dir: Path,
+    part_stem: str,
+    part_ext: str,
+    split_bytes: int,
+    parts_per_dir: int,
+) -> List[Path]:
+    parts_dir.mkdir(parents=True, exist_ok=True)
+    if not jsonl_path.exists():
+        log(f"chunk(local): JSONL not found → {jsonl_path}")
+        return []
 
-    conf = cfg.config
+    def _part_name(dir_idx: int, file_idx: int) -> str:
+        return f"{part_stem}_{dir_idx:02d}_{file_idx:04d}{part_ext}"
 
-    # Validate required keys (strict)
-    for path in [
-        ["emitted_prefix"],
-        ["emit_ast"],
-        ["include_globs"],
-        ["exclude_globs"],
-        ["segment_excludes"],
-        ["publish"],
-        ["publish", "mode"],
-        ["publish", "staging_root"],
-        ["publish", "output_root"],
-        ["publish", "ingest_root"],
-        ["publish", "local_publish_root"],
-        ["publish", "clean_before_publish"],
-        ["publish", "clean"],
-        ["publish", "clean", "clean_repo_root"],
-        ["publish", "clean", "clean_artifacts"],
-        ["publish", "handoff"],
-        ["publish", "runspec"],
-        ["publish", "transport_index"],
-        ["publish", "checksums"],
-        ["publish", "github"],
-        ["publish", "github", "owner"],
-        ["publish", "github", "repo"],
-        ["publish", "github", "branch"],
-        ["publish", "github", "base_path"],
-        ["transport"],
-        ["transport", "kind"],
-        ["transport", "part_stem"],
-        ["transport", "part_ext"],
-        ["transport", "parts_per_dir"],
-        ["transport", "split_bytes"],
-        ["transport", "preserve_monolith"],
-        ["metadata_emission"],
-        ["analysis_filenames"],
-        ["family_aliases"],
-        ["controls"],
-        ["handoff"],
-        ["limits"],
-        ["analysis"],
-    ]:
-        _require(conf, path)
+    dir_idx = 0
+    file_idx = 0
+    cur_bytes = 0
+    cur_lines = 0
+    cur_files_in_dir = 0
+    buf = bytearray()
+    out_paths: List[Path] = []
 
-    # Resolve paths from config (NO defaults in code)
-    output_root = _get(conf, ["publish", "output_root"])
-    local_publish_root = _get(conf, ["publish", "local_publish_root"])
+    def flush():
+        nonlocal buf, cur_bytes, cur_lines, file_idx, dir_idx, cur_files_in_dir
+        if cur_lines == 0:
+            return
+        subdir = parts_dir / f"{dir_idx:02d}" if parts_per_dir > 0 else parts_dir
+        subdir.mkdir(parents=True, exist_ok=True)
+        file_idx += 1
+        out_path = subdir / _part_name(dir_idx, file_idx)
+        out_path.write_bytes(bytes(buf))
+        out_paths.append(out_path)
+        cur_bytes = 0
+        cur_lines = 0
+        buf = bytearray()
+        cur_files_in_dir += 1
+        if parts_per_dir > 0 and cur_files_in_dir >= parts_per_dir:
+            dir_idx += 1
+            cur_files_in_dir = 0
 
-    # Working dirs
-    out_root = (project_root / output_root).resolve()
-    design_manifest_dir = (out_root / "design_manifest").resolve()
-    snapshot_dir = (out_root / "code_snapshot").resolve()
+    with open(jsonl_path, "rb") as f:
+        while True:
+            chunk = f.readline()
+            if not chunk:
+                break
+            line_len = len(chunk)
+            if cur_lines > 0 and (cur_bytes + line_len) > split_bytes:
+                flush()
+            buf.extend(chunk)
+            cur_bytes += line_len
+            cur_lines += 1
+        flush()
 
-    # Ensure dirs
-    design_manifest_dir.mkdir(parents=True, exist_ok=True)
-    snapshot_dir.mkdir(parents=True, exist_ok=True)
+    idx_path = parts_dir / f"{part_stem}_parts_index.json"
+    index = {
+        "format": "jsonl.parts.v1",
+        "parts": [str(p.relative_to(parts_dir).as_posix()) for p in out_paths],
+        "split_bytes": split_bytes,
+        "parts_per_dir": parts_per_dir,
+    }
+    idx_path.write_text(json.dumps(index, indent=2), encoding="utf-8")
+    return out_paths
 
-    # Clean before publish (local)
-    if _get(conf, ["publish", "clean_before_publish"]):
-        print("[executor] clean_before_publish=True → clearing snapshot_dir")
-        _clear_dir_contents(snapshot_dir)
-        snapshot_dir.mkdir(parents=True, exist_ok=True)
+def _write_sha256sums_for_parts(parts_dir: Path, part_stem: str, part_ext: str, sums_path: Path) -> int:
+    sums_path.parent.mkdir(parents=True, exist_ok=True)
+    lines: List[str] = []
+    # include index if present
+    for p in sorted(parts_dir.rglob(f"{part_stem}_parts_index.json")):
+        dg = sha256(p.read_bytes()).hexdigest()
+        lines.append(f"{dg}  {p.name}\n")
+    # include parts
+    for p in sorted(parts_dir.rglob(f"{part_stem}_*_*{part_ext}")):
+        if p.is_file():
+            dg = sha256(p.read_bytes()).hexdigest()
+            lines.append(f"{dg}  {p.name}\n")
+    if lines:
+        sums_path.write_text("".join(lines), encoding="utf-8")
+    return len(lines)
 
-    if _get(conf, ["publish", "clean", "clean_artifacts"]):
-        print("[executor] clean_artifacts=True → clearing design_manifest_dir")
-        _clear_dir_contents(design_manifest_dir)
-        design_manifest_dir.mkdir(parents=True, exist_ok=True)
+# ============================================================================
+#// Summaries to mimic the run_pack counters (best-effort)
+# ============================================================================
+def _summarize_analysis(analysis: Dict[str, List[dict]]) -> Dict[str, int]:
+    out: Dict[str, int] = {}
+    for fam, items in (analysis.items() if isinstance(analysis, dict) else []):
+        out[fam] = len(items) if isinstance(items, list) else 0
+    return out
 
-    # 2) Discover source files strictly by include/exclude/segment_excludes
-    include_globs: List[str] = _get(conf, ["include_globs"])
-    exclude_globs: List[str] = _get(conf, ["exclude_globs"])
-    segment_excludes: List[str] = _get(conf, ["segment_excludes"])
+def _orchestrator_hint(repo_root: Path) -> str:
+    guess = repo_root / "v2" / "backend" / "core" / "utils" / "code_bundles" / "code_bundles" / "src" / "packager" / "core" / "orchestrator.py"
+    return str(guess) if guess.exists() else "(missing) " + str(guess)
 
-    repo_files: List[Path] = []
-    for p in discover_repo_paths(project_root, include_globs, exclude_globs, segment_excludes):
-        try:
-            repo_files.append(p.resolve().relative_to(project_root))
-        except Exception:
-            # Skip anything outside the repo (strict boundary)
-            pass
-    print(f"[executor] discovered files: {len(repo_files)}")
-
-    # 3) Copy snapshot
-    if repo_files:
-        copy_snapshot(project_root, snapshot_dir, repo_files)
-        print("[executor] snapshot copied")
-
-    # 4) Run optional analysis emitter if present (module decides how to emit)
-    emitter = None
-    try:
-        emitter = _load_analysis_emitter(project_root)
-    except TypeError:
-        emitter = _load_analysis_emitter()  # tolerate older signature
-    if emitter and hasattr(emitter, "run"):
-        print("[executor] running analysis_emitter.run()")
-        try:
-            emitter.run(project_root=project_root, out_root=out_root, config=conf)
-        except TypeError:
-            emitter.run()
-
-    # 5) Chunk design manifest from JSONL and write checksums (respect config)
-    part_stem = _get(conf, ["transport", "part_stem"])
-    part_ext = _get(conf, ["transport", "part_ext"])
-    parts_per_dir = int(_get(conf, ["transport", "parts_per_dir"]))
-    split_bytes = int(_get(conf, ["transport", "split_bytes"]))
-    preserve_monolith = bool(_get(conf, ["transport", "preserve_monolith"]))
-
-    jsonl_path = (project_root / output_root / "design_manifest.jsonl").resolve()
-    parts_written: List[Path] = []
-    sums_file: Optional[Path] = None
-
-    if jsonl_path.exists():
-        print(f"[executor] writing parts from JSONL: {jsonl_path}")
-        parts_written = _write_parts_from_jsonl(
-            jsonl_path=jsonl_path,
-            parts_dir=design_manifest_dir,
-            part_stem=part_stem,
-            part_ext=part_ext,
-            split_bytes=split_bytes,
-            parts_per_dir=parts_per_dir,
-            preserve_monolith=preserve_monolith,
-        )
-        if _get(conf, ["publish", "checksums"]):
-            sums_file = design_manifest_dir / f"{part_stem}.SHA256SUMS"
-            _write_sha256sums_for_parts(design_manifest_dir, sums_file)
-            print(f"[executor] checksums → {sums_file.name}")
-    else:
-        print(f"[executor] WARNING: missing JSONL: {jsonl_path}")
-
-    # 6) Manifest augmentation (strictly via module)
-    manifest: dict = {}
-    if parts_written:
-        manifest = _append_parts_artifacts_into_manifest(
-            manifest=manifest,
-            parts_written=parts_written,
-            parts_dir=design_manifest_dir,
-            sums_file=sums_file,
-        )
-
-    manifest = augment_manifest(cfg, manifest)
-    final_manifest_path = design_manifest_dir / "manifest.json"
-    final_manifest_path.write_text(json.dumps(manifest, indent=2), encoding="utf-8")
-    print(f"[executor] manifest → {final_manifest_path}")
-
-    # 7) Local publish mirror
-    mode = str(_get(conf, ["publish", "mode"])).lower()
-    if mode in ("local", "both"):
-        local_root = (project_root / local_publish_root).resolve()
-        (local_root / "design_manifest").mkdir(parents=True, exist_ok=True)
-        (local_root / "code_snapshot").mkdir(parents=True, exist_ok=True)
-
-        def _mirror(src: Path, dst: Path):
-            for p in src.rglob("*"):
-                if p.is_file():
-                    out = dst / p.relative_to(src)
-                    out.parent.mkdir(parents=True, exist_ok=True)
-                    out.write_bytes(p.read_bytes())
-
-        print(f"[executor] local publish → {local_root}")
-        _mirror(design_manifest_dir, local_root / "design_manifest")
-        _mirror(snapshot_dir, local_root / "code_snapshot")
-
-    # 8) GitHub publish (clean/prune as per config)
-    if mode in ("github", "both"):
-        gh_owner = _get(conf, ["publish", "github", "owner"]).strip()
-        gh_repo = _get(conf, ["publish", "github", "repo"]).strip()
-        gh_branch = _get(conf, ["publish", "github", "branch"]).strip()
-        gh_base = _get(conf, ["publish", "github", "base_path"]).strip()
-
-        # Token is expected to be provided by build_cfg (merged from secrets); do NOT invent defaults.
-        gh_token = getattr(cfg, "github_token", None)
-        if not gh_token:
-            raise ConfigError("GitHub token not found in cfg.github_token (secrets must provide it).")
-
-        clean_repo_root = bool(_get(conf, ["publish", "clean", "clean_repo_root"]))
-
-        if clean_repo_root:
-            print(f"[executor] github clean under '{gh_base or '/'}'")
-            github_clean_remote_repo(gh_owner, gh_repo, gh_base, gh_token)
-        else:
-            # Prune stale files deterministically
-            remote_all = _gh_walk_files(gh_owner, gh_repo, gh_base or "", gh_token) or []
-
-            # Local listings
-            local_code = [
-                str((gh_base + "/" if gh_base else "") + (snapshot_dir / p).relative_to(snapshot_dir).as_posix())
-                for p in snapshot_dir.rglob("*") if p.is_file()
-            ]
-            local_artifacts = [
-                str(p.relative_to(design_manifest_dir).as_posix())
-                for p in design_manifest_dir.rglob("*") if p.is_file()
-            ]
-            # Compute deletions
-            dels_code = _prune_remote_code_delta(cfg, remote_all, local_code)
-            dels_art = _prune_remote_artifacts_delta(cfg, remote_all, local_artifacts)
-            to_delete = sorted(set(dels_code) | set(dels_art))
-
-            if to_delete:
-                print(f"[executor] github prune deletions: {len(to_delete)}")
-                for path in to_delete:
-                    meta = _gh_get_file_meta(gh_owner, gh_repo, path, gh_token, gh_branch)
-                    if meta and "sha" in meta:
-                        _gh_delete_file(gh_owner, gh_repo, path, meta["sha"], gh_token, f"prune: remove {path}")
-
-        # Publish code snapshot
-        print(f"[executor] github publish code → {gh_base or '/'}")
-        _publish_to_github(cfg, snapshot_dir, gh_base)
-
-        # Publish design_manifest under base/design_manifest
-        artifacts_base = f"{gh_base}/design_manifest" if gh_base else "design_manifest"
-        print(f"[executor] github publish artifacts → {artifacts_base}")
-        _publish_to_github(cfg, design_manifest_dir, artifacts_base)
-
-    print("[executor] DONE")
-
-
+# ============================================================================
+#// main
+# ============================================================================
 def main() -> None:
-    root = _find_project_root()
-    _run_once(root)
+    try:
+        # Locate project + read YAML
+        repo_root = _find_project_root()
+        cfg = build_cfg(project_root=repo_root)
+        conf = cfg.config
 
+        # Modes
+        mode = str(conf.get("publish", {}).get("mode", "both")).lower()
+        mode_local = mode in ("local", "both")
+        mode_github = mode in ("github", "both")
+
+        # header log (match your old run_pack)
+        log(f"mode: {mode} (local={mode_local}, github={mode_github})")
+        log(f"publish_analysis (root-level): {bool(conf.get('publish_analysis', False))}")
+        log(f"emit_ast (root-level): {bool(conf.get('emit_ast', False))}")
+        log(f"using orchestrator from: {_orchestrator_hint(repo_root)}")
+
+        # Config essentials
+        include_globs = list(conf.get("include_globs", []))
+        exclude_globs = list(conf.get("exclude_globs", []))
+        segment_excludes = list(conf.get("segment_excludes", []))
+        emitted_prefix = str(conf.get("emitted_prefix", "output/patch_code_bundles")).strip("/")
+        case_insensitive = (os.name == "nt")
+        follow_symlinks = True
+
+        # Output locations (hard targets from run_pack)
+        artifact_root = (repo_root / "output" / "design_manifest").resolve()
+        code_root = (repo_root / emitted_prefix).resolve()
+
+        # Respect YAML clean flags
+        clean_before = bool(conf.get("publish", {}).get("clean_before_publish", False))
+        clean_artifacts = bool(conf.get("publish", {}).get("clean", {}).get("clean_artifacts", False))
+
+        if clean_before:
+            log(f"clean_before_publish=True → clearing {code_root}")
+            _clear_dir_contents(code_root)
+        else:
+            log("clean_before_publish=False → NOT clearing code snapshot directory")
+
+        if clean_artifacts:
+            log(f"clean_artifacts=True → clearing {artifact_root}")
+            _clear_dir_contents(artifact_root)
+        else:
+            log("clean_artifacts=False → NOT clearing artifact directory")
+
+        # Ensure dirs exist after potential clean
+        artifact_root.mkdir(parents=True, exist_ok=True)
+        code_root.mkdir(parents=True, exist_ok=True)
+
+        out_bundle = artifact_root / "design_manifest.jsonl"
+        out_runspec = artifact_root / "superbundle.run.json"
+        out_guide = artifact_root / "assistant_handoff.v1.json"
+        out_sums = artifact_root / "design_manifest.SHA256SUMS"
+
+        # paint cfg for any modules that peek into it
+        cfg.source_root = repo_root
+        cfg.emitted_prefix = emitted_prefix
+        cfg.include_globs = include_globs
+        cfg.exclude_globs = exclude_globs
+        cfg.segment_excludes = segment_excludes
+        cfg.case_insensitive = case_insensitive
+        cfg.follow_symlinks = follow_symlinks
+        tcfg = conf.get("transport", {}) or {}
+        cfg.transport = NS(
+            part_stem=str(tcfg.get("part_stem", "design_manifest")),
+            part_ext=str(tcfg.get("part_ext", ".txt")),
+            parts_per_dir=int(tcfg.get("parts_per_dir", 10)),
+            split_bytes=int(tcfg.get("split_bytes", 150000)),
+            preserve_monolith=bool(tcfg.get("preserve_monolith", False)),
+        )
+        cfg.out_bundle = out_bundle
+        cfg.out_runspec = out_runspec
+        cfg.out_guide = out_guide
+        cfg.out_sums = out_sums
+
+        # More header, matching your example
+        log(f"source_root: {repo_root}")
+        log(f"emitted_prefix: {emitted_prefix}")
+        log(f"include_globs: {include_globs}")
+        log(f"exclude_globs: {exclude_globs}")
+        log(f"segment_excludes: {segment_excludes}")
+        log(f"follow_symlinks: {follow_symlinks} case_insensitive: {case_insensitive}")
+        log("Packager: start]")
+        print(f"Bundle: {out_bundle}")
+        print(f"Run-spec: {out_runspec}")
+        print(f"Guide: {out_guide}")
+
+        # Discover + snapshot
+        discovered = _discover_repo_pairs(
+            repo_root=repo_root,
+            include_globs=include_globs,
+            exclude_globs=exclude_globs,
+            segment_excludes=segment_excludes,
+            case_insensitive=case_insensitive,
+            follow_symlinks=follow_symlinks,
+        )
+        log(f"discovered repo files: {len(discovered)}")
+        copied = copy_snapshot(repo_root, code_root, discovered) if mode_local or mode_github else 0
+        log(f"Local snapshot: copied {copied} files to {code_root}")
+
+        # Start manifest (JSONL header artifacts)
+        # Ensure we don't append to a previous run's JSONL
+        if out_bundle.exists():
+            log("existing bundle detected → removing to avoid append")
+            out_bundle.unlink(missing_ok=True)
+
+        app = ManifestAppender(out_bundle)
+        emit_standard_artifacts(
+            appender=app,
+            out_bundle=out_bundle,
+            out_sums=out_sums,
+            out_runspec=out_runspec,
+            out_guide=out_guide,
+        )
+
+        # Augment (returns dict); write rows to JSONL
+        log("Augment manifest: start (path_mode=local)")
+        manifest_dict: dict = augment_manifest(cfg, {})
+        analysis: Dict[str, List[dict]] = manifest_dict.get("analysis", {}) or {}
+        fam_counts = _summarize_analysis(analysis)
+
+        total_rows = 0
+        for family, items in analysis.items():
+            if not isinstance(items, list):
+                continue
+            for rec in items:
+                if isinstance(rec, dict):
+                    app.append_record({"family": family, **rec})
+                    total_rows += 1
+
+        # Close appender if present
+        closer = getattr(app, "close", None)
+        if callable(closer):
+            closer()
+
+        # Mirror the 'wired={...}' style summary
+        wired_pairs = ", ".join([f"{k}:{v}" for k, v in sorted(fam_counts.items())])
+        log(f"Augment manifest: wired={{" + wired_pairs + f"}} total_rows={total_rows}")
+
+        # Chunk & checksums (LOCAL)
+        kind = str(conf.get("transport", {}).get("kind", "chunked")).lower()
+        if kind == "chunked":
+            parts = _write_parts_from_jsonl(
+                jsonl_path=out_bundle,
+                parts_dir=artifact_root,
+                part_stem=cfg.transport.part_stem,
+                part_ext=cfg.transport.part_ext,
+                split_bytes=cfg.transport.split_bytes,
+                parts_per_dir=cfg.transport.parts_per_dir,
+            )
+            log(f"chunk(local): wrote {len(parts)} parts")
+            _ = _write_sha256sums_for_parts(
+                parts_dir=artifact_root,
+                part_stem=cfg.transport.part_stem,
+                part_ext=cfg.transport.part_ext,
+                sums_path=out_sums,
+            )
+            log(f"chunk report (local): {{'kind': 'local', 'decision': 'chunked', 'parts': {len(parts)}, 'split_bytes': {cfg.transport.split_bytes}}}")
+            if not cfg.transport.preserve_monolith and out_bundle.exists():
+                out_bundle.unlink(missing_ok=True)
+        else:
+            if out_bundle.exists():
+                dg = sha256(out_bundle.read_bytes()).hexdigest()
+                out_sums.write_text(f"{dg}  {out_bundle.name}\n", encoding="utf-8")
+            log("chunk(local): decision=monolith")
+
+        # (Optional) Analysis sidecars
+        if bool(conf.get("publish_analysis", False)):
+            log(f"publish_analysis (emitter gate): enabled  emitter=set")
+            try:
+                emitter = None
+                try:
+                    emitter = _load_analysis_emitter(repo_root)
+                except TypeError:
+                    emitter = _load_analysis_emitter()  # tolerate older signature
+                if emitter and hasattr(emitter, "run"):
+                    src = artifact_root  # emitter probes here for parts/index/jsonl
+                    log(f"[analysis] source manifest dir: {src}")
+                    target = artifact_root / "analysis"
+                    log(f"[analysis] target analysis dir: {target}")
+                    try:
+                        emitter.run(project_root=repo_root, out_root=artifact_root, config=conf)
+                    except TypeError:
+                        emitter.run()
+                else:
+                    log("[analysis] emitter missing or has no 'run' method")
+            except Exception:
+                log("[analysis] ERROR during emission")
+                traceback.print_exc()
+        else:
+            log("publish_analysis (emitter gate): disabled")
+
+        # Final listing (helps sanity check)
+        tree_paths = []
+        for p in sorted(artifact_root.rglob("*")):
+            if p.is_file():
+                tree_paths.append(str(p.relative_to(artifact_root)))
+        shown = 200
+        if tree_paths:
+            log(f"final tree under {artifact_root} (showing up to {shown} files; total={len(tree_paths)})")
+            for i, rel in enumerate(tree_paths[:shown], 1):
+                print(f"  {i:>3}. {rel}")
+            if len(tree_paths) > shown:
+                print(f"  ... (+{len(tree_paths)-shown} more)")
+        else:
+            log(f"final tree under {artifact_root}: (empty)")
+
+        log("DONE")
+
+    except Exception as e:
+        log(f"FATAL: {e.__class__.__name__}: {e}")
+        traceback.print_exc()
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()
+
+
+
+
+
+
