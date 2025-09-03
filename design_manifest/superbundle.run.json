@@ -1,0 +1,16 @@
+{
+  "generated_at": "2025-09-03T07:49:37.327689+00:00",
+  "modes": {
+    "github": true,
+    "local": true
+  },
+  "record_type": "superbundle.run",
+  "source_root": "C:\\Users\\cg371\\PycharmProjects\\ChatGPT Bot",
+  "transport": {
+    "part_ext": ".txt",
+    "part_stem": "design_manifest",
+    "parts_per_dir": 10,
+    "preserve_monolith": false,
+    "split_bytes": 150000
+  }
+}
