@@ -35,6 +35,17 @@ def _read_yaml_if_exists(path: Path) -> dict:
         return {}
 
 
+def _resolve_path(base: Path, maybe_path: Optional[str]) -> Path:
+    """
+    Resolve a path from YAML. If it's absolute, keep it; if relative, anchor at 'base'.
+    If missing/empty, return 'base'.
+    """
+    if not maybe_path:
+        return base
+    p = Path(str(maybe_path))
+    return p if p.is_absolute() else (base / p)
+
+
 # -----------------------
 # GitHub token resolution
 # -----------------------
@@ -120,6 +131,7 @@ def build_cfg(project_root: Path) -> NS:
     """
     Load config strictly from config/packager.yml and resolve GitHub credentials
     using the same precedence run_pack uses (ENV → secrets.yml → token file).
+    Also normalizes key publish paths and exposes clean flags for the executor.
     """
     project_root = Path(project_root).resolve()
 
@@ -130,6 +142,7 @@ def build_cfg(project_root: Path) -> NS:
     data = _load_yaml(cfg_file)
     publish = data.get("publish") or {}
     github = publish.get("github") or {}
+    clean = publish.get("clean") or {}
 
     # Normalize / mirror fields
     ns = NS(
@@ -138,10 +151,22 @@ def build_cfg(project_root: Path) -> NS:
         publish=publish,
         github=github,
         publish_mode=str(publish.get("mode", "both")).lower(),
-        local_publish_root=Path(publish.get("local_publish_root", "output/patch_code_bundles/published")),
         publish_analysis=bool(data.get("publish_analysis", False)),
         emit_ast=bool(data.get("emit_ast", False)),
     )
+
+    # Paths (normalize relative to project root)
+    ns.emitted_prefix = str(data.get("emitted_prefix", "output/patch_code_bundles")).strip("/")
+
+    ns.staging_root = _resolve_path(project_root, publish.get("staging_root") or "output/staging")
+    ns.output_root = _resolve_path(project_root, publish.get("output_root") or "output/patch_code_bundles")
+    ns.ingest_root = _resolve_path(project_root, publish.get("ingest_root") or ".")
+    ns.local_publish_root = _resolve_path(project_root, publish.get("local_publish_root") or "output/patch_code_bundles/published")
+
+    # Clean flags (so executor doesn’t have to poke through dicts)
+    ns.clean_before_publish = bool(publish.get("clean_before_publish", False))
+    ns.clean_repo_root = bool(clean.get("clean_repo_root", False))
+    ns.clean_artifacts = bool(clean.get("clean_artifacts", False))
 
     # GitHub coordinates (from YAML)
     ns.github_owner = str(github.get("owner", "")).strip()
@@ -166,4 +191,5 @@ def _read_code_bundle_params(project_root: Path) -> dict:
         return json.loads(fp.read_text(encoding="utf-8"))
     except Exception:
         return {}
+
 
