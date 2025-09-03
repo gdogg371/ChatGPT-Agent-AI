@@ -1,0 +1,159 @@
+{
+  "family": "asset",
+  "items": [
+    {
+      "path": "output/patch_code_bundles/cold_start/log_uploader.service"
+    },
+    {
+      "path": "output/patch_code_bundles/cold_start/watchdog.service"
+    },
+    {
+      "path": "output/patch_code_bundles/config/db.yml"
+    },
+    {
+      "path": "output/patch_code_bundles/config/llm.yml"
+    },
+    {
+      "path": "output/patch_code_bundles/config/normalize.yml"
+    },
+    {
+      "path": "output/patch_code_bundles/config/packager.yml"
+    },
+    {
+      "path": "output/patch_code_bundles/config/spine.yml"
+    },
+    {
+      "path": "output/patch_code_bundles/config/spine/capabilities.yml"
+    },
+    {
+      "path": "output/patch_code_bundles/config/spine/pipelines/default/llm.yml"
+    },
+    {
+      "path": "output/patch_code_bundles/config/spine/pipelines/default/patch_loop.yml"
+    },
+    {
+      "path": "output/patch_code_bundles/config/spine/pipelines/default/vars.yml"
+    },
+    {
+      "path": "output/patch_code_bundles/recovery/.last_boot_failed"
+    },
+    {
+      "path": "output/patch_code_bundles/recovery/boot_state.json"
+    },
+    {
+      "path": "output/patch_code_bundles/scripts/postgres_sql_schemas/001_create_agent_self_review.sql"
+    },
+    {
+      "path": "output/patch_code_bundles/scripts/postgres_sql_schemas/002_create_agent_registry.sql"
+    },
+    {
+      "path": "output/patch_code_bundles/scripts/postgres_sql_schemas/003_create_agent_insights.sql"
+    },
+    {
+      "path": "output/patch_code_bundles/scripts/postgres_sql_schemas/004_create_diagnostics.sql"
+    },
+    {
+      "path": "output/patch_code_bundles/scripts/postgres_sql_schemas/005_create_agent_memory.sql"
+    },
+    {
+      "path": "output/patch_code_bundles/scripts/postgres_sql_schemas/006_create_patch_failures.sql"
+    },
+    {
+      "path": "output/patch_code_bundles/scripts/postgres_sql_schemas/007_create_agent_skills.sql"
+    },
+    {
+      "path": "output/patch_code_bundles/scripts/postgres_sql_schemas/008_create_agent_skill_inventory.sql"
+    },
+    {
+      "path": "output/patch_code_bundles/scripts/postgres_sql_schemas/009_create_agent_skill_prerequisites.sql"
+    },
+    {
+      "path": "output/patch_code_bundles/scripts/postgres_sql_schemas/010_create_patch_state.sql"
+    },
+    {
+      "path": "output/patch_code_bundles/scripts/postgres_sql_schemas/011_create_patch_history.sql"
+    },
+    {
+      "path": "output/patch_code_bundles/scripts/postgres_sql_schemas/012_create_patch_actions.sql"
+    },
+    {
+      "path": "output/patch_code_bundles/scripts/postgres_sql_schemas/013_create_patch_simulation_results.sql"
+    },
+    {
+      "path": "output/patch_code_bundles/scripts/postgres_sql_schemas/014_create_patch_rejections.sql"
+    },
+    {
+      "path": "output/patch_code_bundles/scripts/postgres_sql_schemas/015_create_lock_state.sql"
+    },
+    {
+      "path": "output/patch_code_bundles/scripts/postgres_sql_schemas/016_create_patch_plan.sql"
+    },
+    {
+      "path": "output/patch_code_bundles/scripts/postgres_sql_schemas/017_create_lock_state.sql"
+    },
+    {
+      "path": "output/patch_code_bundles/scripts/postgres_sql_schemas/018_create_lock_events.sql"
+    },
+    {
+      "path": "output/patch_code_bundles/scripts/postgres_sql_schemas/019_create_enable_rls_on_lock_state.sql"
+    },
+    {
+      "path": "output/patch_code_bundles/scripts/postgres_sql_schemas/020_create_capabilities.sql"
+    },
+    {
+      "path": "output/patch_code_bundles/scripts/postgres_sql_schemas/021_create_agent_messages.sql"
+    },
+    {
+      "path": "output/patch_code_bundles/scripts/postgres_sql_schemas/022_create_patch_metadata.sql"
+    },
+    {
+      "path": "output/patch_code_bundles/scripts/postgres_sql_schemas/023_create_patch_state.sql"
+    },
+    {
+      "path": "output/patch_code_bundles/scripts/postgres_sql_schemas/024_create_module_events.sql"
+    },
+    {
+      "path": "output/patch_code_bundles/scripts/postgres_sql_schemas/025_create_script_exec.sql"
+    },
+    {
+      "path": "output/patch_code_bundles/scripts/postgres_sql_schemas/026_create_router_events.sql"
+    },
+    {
+      "path": "output/patch_code_bundles/scripts/postgres_sql_schemas/027_create_service_events.sql"
+    },
+    {
+      "path": "output/patch_code_bundles/scripts/postgres_sql_schemas/028_create_system_events.sql"
+    },
+    {
+      "path": "output/patch_code_bundles/scripts/postgres_sql_schemas/029_create_patch_feedback.sql"
+    },
+    {
+      "path": "output/patch_code_bundles/scripts/postgres_sql_schemas/039_create_patch_diffs.sql"
+    },
+    {
+      "path": "output/patch_code_bundles/scripts/postgres_sql_schemas/040_create_patch_risk_evaluations.sql"
+    },
+    {
+      "path": "output/patch_code_bundles/scripts/postgres_sql_schemas/041_create_patch_test_results.sql"
+    },
+    {
+      "path": "output/patch_code_bundles/scripts/postgres_sql_schemas/042_create_patch_trust_assessments.sql"
+    },
+    {
+      "path": "output/patch_code_bundles/scripts/postgres_sql_schemas/043_create_introspection_index.sql"
+    },
+    {
+      "path": "output/patch_code_bundles/scripts/postgres_sql_schemas/044_create_file_snapshots.sql"
+    },
+    {
+      "path": "output/patch_code_bundles/scripts/postgres_sql_schemas/045_create_patch_action_log.sql"
+    },
+    {
+      "path": "output/patch_code_bundles/scripts/postgres_sql_schemas/046_create_patch_plan_files.sql"
+    }
+  ],
+  "stats": {
+    "count": 208,
+    "files_with_items": 208
+  }
+}
