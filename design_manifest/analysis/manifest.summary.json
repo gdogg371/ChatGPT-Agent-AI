@@ -1,0 +1,11 @@
+{
+  "family": "io_core",
+  "stats": {
+    "artifacts": 0,
+    "edges": 0,
+    "metrics": 0,
+    "modules": 0,
+    "parts": 0,
+    "path_modes": {}
+  }
+}
