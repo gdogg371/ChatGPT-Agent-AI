@@ -1,9 +1,9 @@
 {
   "family": "ast_imports",
   "stats": {
-    "count": 2054,
-    "files": 326,
-    "modules": 175
+    "count": 2058,
+    "files": 320,
+    "modules": 177
   },
   "top_files": [
     {
@@ -23,12 +23,12 @@
       "path": "v2/backend/core/utils/code_bundles/code_bundles/orchestrate.py"
     },
     {
-      "edges": 22,
-      "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/code_bundles/execute/manifest.py"
+      "edges": 28,
+      "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/code_bundles/execute/read_scanners.py"
     },
     {
-      "edges": 22,
-      "path": "v2/backend/core/utils/code_bundles/code_bundles/execute/manifest.py"
+      "edges": 28,
+      "path": "v2/backend/core/utils/code_bundles/code_bundles/execute/read_scanners.py"
     },
     {
       "edges": 20,
@@ -39,11 +39,11 @@
       "path": "v2/backend/core/patch_engine/providers.py"
     },
     {
-      "edges": 15,
+      "edges": 18,
       "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/code_bundles/execute/executor.py"
     },
     {
-      "edges": 15,
+      "edges": 18,
       "path": "v2/backend/core/utils/code_bundles/code_bundles/execute/executor.py"
     },
     {
@@ -128,6 +128,10 @@
     },
     {
       "edges": 10,
+      "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/code_bundles/execute/github.py"
+    },
+    {
+      "edges": 10,
       "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/code_bundles/src/packager/scanners/assets_index.py"
     },
     {
@@ -137,6 +141,10 @@
     {
       "edges": 10,
       "path": "v2/backend/core/spine/providers/utils_code_index.py"
+    },
+    {
+      "edges": 10,
+      "path": "v2/backend/core/utils/code_bundles/code_bundles/execute/github.py"
     },
     {
       "edges": 10,
@@ -160,11 +168,11 @@
     },
     {
       "edges": 9,
-      "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/code_bundles/execute/manage_github.py"
+      "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/code_bundles/execute/funcs.py"
     },
     {
       "edges": 9,
-      "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/code_bundles/execute/parts.py"
+      "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/code_bundles/execute/manifest.py"
     },
     {
       "edges": 9,
@@ -192,6 +200,10 @@
     },
     {
       "edges": 9,
+      "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/run_pack2.py"
+    },
+    {
+      "edges": 9,
       "path": "output/patch_code_bundles/v2/cli/docstring.py"
     },
     {
@@ -212,11 +224,11 @@
     },
     {
       "edges": 9,
-      "path": "v2/backend/core/utils/code_bundles/code_bundles/execute/manage_github.py"
+      "path": "v2/backend/core/utils/code_bundles/code_bundles/execute/funcs.py"
     },
     {
       "edges": 9,
-      "path": "v2/backend/core/utils/code_bundles/code_bundles/execute/parts.py"
+      "path": "v2/backend/core/utils/code_bundles/code_bundles/execute/manifest.py"
     },
     {
       "edges": 9,
@@ -241,6 +253,10 @@
     {
       "edges": 9,
       "path": "v2/backend/core/utils/code_bundles/code_bundles/src/packager/scanners/secrets_scan.py"
+    },
+    {
+      "edges": 9,
+      "path": "v2/backend/core/utils/code_bundles/run_pack2.py"
     },
     {
       "edges": 9,
@@ -281,10 +297,6 @@
     {
       "edges": 8,
       "path": "output/patch_code_bundles/v2/backend/core/spine/registry.py"
-    },
-    {
-      "edges": 8,
-      "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/code_bundles/execute/publish.py"
     },
     {
       "edges": 8,
@@ -337,10 +349,6 @@
     {
       "edges": 8,
       "path": "v2/backend/core/spine/registry.py"
-    },
-    {
-      "edges": 8,
-      "path": "v2/backend/core/utils/code_bundles/code_bundles/execute/publish.py"
     },
     {
       "edges": 8,
@@ -397,19 +405,11 @@
     {
       "edges": 7,
       "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/code_bundles/src/packager/languages/base.py"
-    },
-    {
-      "edges": 7,
-      "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/code_bundles/src/packager/scanners/js_ts_index.py"
-    },
-    {
-      "edges": 7,
-      "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/code_bundles/src/packager/scanners/license_scan.py"
     }
   ],
   "top_modules": [
     {
-      "edges": 304,
+      "edges": 298,
       "name": "__future__"
     },
     {
@@ -417,7 +417,7 @@
       "name": "typing"
     },
     {
-      "edges": 206,
+      "edges": 200,
       "name": "pathlib"
     },
     {
@@ -425,23 +425,23 @@
       "name": "dataclasses"
     },
     {
-      "edges": 92,
+      "edges": 90,
       "name": "os"
     },
     {
-      "edges": 92,
+      "edges": 86,
       "name": "json"
     },
     {
-      "edges": 64,
+      "edges": 66,
       "name": "re"
     },
     {
-      "edges": 52,
+      "edges": 50,
       "name": "hashlib"
     },
     {
-      "edges": 50,
+      "edges": 40,
       "name": "sys"
     },
     {
@@ -453,16 +453,20 @@
       "name": "ast"
     },
     {
-      "edges": 24,
-      "name": "fnmatch"
-    },
-    {
-      "edges": 22,
+      "edges": 26,
       "name": "time"
     },
     {
+      "edges": 22,
+      "name": "v2.backend.core.configuration.loader"
+    },
+    {
+      "edges": 22,
+      "name": "fnmatch"
+    },
+    {
       "edges": 20,
-      "name": "types"
+      "name": "yaml"
     },
     {
       "edges": 20,
@@ -474,19 +478,15 @@
     },
     {
       "edges": 18,
-      "name": "yaml"
-    },
-    {
-      "edges": 18,
       "name": "v2.backend.core.spine.contracts"
     },
     {
-      "edges": 18,
-      "name": "base64"
+      "edges": 16,
+      "name": "types"
     },
     {
       "edges": 16,
-      "name": "io"
+      "name": "inspect"
     },
     {
       "edges": 14,
@@ -497,32 +497,20 @@
       "name": "sqlalchemy"
     },
     {
-      "edges": 12,
-      "name": "v2.backend.core.configuration.loader"
+      "edges": 14,
+      "name": "io"
+    },
+    {
+      "edges": 14,
+      "name": "base64"
     },
     {
       "edges": 12,
       "name": "subprocess"
     },
     {
-      "edges": 12,
-      "name": "inspect"
-    },
-    {
       "edges": 10,
       "name": "sqlalchemy.orm"
-    },
-    {
-      "edges": 10,
-      "name": "shutil"
-    },
-    {
-      "edges": 10,
-      "name": "traceback"
-    },
-    {
-      "edges": 10,
-      "name": "urllib"
     },
     {
       "edges": 8,
@@ -530,7 +518,11 @@
     },
     {
       "edges": 8,
-      "name": "tempfile"
+      "name": "shutil"
+    },
+    {
+      "edges": 8,
+      "name": "traceback"
     },
     {
       "edges": 8,
@@ -545,12 +537,28 @@
       "name": "importlib.util"
     },
     {
+      "edges": 8,
+      "name": "v2.backend.core.utils.code_bundles.code_bundles.bundle_io"
+    },
+    {
+      "edges": 8,
+      "name": "v2.backend.core.utils.code_bundles.code_bundles.src.packager.io.guide_writer"
+    },
+    {
+      "edges": 8,
+      "name": "urllib"
+    },
+    {
       "edges": 6,
       "name": "v2.backend.core.db.access.db_init"
     },
     {
       "edges": 6,
       "name": "textwrap"
+    },
+    {
+      "edges": 6,
+      "name": "tempfile"
     },
     {
       "edges": 6,
@@ -578,11 +586,27 @@
     },
     {
       "edges": 6,
+      "name": "packager.core.orchestrator"
+    },
+    {
+      "edges": 6,
       "name": "v2.backend.core.types.types"
     },
     {
       "edges": 6,
+      "name": "v2.backend.core.utils.code_bundles.code_bundles.execute.funcs"
+    },
+    {
+      "edges": 6,
+      "name": "v2.backend.core.utils.code_bundles.code_bundles.contracts"
+    },
+    {
+      "edges": 6,
       "name": "bundle_io"
+    },
+    {
+      "edges": 6,
+      "name": "v2.backend.core.utils.code_bundles.code_bundles.src.packager.core.writer"
     },
     {
       "edges": 6,
@@ -674,11 +698,11 @@
     },
     {
       "edges": 4,
-      "name": "packager.core.orchestrator"
+      "name": "csv"
     },
     {
       "edges": 4,
-      "name": "csv"
+      "name": "v2.backend.core.utils.code_bundles.code_bundles.src.packager.core.orchestrator"
     },
     {
       "edges": 4,
@@ -686,11 +710,15 @@
     },
     {
       "edges": 4,
-      "name": "v2.backend.core.utils.code_bundles.code_bundles.bundle_io"
+      "name": "v2.backend.core.utils.code_bundles.code_bundles.execute.config"
     },
     {
       "edges": 4,
-      "name": "github_api"
+      "name": "v2.backend.core.utils.code_bundles.code_bundles.telemetry.runtime_flow"
+    },
+    {
+      "edges": 4,
+      "name": "v2.backend.core.utils.code_bundles.code_bundles.execute.fs"
     },
     {
       "edges": 4,
@@ -746,19 +774,19 @@
     },
     {
       "edges": 4,
+      "name": "v2.backend.core.utils.code_bundles.code_bundles.graphs"
+    },
+    {
+      "edges": 4,
+      "name": "v2.backend.core.utils.code_bundles.code_bundles.src.packager.scanners.python_index"
+    },
+    {
+      "edges": 4,
+      "name": "v2.backend.core.utils.code_bundles.code_bundles.quality"
+    },
+    {
+      "edges": 4,
       "name": "packager.io.publisher"
-    },
-    {
-      "edges": 4,
-      "name": "v2.backend.core.utils.code_bundles.code_bundles.contracts"
-    },
-    {
-      "edges": 4,
-      "name": "v2.backend.core.utils.code_bundles.code_bundles.src.packager.io.guide_writer"
-    },
-    {
-      "edges": 4,
-      "name": "packager.core.writer"
     },
     {
       "edges": 4,
@@ -779,34 +807,6 @@
     {
       "edges": 2,
       "name": "v1.backend.utils.logger"
-    },
-    {
-      "edges": 2,
-      "name": "logging"
-    },
-    {
-      "edges": 2,
-      "name": "v2.models.introspection_index"
-    },
-    {
-      "edges": 2,
-      "name": "sanitize"
-    },
-    {
-      "edges": 2,
-      "name": "v2.backend.core.patch_engine.plan"
-    },
-    {
-      "edges": 2,
-      "name": "v2.backend.core.docstrings.formatter"
-    },
-    {
-      "edges": 2,
-      "name": "v2.backend.core.docstrings.locator"
-    },
-    {
-      "edges": 2,
-      "name": "llama_cpp"
     }
   ]
 }
