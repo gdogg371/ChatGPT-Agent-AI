@@ -1,7 +1,7 @@
 {
   "record_type": "assistant_handoff.v1",
   "version": "2",
-  "generated_at": "2025-09-03T11:58:02.865741Z",
+  "generated_at": "2025-09-03T18:38:44.488446Z",
   "artifact_root": "output/design_manifest/",
   "publish": {
     "mode": "both",
@@ -98,7 +98,7 @@
   "highlights": {
     "stats": {
       "files_total": 208,
-      "python_modules": 2602,
+      "python_modules": 2548,
       "graph_edges": null
     },
     "top": {
