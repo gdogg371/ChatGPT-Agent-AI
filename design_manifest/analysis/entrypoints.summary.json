@@ -76,12 +76,6 @@
     {
       "has_main_fn": true,
       "kind": "entrypoint.python",
-      "module": "v2.backend.core.utils.code_bundles.code_bundles_OLD.run_pack",
-      "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/code_bundles_OLD/run_pack.py"
-    },
-    {
-      "has_main_fn": true,
-      "kind": "entrypoint.python",
       "module": "v2.backend.core.utils.code_bundles.packers.make_code_bundle",
       "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/packers/make_code_bundle.py"
     },
@@ -204,12 +198,6 @@
       "kind": "entrypoint.python",
       "module": "v2.backend.core.utils.code_bundles.code_bundles.src.packager.analysis_emitter",
       "path": "v2/backend/core/utils/code_bundles/code_bundles/src/packager/analysis_emitter.py"
-    },
-    {
-      "has_main_fn": true,
-      "kind": "entrypoint.python",
-      "module": "v2.backend.core.utils.code_bundles.code_bundles_OLD.run_pack",
-      "path": "v2/backend/core/utils/code_bundles/code_bundles_OLD/run_pack.py"
     },
     {
       "has_main_fn": true,
@@ -362,12 +350,12 @@
   ],
   "stats": {
     "by_kind": {
-      "entrypoint.python": 48,
+      "entrypoint.python": 46,
       "entrypoint.shell": 14
     },
-    "count": 62,
-    "files": 54,
-    "python": 48,
+    "count": 60,
+    "files": 52,
+    "python": 46,
     "shell": 14
   }
 }
