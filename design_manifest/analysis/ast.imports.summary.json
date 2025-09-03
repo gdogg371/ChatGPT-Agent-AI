@@ -1,9 +1,9 @@
 {
   "family": "ast_imports",
   "stats": {
-    "count": 2380,
-    "files": 368,
-    "modules": 178
+    "count": 2054,
+    "files": 326,
+    "modules": 175
   },
   "top_files": [
     {
@@ -20,23 +20,7 @@
     },
     {
       "edges": 30,
-      "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/code_bundles_OLD/orchestrate.py"
-    },
-    {
-      "edges": 30,
       "path": "v2/backend/core/utils/code_bundles/code_bundles/orchestrate.py"
-    },
-    {
-      "edges": 30,
-      "path": "v2/backend/core/utils/code_bundles/code_bundles_OLD/orchestrate.py"
-    },
-    {
-      "edges": 27,
-      "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/code_bundles_OLD/src/packager/core/orchestrator.py"
-    },
-    {
-      "edges": 27,
-      "path": "v2/backend/core/utils/code_bundles/code_bundles_OLD/src/packager/core/orchestrator.py"
     },
     {
       "edges": 22,
@@ -100,19 +84,11 @@
     },
     {
       "edges": 12,
-      "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/code_bundles_OLD/run_pack.py"
-    },
-    {
-      "edges": 12,
       "path": "output/patch_code_bundles/v2/backend/core/utils/scanners/code_indexer.py"
     },
     {
       "edges": 12,
       "path": "v2/backend/core/introspect/read_docstrings.py"
-    },
-    {
-      "edges": 12,
-      "path": "v2/backend/core/utils/code_bundles/code_bundles_OLD/run_pack.py"
     },
     {
       "edges": 12,
@@ -216,10 +192,6 @@
     },
     {
       "edges": 9,
-      "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/code_bundles_OLD/src/packager/languages/python/plugin.py"
-    },
-    {
-      "edges": 9,
       "path": "output/patch_code_bundles/v2/cli/docstring.py"
     },
     {
@@ -269,10 +241,6 @@
     {
       "edges": 9,
       "path": "v2/backend/core/utils/code_bundles/code_bundles/src/packager/scanners/secrets_scan.py"
-    },
-    {
-      "edges": 9,
-      "path": "v2/backend/core/utils/code_bundles/code_bundles_OLD/src/packager/languages/python/plugin.py"
     },
     {
       "edges": 9,
@@ -332,10 +300,6 @@
     },
     {
       "edges": 8,
-      "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/code_bundles_OLD/python_index.py"
-    },
-    {
-      "edges": 8,
       "path": "output/patch_code_bundles/v2/backend/core/utils/code_fixers/change_imports.py"
     },
     {
@@ -392,10 +356,6 @@
     },
     {
       "edges": 8,
-      "path": "v2/backend/core/utils/code_bundles/code_bundles_OLD/python_index.py"
-    },
-    {
-      "edges": 8,
       "path": "v2/backend/core/utils/code_fixers/change_imports.py"
     },
     {
@@ -405,43 +365,83 @@
     {
       "edges": 7,
       "path": "output/patch_code_bundles/v2/backend/core/db/access/sqlite.py"
+    },
+    {
+      "edges": 7,
+      "path": "output/patch_code_bundles/v2/backend/core/db/writers/docstring_writer.py"
+    },
+    {
+      "edges": 7,
+      "path": "output/patch_code_bundles/v2/backend/core/patch_engine/workspace.py"
+    },
+    {
+      "edges": 7,
+      "path": "output/patch_code_bundles/v2/backend/core/spine/providers/utils_db_init_sqlite_dev.py"
+    },
+    {
+      "edges": 7,
+      "path": "output/patch_code_bundles/v2/backend/core/spine/providers/utils_io_zip.py"
+    },
+    {
+      "edges": 7,
+      "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/code_bundles/bundle_io.py"
+    },
+    {
+      "edges": 7,
+      "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/code_bundles/execute/config.py"
+    },
+    {
+      "edges": 7,
+      "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/code_bundles/src/packager/core/loader.py"
+    },
+    {
+      "edges": 7,
+      "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/code_bundles/src/packager/languages/base.py"
+    },
+    {
+      "edges": 7,
+      "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/code_bundles/src/packager/scanners/js_ts_index.py"
+    },
+    {
+      "edges": 7,
+      "path": "output/patch_code_bundles/v2/backend/core/utils/code_bundles/code_bundles/src/packager/scanners/license_scan.py"
     }
   ],
   "top_modules": [
     {
-      "edges": 346,
+      "edges": 304,
       "name": "__future__"
     },
     {
-      "edges": 306,
+      "edges": 270,
       "name": "typing"
     },
     {
-      "edges": 234,
+      "edges": 206,
       "name": "pathlib"
     },
     {
-      "edges": 134,
+      "edges": 112,
       "name": "dataclasses"
     },
     {
-      "edges": 112,
-      "name": "json"
-    },
-    {
-      "edges": 100,
+      "edges": 92,
       "name": "os"
     },
     {
-      "edges": 72,
-      "name": "hashlib"
+      "edges": 92,
+      "name": "json"
     },
     {
       "edges": 64,
       "name": "re"
     },
     {
-      "edges": 56,
+      "edges": 52,
+      "name": "hashlib"
+    },
+    {
+      "edges": 50,
       "name": "sys"
     },
     {
@@ -449,32 +449,20 @@
       "name": "datetime"
     },
     {
-      "edges": 32,
+      "edges": 28,
       "name": "ast"
     },
     {
-      "edges": 30,
+      "edges": 24,
       "name": "fnmatch"
     },
     {
-      "edges": 28,
-      "name": "base64"
-    },
-    {
-      "edges": 26,
+      "edges": 22,
       "name": "time"
     },
     {
-      "edges": 22,
+      "edges": 20,
       "name": "types"
-    },
-    {
-      "edges": 22,
-      "name": "io"
-    },
-    {
-      "edges": 22,
-      "name": "bundle_io"
     },
     {
       "edges": 20,
@@ -493,20 +481,20 @@
       "name": "v2.backend.core.spine.contracts"
     },
     {
+      "edges": 18,
+      "name": "base64"
+    },
+    {
+      "edges": 16,
+      "name": "io"
+    },
+    {
       "edges": 14,
       "name": "sqlite3"
     },
     {
       "edges": 14,
       "name": "sqlalchemy"
-    },
-    {
-      "edges": 14,
-      "name": "inspect"
-    },
-    {
-      "edges": 14,
-      "name": "urllib"
     },
     {
       "edges": 12,
@@ -518,7 +506,7 @@
     },
     {
       "edges": 12,
-      "name": "zipfile"
+      "name": "inspect"
     },
     {
       "edges": 10,
@@ -534,11 +522,7 @@
     },
     {
       "edges": 10,
-      "name": "urllib.request"
-    },
-    {
-      "edges": 10,
-      "name": "urllib.error"
+      "name": "urllib"
     },
     {
       "edges": 8,
@@ -550,19 +534,15 @@
     },
     {
       "edges": 8,
-      "name": "config"
-    },
-    {
-      "edges": 8,
       "name": "registry"
     },
     {
       "edges": 8,
-      "name": "importlib.util"
+      "name": "zipfile"
     },
     {
       "edges": 8,
-      "name": "argparse"
+      "name": "importlib.util"
     },
     {
       "edges": 6,
@@ -574,6 +554,10 @@
     },
     {
       "edges": 6,
+      "name": "config"
+    },
+    {
+      "edges": 6,
       "name": "difflib"
     },
     {
@@ -582,7 +566,11 @@
     },
     {
       "edges": 6,
-      "name": "contextlib"
+      "name": "urllib.request"
+    },
+    {
+      "edges": 6,
+      "name": "urllib.error"
     },
     {
       "edges": 6,
@@ -590,67 +578,11 @@
     },
     {
       "edges": 6,
-      "name": "packager.core.orchestrator"
-    },
-    {
-      "edges": 6,
       "name": "v2.backend.core.types.types"
     },
     {
       "edges": 6,
-      "name": "packager.core.paths"
-    },
-    {
-      "edges": 6,
-      "name": "packager.core.discovery"
-    },
-    {
-      "edges": 6,
-      "name": "packager.io.manifest_writer"
-    },
-    {
-      "edges": 6,
-      "name": "packager.io.runspec_writer"
-    },
-    {
-      "edges": 6,
-      "name": "packager.io.guide_writer"
-    },
-    {
-      "edges": 6,
-      "name": "packager.languages.python.plugin"
-    },
-    {
-      "edges": 6,
-      "name": "paths"
-    },
-    {
-      "edges": 6,
-      "name": "discovery"
-    },
-    {
-      "edges": 6,
-      "name": "io.manifest_writer"
-    },
-    {
-      "edges": 6,
-      "name": "io.runspec_writer"
-    },
-    {
-      "edges": 6,
-      "name": "io.guide_writer"
-    },
-    {
-      "edges": 6,
-      "name": "languages.python.plugin"
-    },
-    {
-      "edges": 6,
-      "name": "normalize"
-    },
-    {
-      "edges": 6,
-      "name": "packager.io.publisher"
+      "name": "bundle_io"
     },
     {
       "edges": 6,
@@ -663,6 +595,10 @@
     {
       "edges": 6,
       "name": "tomllib"
+    },
+    {
+      "edges": 6,
+      "name": "argparse"
     },
     {
       "edges": 6,
@@ -718,6 +654,10 @@
     },
     {
       "edges": 4,
+      "name": "contextlib"
+    },
+    {
+      "edges": 4,
       "name": "schema"
     },
     {
@@ -731,6 +671,10 @@
     {
       "edges": 4,
       "name": "uuid"
+    },
+    {
+      "edges": 4,
+      "name": "packager.core.orchestrator"
     },
     {
       "edges": 4,
@@ -802,11 +746,67 @@
     },
     {
       "edges": 4,
-      "name": "packager.core.config"
+      "name": "packager.io.publisher"
     },
     {
       "edges": 4,
-      "name": "urllib.parse"
+      "name": "v2.backend.core.utils.code_bundles.code_bundles.contracts"
+    },
+    {
+      "edges": 4,
+      "name": "v2.backend.core.utils.code_bundles.code_bundles.src.packager.io.guide_writer"
+    },
+    {
+      "edges": 4,
+      "name": "packager.core.writer"
+    },
+    {
+      "edges": 4,
+      "name": "html.parser"
+    },
+    {
+      "edges": 4,
+      "name": "v2.backend.core.configuration.config"
+    },
+    {
+      "edges": 4,
+      "name": "v2.backend.core.prompt_pipeline.executor.errors"
+    },
+    {
+      "edges": 2,
+      "name": "backend.core.locks.locks"
+    },
+    {
+      "edges": 2,
+      "name": "v1.backend.utils.logger"
+    },
+    {
+      "edges": 2,
+      "name": "logging"
+    },
+    {
+      "edges": 2,
+      "name": "v2.models.introspection_index"
+    },
+    {
+      "edges": 2,
+      "name": "sanitize"
+    },
+    {
+      "edges": 2,
+      "name": "v2.backend.core.patch_engine.plan"
+    },
+    {
+      "edges": 2,
+      "name": "v2.backend.core.docstrings.formatter"
+    },
+    {
+      "edges": 2,
+      "name": "v2.backend.core.docstrings.locator"
+    },
+    {
+      "edges": 2,
+      "name": "llama_cpp"
     }
   ]
 }
