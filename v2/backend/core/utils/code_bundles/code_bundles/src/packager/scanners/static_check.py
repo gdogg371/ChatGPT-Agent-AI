@@ -418,7 +418,7 @@ def _call_symbol(func: ast.AST) -> Optional[str]:
 # Public entry for manifest
 # ---------------------------
 
-def scan(project_root: Path, exclude: Optional[List[str]] = None) -> List[dict]:
+def static_check_scan(project_root: Path, exclude: Optional[List[str]] = None) -> List[dict]:
     """
     Static checks for a project. Returns a list[dict] issues suitable for manifest consumption.
     - Syntax errors
