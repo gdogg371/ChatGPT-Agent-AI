@@ -1,0 +1,159 @@
+{
+  "family": "ast_symbols",
+  "items": [
+    {
+      "path": "output/patch_code_bundles/cold_start/bootstrap_check.py"
+    },
+    {
+      "path": "output/patch_code_bundles/cold_start/bootstrap_check.py"
+    },
+    {
+      "path": "output/patch_code_bundles/cold_start/bootstrap_check.py"
+    },
+    {
+      "path": "output/patch_code_bundles/cold_start/cleanup_locks.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/configuration/loader.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/configuration/loader.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/configuration/loader.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/configuration/loader.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/configuration/loader.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/configuration/loader.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/configuration/loader.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/configuration/loader.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/configuration/loader.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/configuration/spine_paths.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/configuration/spine_paths.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/configuration/spine_paths.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/db/access/db_init.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/db/access/db_init.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/db/access/db_init.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/db/access/sqlite.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/db/access/sqlite.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/db/access/sqlite.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/db/access/sqlite.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/db/access/sqlite.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/db/access/sqlite.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/db/access/sqlite.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/db/access/sqlite.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/db/access/sqlite.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/db/access/sqlite.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/db/access/sqlite.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/db/access/sqlite.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/db/access/sqlite.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/db/access/sqlite.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/db/access/sqlite.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/db/access/sqlite.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/db/access/sqlite.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/db/writers/docstring_writer.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/db/writers/docstring_writer.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/db/writers/docstring_writer.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/db/writers/docstring_writer.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/db/writers/docstring_writer.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/db/writers/docstring_writer.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/docstrings/ast_utils.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/docstrings/ast_utils.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/docstrings/ast_utils.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/docstrings/ast_utils.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/docstrings/ast_utils.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/docstrings/ast_utils.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/docstrings/ast_utils.py"
+    },
+    {
+      "path": "output/patch_code_bundles/v2/backend/core/docstrings/ast_utils.py"
+    }
+  ],
+  "stats": {
+    "count": 3068,
+    "files_with_items": 352
+  }
+}
