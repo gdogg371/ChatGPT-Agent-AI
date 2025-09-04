@@ -4,11 +4,6 @@ import inspect
 from pathlib import Path
 from typing import Optional
 
-
-
-from v2.backend.core.utils.code_bundles.code_bundles.src.packager.core.orchestrator import Packager
-#from v2.backend.core.utils.code_bundles.code_bundles.src.packager.analysis_emitter import emit_all
-
 import importlib.util
 from importlib.machinery import SourceFileLoader
 
@@ -35,29 +30,32 @@ def _load_analysis_emitter(cfg):
     print("[packager] analysis_emitter import failed → emitter unavailable", flush=True)
     return None
 
+
+from v2.backend.core.utils.code_bundles.code_bundles.src.packager.core.orchestrator import Packager
 import v2.backend.core.utils.code_bundles.code_bundles.src.packager.core.orchestrator as orch_mod
 from v2.backend.core.utils.code_bundles.code_bundles.execute.funcs import (
-read_root_emit_ast,
-read_root_publish_analysis,
-clear_dir_contents,
-discover_repo_paths,
-copy_snapshot
+    read_root_emit_ast,
+    read_root_publish_analysis,
+    clear_dir_contents,
+    discover_repo_paths,
+    copy_snapshot
 )
 from v2.backend.core.utils.code_bundles.code_bundles.execute.read_scanners import (
-augment_manifest
+    augment_manifest
 )
 from v2.backend.core.utils.code_bundles.code_bundles.execute.manifest import (
-maybe_chunk_manifest_and_update
+    maybe_chunk_manifest_and_update
 )
 from v2.backend.core.utils.code_bundles.code_bundles.execute.config import (
     build_cfg
 )
 from v2.backend.core.utils.code_bundles.code_bundles.execute.github import (
-github_clean_remote_repo,
-publish_to_github,
-prune_remote_code_delta,
-prune_remote_artifacts_delta,
-print_full_raw_links
+    github_clean_remote_repo,
+    publish_to_github,
+    publish_github_design_manifest_memory,
+    prune_remote_code_delta,
+    prune_remote_artifacts_delta,
+    print_full_raw_links
 )
 from v2.backend.core.configuration.loader import (
     get_repo_root,
@@ -73,6 +71,7 @@ from v2.backend.core.utils.code_bundles.code_bundles.bundle_io import (
 
 from v2.backend.core.utils.code_bundles.code_bundles.telemetry.runtime_flow import FlowLogger
 from v2.backend.core.utils.code_bundles.code_bundles.src.packager.io.guide_writer import GuideWriter
+
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Main
@@ -210,6 +209,7 @@ def main() -> int:
         )
         return out_path
 
+    """
     if do_github:
         gh_manifest_override = manifest_path.parent / "design_manifest.github.jsonl"
         _rewrite_to_mode(manifest_in=manifest_path, out_path=gh_manifest_override, to_mode="github")
@@ -228,6 +228,15 @@ def main() -> int:
             gh_sums_override = Path(cfg.out_sums)
         finally:
             cfg.out_bundle, cfg.out_sums = local_bundle, local_sums
+            """
+
+    if do_github:
+        with flow.phase("github.memory_publish", step=51):
+            rep = publish_github_design_manifest_memory(
+                cfg=cfg,
+                discovered_repo=discovered_repo,
+            )
+        print(f"[packager] github memory publish: {rep}")
 
     # Chunking (after augmentation)
     if do_local:
@@ -263,6 +272,7 @@ def main() -> int:
     with flow.phase("handoff.write", step=65):
         GuideWriter(Path(cfg.out_guide)).write(cfg=cfg)
 
+    """
     # GitHub publish (includes analysis/** when root-level flag is true)
     if do_github:
         if clean_repo_root:
@@ -308,6 +318,80 @@ def main() -> int:
                     gh_branch=gh_branch,
                     token=str(gh_token),
                 )
+                print(f"[packager] Delta prune: code={deleted_code}, artifacts={deleted_art}")
+            finally:
+                print_full_raw_links(gh_owner, gh_repo, gh_branch, str(gh_token))
+
+    print("[packager] done.")
+    try:
+        flow.end_run(status="ok")
+    except Exception:
+        pass
+    return 0
+    """
+
+    # GitHub publish (code + in-memory design_manifest; no local GH manifest files)
+    if do_github:
+        if clean_repo_root:
+            try:
+                github_clean_remote_repo(owner=gh_owner, repo=gh_repo, branch=gh_branch, base_path="",
+                                         token=str(gh_token))
+            except Exception as e:
+                print(f"[packager] WARN: full repo clean failed: {type(e).__name__}: {e}")
+
+            with flow.phase("publish.github", step=70):
+                # 1) publish code only (no manifest overrides)
+                publish_to_github(
+                    cfg=cfg,
+                    code_items_repo_rel=discovered_repo,
+                    base_path=gh_base,
+                    manifest_override=None,
+                    sums_override=None,
+                )
+                # 2) publish design_manifest (github flavor) entirely from memory
+                rep = publish_github_design_manifest_memory(
+                    cfg=cfg,
+                    discovered_repo=discovered_repo,
+                )
+                print(f"[packager] github memory publish: {rep}")
+
+            print_full_raw_links(gh_owner, gh_repo, gh_branch, str(gh_token))
+        else:
+            with flow.phase("publish.github", step=70):
+                # 1) publish code only (no manifest overrides)
+                publish_to_github(
+                    cfg=cfg,
+                    code_items_repo_rel=discovered_repo,
+                    base_path=gh_base,
+                    manifest_override=None,
+                    sums_override=None,
+                )
+                # 2) publish design_manifest (github flavor) entirely from memory
+                rep = publish_github_design_manifest_memory(
+                    cfg=cfg,
+                    discovered_repo=discovered_repo,
+                )
+                print(f"[packager] github memory publish: {rep}")
+
+            try:
+                with flow.phase("prune.github.code", step=80):
+                    deleted_code = prune_remote_code_delta(
+                        cfg=cfg,
+                        gh_owner=gh_owner,
+                        gh_repo=gh_repo,
+                        gh_branch=gh_branch,
+                        token=str(gh_token),
+                        discovered_repo=discovered_repo,
+                        base_path=gh_base,
+                    )
+                with flow.phase("prune.github.artifacts", step=81):
+                    deleted_art = prune_remote_artifacts_delta(
+                        cfg=cfg,
+                        gh_owner=gh_owner,
+                        gh_repo=gh_repo,
+                        gh_branch=gh_branch,
+                        token=str(gh_token),
+                    )
                 print(f"[packager] Delta prune: code={deleted_code}, artifacts={deleted_art}")
             finally:
                 print_full_raw_links(gh_owner, gh_repo, gh_branch, str(gh_token))
