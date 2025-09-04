@@ -1,0 +1,105 @@
+{
+  "families": {
+    "asset": {
+      "count": 104,
+      "mode": "both",
+      "path": "asset.summary.json"
+    },
+    "ast_calls": {
+      "count": 10284,
+      "mode": "both",
+      "path": "ast_calls.summary.json"
+    },
+    "ast_imports": {
+      "count": 1034,
+      "mode": "both",
+      "path": "ast_imports.summary.json"
+    },
+    "ast_symbols": {
+      "count": 1276,
+      "mode": "both",
+      "path": "ast_symbols.summary.json"
+    },
+    "codeowners": {
+      "count": 0,
+      "mode": "both",
+      "path": "codeowners.summary.json"
+    },
+    "cs": {
+      "count": 0,
+      "mode": "both",
+      "path": "cs.summary.json"
+    },
+    "deps": {
+      "count": 0,
+      "mode": "both",
+      "path": "deps.index.summary.json"
+    },
+    "docs.coverage": {
+      "count": 204,
+      "mode": "both",
+      "path": "docs.coverage.summary.json"
+    },
+    "entrypoints": {
+      "count": 30,
+      "mode": "both",
+      "path": "entrypoints.summary.json"
+    },
+    "env": {
+      "count": 13,
+      "mode": "both",
+      "path": "env.summary.json"
+    },
+    "git": {
+      "count": 0,
+      "mode": "both",
+      "path": "git.info.summary.json"
+    },
+    "html": {
+      "count": 0,
+      "mode": "both",
+      "path": "html.summary.json"
+    },
+    "io_core": {
+      "count": 2,
+      "mode": "both",
+      "path": "manifest.summary.json"
+    },
+    "js": {
+      "count": 0,
+      "mode": "both",
+      "path": "js.index.summary.json"
+    },
+    "license": {
+      "count": 0,
+      "mode": "both",
+      "path": "license.summary.json"
+    },
+    "quality": {
+      "count": 406,
+      "mode": "both",
+      "path": "quality.complexity.summary.json"
+    },
+    "sbom": {
+      "count": 0,
+      "mode": "manifest-only",
+      "path": null
+    },
+    "secrets": {
+      "count": 0,
+      "mode": "both",
+      "path": "secrets.summary.json"
+    },
+    "sql": {
+      "count": 88,
+      "mode": "both",
+      "path": "sql.index.summary.json"
+    },
+    "static": {
+      "count": 426,
+      "mode": "both",
+      "path": "static.summary.json"
+    }
+  },
+  "strategy": "backfill"
+}
