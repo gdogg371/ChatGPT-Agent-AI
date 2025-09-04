@@ -1,24 +1,24 @@
 {
   "families": {
     "asset": {
-      "count": 208,
+      "count": 104,
       "mode": "both",
       "path": "asset.summary.json"
     },
     "ast_calls": {
-      "count": 20298,
+      "count": 10284,
       "mode": "both",
-      "path": "ast.calls.summary.json"
+      "path": "ast_calls.summary.json"
     },
     "ast_imports": {
-      "count": 2058,
+      "count": 1034,
       "mode": "both",
-      "path": "ast.imports.summary.json"
+      "path": "ast_imports.summary.json"
     },
     "ast_symbols": {
-      "count": 2548,
+      "count": 1276,
       "mode": "both",
-      "path": "ast.symbols.summary.json"
+      "path": "ast_symbols.summary.json"
     },
     "codeowners": {
       "count": 0,
@@ -36,17 +36,17 @@
       "path": "deps.index.summary.json"
     },
     "docs.coverage": {
-      "count": 408,
+      "count": 204,
       "mode": "both",
       "path": "docs.coverage.summary.json"
     },
     "entrypoints": {
-      "count": 60,
+      "count": 30,
       "mode": "both",
       "path": "entrypoints.summary.json"
     },
     "env": {
-      "count": 26,
+      "count": 13,
       "mode": "both",
       "path": "env.summary.json"
     },
@@ -61,7 +61,7 @@
       "path": "html.summary.json"
     },
     "io_core": {
-      "count": 4,
+      "count": 2,
       "mode": "both",
       "path": "manifest.summary.json"
     },
@@ -76,7 +76,7 @@
       "path": "license.summary.json"
     },
     "quality": {
-      "count": 812,
+      "count": 406,
       "mode": "both",
       "path": "quality.complexity.summary.json"
     },
@@ -91,9 +91,14 @@
       "path": "secrets.summary.json"
     },
     "sql": {
-      "count": 176,
+      "count": 88,
       "mode": "both",
       "path": "sql.index.summary.json"
+    },
+    "static": {
+      "count": 426,
+      "mode": "both",
+      "path": "static.summary.json"
     }
   },
   "strategy": "backfill"
