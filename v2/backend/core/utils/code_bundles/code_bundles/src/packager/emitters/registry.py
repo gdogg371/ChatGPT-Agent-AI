@@ -566,11 +566,40 @@ def _reduce_git(items: List[dict]) -> dict:
         },
     }
 
+from collections import Counter
+
+def _reduce_static(items: List[dict]) -> dict:
+    return {
+        "family": "static",
+        "stats": {
+            "count": len(items),
+            "by_severity": Counter([i.get("severity","") for i in items]).most_common(),
+            "by_check": Counter([i.get("check","") for i in items]).most_common(),
+            "by_code": Counter([i.get("code","") for i in items]).most_common(),
+        },
+        "items": [
+            {
+                "path": i.get("path"),
+                "line": i.get("line"),
+                "col": i.get("col"),
+                "severity": i.get("severity"),
+                "check": i.get("check"),
+                "code": i.get("code"),
+                "message": i.get("message"),
+            } for i in items
+        ],
+    }
+
+
+
+
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Registry
 # ──────────────────────────────────────────────────────────────────────────────
 
+
+#_REDUCERS["static"] = _reduce_static
 _REDUCERS: Dict[str, Callable[[List[dict]], dict]] = {
     # Family-specific reducers
     "quality": _reduce_quality,
