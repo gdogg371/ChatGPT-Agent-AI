@@ -107,12 +107,15 @@ def maybe_chunk_manifest_and_update(
             part_ext=part_ext,
             out_sums_path=sums_file,
         )
-        # Append monolith checksum line if present
-        mono = Path(cfg.out_bundle).parent / f"{part_stem}.jsonl"
-        if mono.exists():
-            dg = sha256(mono.read_bytes()).hexdigest()
-            with open(sums_file, "a", encoding="utf-8") as _f:
-                _f.write(f"{dg}  {mono.name}\n")
+
+        # Only include monolith in sums when we're preserving it
+        if bool(getattr(cfg.transport, "preserve_monolith", False)):
+            mono = Path(cfg.out_bundle).parent / f"{part_stem}.jsonl"
+            if mono.exists():
+                dg = sha256(mono.read_bytes()).hexdigest()
+                with open(sums_file, "a", encoding="utf-8") as _f:
+                    _f.write(f"{dg}  {mono.name}\n")
+
     except Exception as e:
         print("[packager] WARN: checksums:", type(e).__name__, e)
 
