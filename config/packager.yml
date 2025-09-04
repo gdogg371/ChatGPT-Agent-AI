@@ -3,7 +3,8 @@
 
 # Prefix under which emitted files are published (prefix only, no leading repo path).
 # (Design-manifest artifacts will be created under this prefix.)
-emitted_prefix: "output/patch_code_bundles"
+#emitted_prefix: "output/patch_code_bundles"
+emitted_prefix: ""
 
 # Emit AST-derived data (scanners still respect per-family controls below).
 emit_ast: true
