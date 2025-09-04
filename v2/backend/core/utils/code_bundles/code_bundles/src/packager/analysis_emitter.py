@@ -104,48 +104,31 @@ def _resolve_manifest_dir(cfg) -> Tuple[Path, Dict[str, Any]]:
 
 
 def _default_filenames() -> Dict[str, str]:
-    """
-    Canonical family → filename mapping under analysis/.
-    Matches filenames used by run_pack publishing.
-    """
     return {
-        # AST families
-        "ast_calls": "ast.calls.summary.json",
-        "ast_imports": "ast.imports.summary.json",
-        "ast_symbols": "ast.symbols.summary.json",
-
-        # Entrypoints / Env / Quality / SQL / Deps
+        # existing families…
+        "asset": "asset.summary.json",
+        "ast.calls": "ast.calls.summary.json",
+        "ast.imports": "ast.imports.summary.json",
+        "ast.symbols": "ast.symbols.summary.json",
+        "codeowners": "codeowners.summary.json",
+        "cs": "cs.summary.json",
+        "deps": "deps.index.summary.json",
+        "docs.coverage": "docs.coverage.summary.json",
         "entrypoints": "entrypoints.summary.json",
         "env": "env.summary.json",
-        "quality": "quality.complexity.summary.json",
-        "sql": "sql.index.summary.json",
-        "deps": "deps.index.summary.json",
-
-        # Code ownership / licensing / HTML / Git
-        "codeowners": "codeowners.summary.json",
-        "license": "license.summary.json",
-        "html": "html.summary.json",
         "git": "git.info.summary.json",
-
-        # JS index
-        "js": "js.index.summary.json",
-
-        # Assets
-        "asset": "asset.summary.json",
-
-        # Docs coverage / CS (client-side metrics bucket)
-        "docs.coverage": "docs.coverage.summary.json",
-        "cs": "cs.summary.json",
-
-        # IO core (overall manifest summary)
+        "html": "html.summary.json",
         "io_core": "manifest.summary.json",
-
-        # SBOM (CycloneDX) — treated specially (manifest-only)
-        "sbom": "sbom.cyclonedx.json",
-
-        # Secrets
+        "js": "js.index.summary.json",
+        "license": "license.summary.json",
+        "quality": "quality.complexity.summary.json",
+        "sbom": "sbom.summary.json",
         "secrets": "secrets.summary.json",
+        "sql": "sql.index.summary.json",
+        # ⬇️ add this line
+        "static": "static.summary.json",
     }
+
 
 
 def _default_modes() -> Dict[str, str]:
