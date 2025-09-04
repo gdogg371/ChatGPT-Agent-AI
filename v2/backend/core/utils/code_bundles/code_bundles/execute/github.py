@@ -294,3 +294,153 @@ def prune_remote_artifacts_delta(
         except Exception as e:
             print(f"[packager] WARN: failed delete (artifacts) {it['path']}: {type(e).__name__}: {e}")
     return deleted
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# NEW: Memory-only publisher for design_manifest (GitHub flavor) — no local writes
+# ──────────────────────────────────────────────────────────────────────────────
+def publish_github_design_manifest_memory(
+    *,
+    cfg: NS,
+    discovered_repo: List[Tuple[Path, str]],
+) -> dict:
+    """
+    Build the GitHub-flavor design_manifest **in memory**, split into parts,
+    compute parts index + SHA256SUMS, and push them in a single commit using
+    the Git Data API. Does not write any GitHub-flavor files locally.
+    """
+    # Local imports to avoid changing module-level imports
+    import base64
+    from hashlib import sha256
+
+    # --- resolve publish config ---
+    if not cfg.publish.github:
+        raise ConfigError("GitHub mode requires 'publish.github' coordinates")
+    gh = cfg.publish.github
+    token = str(getattr(cfg, "publish").github_token or "").strip()
+    if not token:
+        raise ConfigError("GitHub mode requires a token from secret_management/secrets.yml -> github.api_key")
+
+    owner = gh.owner
+    repo = gh.repo
+    branch = gh.branch
+    base_path = (gh.base_path or "").strip("/")
+
+    # --- derive transport params ---
+    split_bytes = int(getattr(cfg.transport, "split_bytes", 150000) or 150000)
+    part_stem = str(getattr(cfg.transport, "part_stem", "design_manifest"))
+    part_ext = str(getattr(cfg.transport, "part_ext", ".txt"))
+    parts_index_name = str(getattr(cfg.transport, "parts_index_name", "design_manifest_parts_index.json"))
+
+    # --- load existing LOCAL monolith (if present) and rewrite paths to github-flavor in memory ---
+    # --- build a full GitHub-flavor manifest in memory (parity with augment_manifest) ---
+    from v2.backend.core.utils.code_bundles.code_bundles.execute.read_scanners import augment_manifest_memory
+
+    manifest_bytes = augment_manifest_memory(
+        cfg=cfg,
+        discovered_repo=discovered_repo,
+        mode_local=bool(getattr(cfg, "mode_local", True)),
+        mode_github=True,
+        path_mode="github",
+    )
+
+    # --- split into parts on line boundaries (preserve JSONL integrity) ---
+    lines = manifest_bytes.splitlines(keepends=True)
+    parts: List[Tuple[str, bytes]] = []
+    buf: List[bytes] = []
+    cur = 0
+    total_idx = 0
+    def _flush():
+        nonlocal buf, cur, total_idx
+        if not buf:
+            return
+        total_idx += 1
+        series = (total_idx - 1) // 10
+        name = f"{part_stem}_{series:02d}_{total_idx:04d}{part_ext}"
+        data = b"".join(buf)
+        parts.append((name, data))
+        buf = []
+        cur = 0
+
+    for b in lines:
+        blen = len(b)
+        if cur and (cur + blen) > split_bytes:
+            _flush()
+        buf.append(b)
+        cur += blen
+    _flush()
+
+    parts_index = {
+        "record_type": "parts_index",
+        "total_parts": len(parts),
+        "split_bytes": split_bytes,
+        "parts": [{"name": n, "size": len(d), "lines": d.count(b"\n")} for (n, d) in parts],
+        "source": f"{part_stem}.github.jsonl",
+    }
+    parts_index_bytes = json.dumps(parts_index, ensure_ascii=False, indent=2).encode("utf-8")
+
+    # --- compute SHA256SUMS content (index first, then parts) ---
+    sums_lines = []
+    sums_lines.append(f"{sha256(parts_index_bytes).hexdigest()}  {parts_index_name}\n")
+    for n, d in parts:
+        sums_lines.append(f"{sha256(d).hexdigest()}  {n}\n")
+    sums_bytes = "".join(sums_lines).encode("utf-8")
+
+    # --- prepare paths under design_manifest/ (respect optional base_path) ---
+    dest_root = f"{base_path}/design_manifest" if base_path else "design_manifest"
+    files_to_commit: List[Tuple[str, bytes]] = []
+    files_to_commit.append((f"{dest_root}/{parts_index_name}", parts_index_bytes))
+    files_to_commit.append((f"{dest_root}/design_manifest.github.SHA256SUMS", sums_bytes))
+    for n, d in parts:
+        files_to_commit.append((f"{dest_root}/{n}", d))
+
+    # --- Git Data API single-commit publish (tree API) ---
+    def _api_headers(tok: str) -> dict:
+        return {
+            "Authorization": f"token {tok}",
+            "Accept": "application/vnd.github+json",
+            "User-Agent": "code-bundles-packager",
+            "Content-Type": "application/json",
+        }
+
+    def _req(method: str, path: str, payload: Optional[dict] = None) -> dict:
+        url = f"https://api.github.com/repos/{owner}/{repo}{path}"
+        data = None
+        headers = _api_headers(token)
+        if payload is not None:
+            data = json.dumps(payload).encode("utf-8")
+        req = request.Request(url, data=data, headers=headers, method=method)
+        try:
+            with request.urlopen(req, timeout=60) as resp:
+                return json.loads(resp.read().decode("utf-8"))
+        except error.HTTPError as e:
+            msg = e.read().decode("utf-8", errors="ignore")
+            raise RuntimeError(f"GitHub API {method} {path} failed: {e.code} {e.reason}\n{msg}") from None
+
+    # get head & base tree
+    ref = _req("GET", f"/git/refs/heads/{parse.quote(branch)}")
+    head_sha = ref["object"]["sha"]
+    commit = _req("GET", f"/git/commits/{head_sha}")
+    base_tree_sha = commit["tree"]["sha"]
+
+    # create blobs
+    tree_entries = []
+    for repo_path, content in files_to_commit:
+        b64 = base64.b64encode(content).decode("ascii")
+        blob = _req("POST", "/git/blobs", {"content": b64, "encoding": "base64"})
+        tree_entries.append({"path": repo_path, "mode": "100644", "type": "blob", "sha": blob["sha"]})
+
+    # create tree
+    tree = _req("POST", "/git/trees", {"base_tree": base_tree_sha, "tree": tree_entries})
+    tree_sha = tree["sha"]
+
+    # create commit
+    stamp = time.strftime("%Y-%m-%d %H:%M:%S %Z", time.localtime())
+    commit_msg = f"design_manifest: publish (github, memory-only)\n\n[automated] {stamp}"
+    new_commit = _req("POST", "/git/commits", {"message": commit_msg, "tree": tree_sha, "parents": [head_sha]})
+    new_sha = new_commit["sha"]
+
+    # update ref
+    _req("PATCH", f"/git/refs/heads/{parse.quote(branch)}", {"sha": new_sha, "force": False})
+
+    return {"kind": "github", "decision": "memory-commit", "parts": len(parts), "commit": new_sha}
