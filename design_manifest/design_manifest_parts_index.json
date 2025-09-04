@@ -70,18 +70,18 @@
     },
     {
       "name": "design_manifest_01_0014.txt",
-      "size": 149884,
+      "size": 149880,
       "lines": 407
     },
     {
       "name": "design_manifest_01_0015.txt",
-      "size": 149813,
+      "size": 149730,
       "lines": 401
     },
     {
       "name": "design_manifest_01_0016.txt",
-      "size": 146194,
-      "lines": 376
+      "size": 146988,
+      "lines": 378
     },
     {
       "name": "design_manifest_01_0017.txt",
@@ -185,7 +185,7 @@
     },
     {
       "name": "design_manifest_03_0037.txt",
-      "size": 149972,
+      "size": 149969,
       "lines": 262
     },
     {
@@ -195,8 +195,8 @@
     },
     {
       "name": "design_manifest_03_0039.txt",
-      "size": 41986,
-      "lines": 175
+      "size": 41709,
+      "lines": 174
     }
   ],
   "source": "design_manifest.github.jsonl"
