@@ -1,0 +1,24 @@
+#config/llm.yml
+# LLM configuration (consumed by loader.py). No environment variables and no code defaults.
+
+# Provider identifier understood by the client and Engine ("openai" or "mock").
+provider: "openai"
+
+# Model name to use (must be accepted by the chosen provider).
+model: "gpt-4o-mini"
+
+ask_spec:
+  response_format: json
+  temperature: 0.2
+
+# Context window (tokens) for the selected model.
+model_ctx_tokens: 128000
+
+# Per-item response budget used for prompt planning.
+response_tokens_per_item: 800
+
+# Fixed overhead tokens reserved for system/packing.
+batch_overhead_tokens: 600
+
+# Safety guardrail to stop batches that would exceed this many tokens.
+budget_guardrail: 120000
