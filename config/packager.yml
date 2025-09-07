@@ -1,0 +1,588 @@
+# config/packager.yml
+# Packager configuration (consumed by loader.py). No in-code defaults remain.
+
+# Prefix under which emitted files are published (prefix only, no leading repo path).
+# (Design-manifest artifacts will be created under this prefix.)
+#emitted_prefix: "output/patch_code_bundles"
+emitted_prefix: "."
+
+# Emit AST-derived data (scanners still respect per-family controls below).
+emit_ast: true
+
+# What to include/exclude from the emitted set (globs; loader normalizes separators).
+include_globs:
+  - "config/**"
+  - "cold_start/**"
+  - "recovery/**"
+  - "scripts/**"
+  - "v2/**"
+
+exclude_globs:
+  - "**/.git/**"
+  - "**/__pycache__/**"
+  - "**/*.pyc"
+  - "**/.mypy_cache/**"
+  - "**/.pytest_cache/**"
+  - "**/.idea/**"
+  - "**/.vscode/**"
+  - "secret_management/**"
+  - "**/node_modules/**"
+  - "**/dist/**"
+  - "**/build/**"
+  - "**/.venv/**"
+  - "**/venv/**"
+  - "**/tests/**"
+  - "**/standalone/**"
+
+# Segment-level excludes (directory basenames to ignore regardless of depth).
+segment_excludes:
+  - ".git"
+  - "__pycache__"
+  - ".mypy_cache"
+  - ".pytest_cache"
+  - ".idea"
+  - ".vscode"
+  - "node_modules"
+  - "dist"
+  - "build"
+  - ".venv"
+  - "venv"
+  - "v1"
+  - "secret_management"
+  - "output"
+  - "Archive"
+  - "archive"
+  - "databases"
+  - "logs"
+  - "software"
+  - "terraform"
+  - "tests"
+  - "tests_adhoc"
+  - "tests_adhoc2"
+  - "standalone"
+
+# Write analysis sidecars when enabled in metadata_emission (see below).
+publish_analysis: true
+
+# Publish coordinates. Paths may be relative to the repo root; loader resolves them.
+publish:
+  mode: "both"             # "local" | "github" | "both"
+  disable_legacy_sums: false
+  runspec_filename: "superbundle.run.json"
+  handoff_filename: "assistant_handoff.v1.json"
+  staging_root: "output/staging"
+  output_root: "output/patch_code_bundles"
+  ingest_root: "."          # external source tree to ingest into staging_root/codebase
+  #local_publish_root: "output/patch_code_bundles/published"
+  clean_before_publish: false
+  clean:
+    clean_repo_root: true   # when true, wipe entire repo before publish
+    clean_artifacts: true
+
+  # Control emission of companion control files
+  handoff: true             # emit assistant_handoff.v1.json
+  runspec: true             # emit superbundle.run.json
+  transport_index: true     # emit design_manifest_parts_index.json
+  checksums: true           # emit design_manifest.SHA256SUMS
+
+  github:
+    # Populated from your provided raw.githubusercontent.com links:
+    # https://raw.githubusercontent.com/<owner>/<repo>/<branch>/<base_path>/...
+    owner: "gdogg371"
+    repo: "ChatGPT-Agent-AI"
+    branch: "main"
+    # Base path within the repo to publish into (the segment after refs/heads/<branch>/)
+    base_path: ""
+    api_base: "https://api.github.com"                # confirm/new
+    raw_base: "https://raw.githubusercontent.com"     # confirm/new
+    user_agent: "code-bundles-packager"               # confirm/new
+    throttle_every: 50                                 # confirm/new
+    sleep_secs: 0.5                                    # confirm/new
+    timeout: 30                                        # confirm/new
+    long_timeout: 60                                   # confirm/new
+
+  # Analysis emission policy (prevents 'emitter=set' with an empty gate)
+  analysis:
+    enabled: true
+    emitters: all      # valid: all | {set: [ast_calls, docs, quality, ...]}
+
+# Where to place the manifest artifacts (relative to repo root unless absolute)
+manifest_paths:
+  root_dir: "output/design_manifest"                   # replaces hard-coded folder
+  analysis_subdir: "analysis"                   # where sidecars go under root
+  parts_index_filename: "design_manifest_parts_index.json"
+  checksums_filename:   "design_manifest.SHA256SUMS"
+  github_checksums_filename: "design_manifest.github.SHA256SUMS"
+  github_parts_index_filename: "design_manifest.github_parts_index.json"
+  analysis_index_filename: "_index.json"
+  python_index_filename: "python/index.json"
+
+# Transport settings for chunked design manifest output.
+transport:
+  kind: "chunked"           # chunk the JSONL into .txt parts
+  part_stem: "design_manifest"
+  monolith_ext: ".jsonl"
+  part_ext: ".txt"
+  parts_per_dir: 10
+  split_bytes: 150000
+  preserve_monolith: false  # do not keep a monolithic .jsonl; consume via parts index
+  group_dirs: true
+
+# Per-family emission controls:
+#   none     → do not emit
+#   manifest → write into the chunked manifest only
+#   both     → write into the manifest AND emit a sidecar analysis file under <emitted_prefix>/analysis/**
+metadata_emission:
+  # Priority families
+  asset:        both
+  deps:         both
+  entrypoints:  both
+  env:          both
+  git:          both
+  license:      both
+  secrets:      both         # scanner emits summary-only for findings; still produce sidecar summary
+  sql:          both
+
+  # AST families (first-class)
+  ast_symbols:  both         # classes/functions/etc.
+  ast_imports:  both         # import/import_from/edge.import
+  ast_calls:    both         # ast.call
+
+  # Docs / Quality
+  docs:         both         # docs.coverage + summary
+  quality:      both         # complexity + summary
+
+  # Polyglot surface
+  html:         both
+  js:           both         # covers js/cjs/esm
+  cs:           both
+
+  # Supply chain add-on
+  sbom:         both         # CycloneDX if produced by deps scanner
+
+  # IO/Core (manifest-only by default)
+  io_core:      both         # artifact/manifest.header rows only
+
+  # Additional family
+  codeowners:   both
+
+  # Static analysis (Python)
+  static:       both
+
+# Canonical filenames for analysis sidecars (used when emission == both)
+analysis_filenames:
+  # Priority
+  asset:        "asset.summary.json"
+  deps:         "deps.scan.summary.json"
+  entrypoints:  "entrypoint_summary.summary.json"
+  env:          "env.summary.json"
+  git:          "git.info.summary.json"
+  license:      "license.summary.json"
+  secrets:      "secrets.summary.json"
+  sql:          "sql.index.summary.json"
+  sql_refs: "sql/graphs/sql_refs.json"
+
+  # AST
+  ast_symbols:  "ast.symbols.summary.json"
+  ast_imports:  "ast.imports.summary.json"
+  ast_calls:    "ast.calls.summary.json"
+
+  # Docs / Quality
+  docs:         "docs.coverage.summary.json"
+  quality:      "quality.summary.json"
+
+  # Polyglot
+  html:         "html.summary.json"
+  js:           "js.index.summary.json"
+  cs:           "cs.summary.json"
+
+  # Supply chain
+  sbom:         "sbom.cyclonedx.json"
+
+  # IO/Core synth (only used if you ever switch io_core: both)
+  io_core:      "manifest.summary.json"
+
+  # Additional family
+  codeowners:   "codeowners.summary.json"
+
+  # Static
+  static:       "static.summary.json"
+
+  # full Python index (FILES + SUMMARY) → writes analysis/python/index.json
+  python: "python/index.json"
+
+  # compact summary (TOP/TOTALS) → writes analysis/python_module_index.summary.json
+  python_module_index: "python_module_index.summary.json"
+
+# Family aliases → canonical key (keeps config stable while scanners evolve)
+family_aliases: &family_aliases
+  # AST dotted/variants (normalized)
+  ast.call:        ast_calls
+  ast.calls:       ast_calls
+  call:            ast_calls
+
+  ast.symbol:      ast_symbols
+  ast.symbols:     ast_symbols
+  file:            ast_symbols
+  class:           ast_symbols
+  function:        ast_symbols
+  method:          ast_symbols
+
+  ast.import:      ast_imports
+  ast.imports:     ast_imports
+  import:          ast_imports
+  import_from:     ast_imports
+  ast.import_from: ast_imports
+  from:            ast_imports
+  edge.import:     ast_imports
+
+  # Scanner → canonical
+  js_ts:           js
+  owners_index:    codeowners
+  assets:          asset
+  git_info:        git
+  html_index:      html
+  sql_index:       sql
+  doc_coverage:    docs
+  "quality.complexity": quality
+  static_check:    static
+  static.issue:    static
+
+  # IO-core aliases
+  artifact:        io_core
+  manifest:        io_core
+
+# Global controls for synthesis/validation.
+controls:
+  synthesize_empty_summaries: true   # write zero-structured summaries when no findings
+  strict_validation: true            # fail run on inconsistent config
+  forbid_raw_secrets: true           # enforce summary-only behavior for secrets
+  analysis_strategy: backfill        # backfill | enforce | passthrough
+  summary_limits:
+    ast_imports_top_modules: 10
+    ast_calls_top: 15
+    deps_packages_top: 50
+    static_top_checks: 15
+    static_top_codes: 15
+
+# Optional handoff guidance consumed by guide_writer
+handoff:
+  prefer_parts_index: true
+  reading_order:
+    - path: "analysis/entrypoints.summary.json"
+      why:  "Where & how to run the code"
+    - path: "analysis/docs.coverage.summary.json"
+      why:  "Documentation health"
+    - path: "analysis/quality.complexity.summary.json"
+      why:  "Complexity & hotspots"
+    - path: "analysis/sql.index.summary.json"
+      why:  "DB schema & SQL surface"
+    - path: "analysis/git.info.summary.json"
+      why:  "Repo provenance"
+
+# Execution limits (optional)
+limits:
+  max_files: 0           # 0 = no limit
+  max_bytes: 0
+  # Prevent silent stalls during emitter backfill while staying generous for big repos
+  timeout_seconds: 600
+
+# -----------------------------------------------------------------------------
+# Analysis & scanner settings (Phase 1: Python dependency scanning)
+# -----------------------------------------------------------------------------
+analysis:
+  # Gate (optional): if provided, restricts families emitted by the analysis emitter.
+  # Leave empty to emit all known families.
+  gate:
+    - asset
+    - deps
+    - entrypoints
+    - env
+    - git
+    - license
+    - secrets
+    - sql
+    - ast_symbols
+    - ast_imports
+    - ast_calls
+    - docs
+    - quality
+    - html
+    - js
+    - cs
+    - sbom
+    - io_core
+    - codeowners
+    - static
+
+  deps:
+    enabled: true
+    ecosystems:
+      - pypi            # Phase 1 enables Python only
+    python:
+      enabled: true
+      # Which sources to read (all stdlib parsers)
+      sources:
+        poetry_lock: true        # poetry.lock
+        pyproject: true          # pyproject.toml (PEP 621 + tool.poetry.*)
+        requirements: true       # requirements*.txt
+        setup_cfg: true          # setup.cfg (install_requires/extras_require)
+      # Preference order when multiple sources specify a version for the same package
+      prefer_version_source:
+        - poetry_lock
+        - requirements
+        - pyproject
+        - setup_cfg
+      # Parsing safeguards to avoid runaway inputs
+      parse_limits:
+        max_requirements_lines: 10000
+        max_packages: 10000
+
+# -----------------------------------------------------------------------------
+# Manifest/Reader policy (moved from code → config)
+# -----------------------------------------------------------------------------
+manifest:
+  reader:
+    # Use the same alias map for normalization (mirrors code fallback)
+    fallback_aliases: *family_aliases
+    # Prefer consuming via the parts index when present
+    prefer_parts_index: true
+    # Where to look (in order) for the manifest root, relative to the repo root
+    search_order:
+      - "design_manifest"                          # current manifest_paths.root_dir
+      - "output/design_manifest"                   # legacy location
+      - "output/patch_code_bundles/design_manifest"  # published location
+
+# -----------------------------------------------------------------------------
+# Registry policy (moved from code → config)
+# -----------------------------------------------------------------------------
+registry:
+  # Canonical families recognized by the registry (mirrors code defaults)
+  canon_families:
+    - asset
+    - deps
+    - entrypoints
+    - env
+    - git
+    - license
+    - secrets
+    - sql
+    - ast_symbols
+    - ast_imports
+    - ast_calls
+    - docs
+    - quality
+    - html
+    - js
+    - cs
+    - sbom
+    - io_core
+    - codeowners
+    - static
+
+  # Alias map used by registry normalization (kept in sync with reader/registry.py)
+  registry:
+    aliases:
+      # AST → canonical
+      "ast.call": "ast_calls"
+      "ast_call": "ast_calls"
+      "edge.import": "ast_imports"
+      "edge_import": "ast_imports"
+      "ast.symbol": "ast_symbols"
+      "ast_symbol": "ast_symbols"
+
+      # Docs / Quality
+      "docs.coverage": "docs"
+      "docs_coverage": "docs"
+      "docs.coverage_summary": "docs"
+      "docs_coverage_summary": "docs"
+      "quality.complexity": "quality"
+      "quality_complexity": "quality"
+      "quality.complexity_summary": "quality"
+      "quality_complexity_summary": "quality"
+      "quality.metric": "quality"
+      "quality_metric": "quality"
+
+      # Entrypoints
+      "python.module.index": "entrypoints"
+      "entrypoint.python": "entrypoints"
+      "entrypoint_python": "entrypoints"
+      "entrypoint.shell": "entrypoints"
+      "entrypoint_shell": "entrypoints"
+      "entrypoint.summary": "entrypoints"
+      "entrypoint_summary": "entrypoints"
+
+      # Env
+      "env.summary": "env"
+      "env_summary": "env"
+      "env.usage": "env"
+      "env_usage": "env"
+
+      # Git / License / Codeowners / Asset
+      "git.info.summary": "git"
+      "git_info_summary": "git"
+      "git.repo": "git"
+      "git_repo": "git"
+      "license.header": "license"
+      "license_header": "license"
+      "license.summary": "license"
+      "license_summary": "license"
+      "codeowners.summary": "codeowners"
+      "codeowners_summary": "codeowners"
+      "asset.file": "asset"
+      "asset_file": "asset"
+      "asset.summary": "asset"
+      "asset_summary": "asset"
+
+      # SQL / Static / Polyglot
+      "sql.index": "sql"
+      "sql_index": "sql"
+      "sql.index_summary": "sql"
+      "sql_index_summary": "sql"
+      "static.issue": "static"
+      "static_issue": "static"
+      "html.summary": "html"
+      "html_summary": "html"
+      "js.index_summary": "js"
+      "js_index_summary": "js"
+
+
+  # Reducer selection per family (string identifiers; resolved in code)
+  reducers:
+    ast_docstring:  ast_docstring
+    ast_symbols:    ast_symbols
+    ast_imports:    ast_imports
+    ast_calls:      ast_calls
+    deps:           deps
+    entrypoints:    entrypoints
+    docs:           docs
+    quality:        quality
+    sql:            sql
+    static:         static           # if absent in code, fallback to generic_counter
+    asset:          generic_counter
+    env:            generic_counter
+    git:            generic_counter
+    license:        generic_counter
+    secrets:        generic_counter
+    html:           generic_counter
+    js:             generic_counter
+    cs:             generic_counter
+    sbom:           generic_counter
+    io_core:        generic_counter
+    codeowners:     generic_counter
+
+reader:
+  aliases:           # NEW — this replaces reader.py’s _FALLBACK_ALIASES
+    "ast.call": "ast_calls"
+    "ast.calls": "ast_calls"
+    "call": "ast_calls"
+
+    "ast.symbol": "ast_symbols"
+    "ast.symbols": "ast_symbols"
+    "file": "ast_symbols"
+    "class": "ast_symbols"
+    "function": "ast_symbols"
+    "method": "ast_symbols"
+
+    "import": "ast_imports"
+    "ast.import": "ast_imports"
+    "ast.imports": "ast_imports"
+    "edge.import": "ast_imports"
+
+    "entrypoint": "entrypoints"
+    "entrypoints": "entrypoints"
+    "entrypoint.python": "entrypoints"
+    "entrypoint.shell": "entrypoints"
+
+    "js": "js"
+    "js.index": "js"
+
+    "io": "io_core"
+    "manifest": "io_core"
+    "manifest_header": "io_core"
+    "bundle_summary": "io_core"
+
+    "sbom": "sbom"
+    "deps": "deps"
+    "dep": "deps"
+    "deps.index": "deps"
+    "deps.index.summary": "deps"
+
+    "secret": "secrets"
+
+    "env": "env"
+    "env.vars": "env"
+    "env.usage": "env"
+
+    "quality": "quality"
+    "quality.metric": "quality"
+    "quality_metrics": "quality"
+    "quality.complexity": "quality"
+    "quality_complexity": "quality"
+
+    "sql": "sql"
+    "sql.index": "sql"
+    "sqlindex": "sql"
+
+    "static": "static"
+    "static.issue": "static"
+    "static_check": "static"
+
+    "codeowners": "codeowners"
+    "license": "license"
+    "html": "html"
+    "git": "git"
+    "git.info": "git"
+
+    "asset": "asset"
+    "asset.file": "asset"
+
+    "cs": "cs"
+    "docs.coverage": "docs.coverage"
+    "docs.coverage.summary": "docs.coverage"
+    "ast.xref": "ast.xref"
+    "module_index": "module_index"
+
+    
+# === BEGIN append-only: wrapper policy ===
+scanner_output:
+  # Enforce the v1 envelope for anything written by the runner/writer.
+  require_v1: true
+
+  # Strict mapping for legacy 'record_type' rows (primarily from the Python AST/indexer path).
+  # If a seen record_type is not listed here, the wrapper will emit a scanner.error (parse_error=true).
+  record_type_kind_map:
+    module_index: python.module.index
+    edge.import: edge.import
+    ast.symbol: ast.symbol
+    ast.xref: edge.import
+    ast.call: ast.call
+    ast.docstring: ast.docstring
+    ast.symbol_metrics: ast.symbol.metrics
+
+  # Only where scope is ambiguous; everything else is inferred by the wrapper:
+  # (*.summary → repo, edge.* → edge, ast.symbol*/docstring → symbol, otherwise file)
+  scope_overrides:
+    git.repo: repo
+    edge.import: edge
+    ast.call: edge
+    ast.symbol: symbol
+    ast.docstring: symbol
+    ast.symbol.metrics: symbol
+
+  # Meta/run records the wrapper should ignore rather than wrap.
+  exclude_record_types:
+    - manifest_header
+    - bundle_summary
+    - parts_index
+    - superbundle.run
+    - assistant_handoff.v1
+
+  kind_aliases:
+    entrypoints: entrypoint
+    git.info: git
+
+  # Optional (documenting intent): prefer record_type mapping when both exist
+  prefer_record_type: true
+# === END append-only: wrapper policy ===
+
