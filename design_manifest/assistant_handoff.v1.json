@@ -1,0 +1,133 @@
+{
+  "record_type": "assistant_handoff.v1",
+  "version": "2",
+  "generated_at": "2025-09-07T23:30:19.923659Z",
+  "artifact_root": "output/design_manifest/",
+  "publish": {
+    "mode": "both",
+    "github": {
+      "owner": "gdogg371",
+      "repo": "ChatGPT-Agent-AI",
+      "branch": "main",
+      "raw_base": "https://raw.githubusercontent.com/gdogg371/ChatGPT-Agent-AI/main/output/design_manifest/"
+    }
+  },
+  "transport": {
+    "chunked": true,
+    "part_stem": "design_manifest",
+    "part_ext": ".txt",
+    "parts_per_dir": 10,
+    "split_bytes": 150000,
+    "preserve_monolith": false
+  },
+  "paths": {
+    "source_root": "./",
+    "guide": "output/design_manifest/assistant_handoff.v1.json",
+    "runspec": "output/design_manifest/superbundle.run.json",
+    "checksums": "output/design_manifest/design_manifest.SHA256SUMS",
+    "parts_index": "output/design_manifest/design_manifest_parts_index.json",
+    "monolith": null,
+    "analysis_index": "output/design_manifest/analysis/_index.json"
+  },
+  "analysis_files": {
+    "asset": "output/design_manifest/analysis/asset.summary.json",
+    "entrypoints": "output/design_manifest/analysis/entrypoint_summary.summary.json",
+    "env": "output/design_manifest/analysis/env.summary.json",
+    "sql": "output/design_manifest/analysis/sql.index.summary.json",
+    "ast_symbols": "output/design_manifest/analysis/ast.symbols.summary.json",
+    "ast_imports": "output/design_manifest/analysis/ast.imports.summary.json",
+    "ast_calls": "output/design_manifest/analysis/ast.calls.summary.json",
+    "docs": "output/design_manifest/analysis/docs.coverage.summary.json",
+    "quality": "output/design_manifest/analysis/quality.summary.json",
+    "io_core": "output/design_manifest/analysis/manifest.summary.json",
+    "static": "output/design_manifest/analysis/static.summary.json"
+  },
+  "quickstart": {
+    "start_here": [
+      {
+        "title": "Run & CLI",
+        "path": "output/design_manifest/analysis/entrypoint_summary.summary.json",
+        "why": "How to invoke binaries/scripts and service entrypoints."
+      },
+      {
+        "title": "Docs coverage",
+        "path": "output/design_manifest/analysis/docs.coverage.summary.json",
+        "why": "Docstring coverage by module; identify gaps."
+      },
+      {
+        "title": "Complexity hotspots",
+        "path": "output/design_manifest/analysis/quality.summary.json",
+        "why": "Prioritize risky modules/functions."
+      },
+      {
+        "title": "SQL surface",
+        "path": "output/design_manifest/analysis/sql.index.summary.json",
+        "why": "DB schemas and queries in one place."
+      }
+    ],
+    "raw_manifest": [
+      {
+        "title": "Chunked manifest (parts index)",
+        "path": "output/design_manifest/design_manifest_parts_index.json",
+        "why": "Top-level index for chunked manifest. Enumerates parts and sizes."
+      },
+      {
+        "title": "Monolith manifest",
+        "path": null,
+        "why": "Full manifest in one file (if preserved)."
+      },
+      {
+        "title": "Run spec",
+        "path": "output/design_manifest/superbundle.run.json",
+        "why": "Inputs, controls and provenance for this run."
+      },
+      {
+        "title": "Checksums",
+        "path": "output/design_manifest/design_manifest.SHA256SUMS",
+        "why": "Integrity verification for manifest files."
+      },
+      {
+        "title": "Analysis index",
+        "path": "output/design_manifest/analysis/_index.json",
+        "why": "Families and counts for analysis outputs."
+      },
+      {
+        "title": "This guide",
+        "path": "output/design_manifest/assistant_handoff.v1.json",
+        "why": "You're reading it!"
+      }
+    ]
+  },
+  "highlights": {
+    "stats": {
+      "files_total_python": 0,
+      "python_functions": 0,
+      "python_classes": 0,
+      "python_loc": 0,
+      "python_symbols": null,
+      "imports_statements": null,
+      "sql_graph_edges": 0
+    },
+    "top": {
+      "complexity_modules": [],
+      "import_modules": [],
+      "entrypoints": []
+    },
+    "risks": {
+      "secrets_findings": 0,
+      "license_flags": 0
+    }
+  },
+  "limits": {
+    "max_files": 0,
+    "max_bytes": 0,
+    "timeout_seconds": 600
+  },
+  "constraints": {
+    "offline_only": true
+  },
+  "notes": [
+    "Paths are relative to artifact_root unless absolute.",
+    "If preserve_monolith=false, the monolithic manifest may be empty or removed."
+  ]
+}
